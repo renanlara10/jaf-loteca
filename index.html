@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -95,6 +94,9 @@
   .btn-r:disabled{opacity:.35;cursor:not-allowed;transform:none;}
   .btn-r.rst{background:rgba(74,90,112,.2);}
   .btn-r.rst:hover{background:rgba(74,90,112,.4);color:var(--text);}
+  .btn-r.undo{background:rgba(91,124,253,.12);color:var(--neutral);border-color:rgba(91,124,253,.25);}
+  .btn-r.undo:hover{background:rgba(91,124,253,.25);color:#fff;}
+  .btn-r.undo:disabled{opacity:.2;}
 
   tfoot tr{background:var(--surface);border-top:2px solid var(--border);}
   tfoot td{padding:12px 10px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.03em;}
@@ -244,15 +246,7 @@
   </div>
 </div>
 
-<!-- MODAL: RESET LINHA -->
-<div class="mo" id="mReset"><div class="mc" style="max-width:360px">
-  <h2>Resetar Linha</h2>
-  <p id="mResetMsg">Confirmar reset do martingale?</p>
-  <div class="mbtns">
-    <button onclick="closeM('mReset')">Cancelar</button>
-    <button class="ok" onclick="confirmReset()">Confirmar</button>
-  </div>
-</div></div>
+<!-- Modal reset linha removido -->
 
 <!-- MODAL: PRÓXIMO CONCURSO -->
 <div class="mo" id="mNext"><div class="mc" style="max-width:400px">
@@ -332,7 +326,7 @@ function blankGames() {
 
 function blankLines() {
   return Array.from({length:N}, () => ({
-    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}
+    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}, lastAction: null
   }));
 }
 
@@ -414,7 +408,7 @@ async function initFirebase() {
       A = snap.data();
       // Garante campos novos para dados antigos (migração)
       A.lines = A.lines.map(ln => ({
-        stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{}, apostaOverride:{},
+        stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{}, apostaOverride:{}, lastAction:null,
         ...ln
       }));
     } else {
@@ -544,7 +538,7 @@ function render() {
       <td><div class="result-btns">
         <button class="btn-r" onclick="window._doResult(${i},true)">✓ EMPATE</button>
         <button class="btn-r" onclick="window._doResult(${i},false)">✗ NÃO</button>
-        <button class="btn-r rst" onclick="window._askReset(${i})">↺</button>
+        <button class="btn-r undo" onclick="window._undoResult(${i})" title="Desfazer última marcação desta linha" ${!ln.lastAction?"disabled":""}>↩</button>
       </div></td>`;
     tbody.appendChild(tr);
   });
@@ -583,6 +577,16 @@ window._doResult = function(i, won) {
   const aposta = (ln.apostaOverride && ln.apostaOverride[key] != null)
     ? ln.apostaOverride[key]
     : apostaCalc;
+  // Salva snapshot ANTES de alterar (para desfazer)
+  ln.lastAction = {
+    key, won, aposta, lucro,
+    stage:      ln.stage,
+    lostAccum:  ln.lostAccum,
+    pnlTotal:   ln.pnlTotal,
+    pnlLogVal:  (ln.pnlLog[key] || 0),
+    hadOverride: (ln.apostaOverride && ln.apostaOverride[key] != null),
+    overrideVal: (ln.apostaOverride && ln.apostaOverride[key]),
+  };
   // Limpa override após usar (resultado registrado)
   if (ln.apostaOverride) delete ln.apostaOverride[key];
   const prevLog = ln.pnlLog[key] || 0;
@@ -603,6 +607,31 @@ window._doResult = function(i, won) {
     ln.lostAccum   = r2((ln.lostAccum||0) + aposta);
     ln.stage++;
   }
+  save(); render();
+};
+
+window._undoResult = function(i) {
+  const ln = A.lines[i];
+  if (!ln.lastAction) return; // nada para desfazer
+  const snap = ln.lastAction;
+  // Restaura tudo do snapshot
+  ln.stage      = snap.stage;
+  ln.lostAccum  = snap.lostAccum;
+  ln.pnlTotal   = snap.pnlTotal;
+  if (!ln.pnlLog) ln.pnlLog = {};
+  if (snap.pnlLogVal === 0) {
+    delete ln.pnlLog[snap.key];
+  } else {
+    ln.pnlLog[snap.key] = snap.pnlLogVal;
+  }
+  // Restaura override se havia
+  if (!ln.apostaOverride) ln.apostaOverride = {};
+  if (snap.hadOverride) {
+    ln.apostaOverride[snap.key] = snap.overrideVal;
+  } else {
+    delete ln.apostaOverride[snap.key];
+  }
+  ln.lastAction = null; // só um nível de undo
   save(); render();
 };
 
@@ -715,23 +744,7 @@ window.confirmImport = function() {
   save(); closeM('mImport'); render();
 };
 
-// ── RESET LINHA ──
-let _ri = null;
-window._askReset = function(i) {
-  _ri = i;
-  const g = curConc().games[i];
-  document.getElementById('mResetMsg').textContent =
-    `Resetar linha ${i+1}: ${g.home} x ${g.away}?\nStage e acumulado voltam ao zero.`;
-  openM('mReset');
-};
-window.confirmReset = function() {
-  if (_ri !== null) {
-    const ln = A.lines[_ri];
-    ln.stage = 0; ln.lostAccum = 0;
-    save(); render();
-  }
-  closeM('mReset'); _ri = null;
-};
+// ── RESET LINHA removido (substituído por Desfazer) ──
 
 // ── RESET GERAL ──
 window.confirmResetAll = function() {
