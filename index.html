@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JAF Loteca</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0d12;--surface:#111520;--card:#161c2a;--border:#1e2a3a;--accent:#00e5a0;--accent2:#ff4d6d;--accent3:#f5a623;--text:#d4dff0;--muted:#4a5a70;--win:#00e5a0;--loss:#ff4d6d;--neutral:#5b7cfd;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4;}
+
+  /* ── SYNC STATUS ── */
+  #syncBar{position:fixed;top:0;left:0;right:0;z-index:999;padding:6px 16px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-align:center;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:8px;}
+  #syncBar.syncing{background:rgba(245,166,35,.15);color:var(--accent3);border-bottom:1px solid rgba(245,166,35,.25);}
+  #syncBar.synced {background:rgba(0,229,160,.1); color:var(--accent);  border-bottom:1px solid rgba(0,229,160,.2);}
+  #syncBar.error  {background:rgba(255,77,109,.15);color:var(--accent2); border-bottom:1px solid rgba(255,77,109,.25);}
+  #syncBar.hidden {display:none;}
+  .sync-dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  #syncBar.synced .sync-dot,#syncBar.error .sync-dot{animation:none;}
+
+  /* ── HEADER ── */
+  .header{position:relative;padding:52px 24px 20px;text-align:center;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(0,229,160,.04) 0%,transparent 100%);}
+  .header-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--accent);background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.2);padding:4px 14px;border-radius:2px;margin-bottom:10px;}
+  h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,7vw,64px);letter-spacing:.04em;line-height:1;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .subtitle{margin-top:6px;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;}
+
+  /* ── NAV ── */
+  .concurso-nav{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);}
+  .concurso-info{display:flex;align-items:center;gap:8px;background:rgba(91,124,253,.1);border:1px solid rgba(91,124,253,.25);padding:7px 16px;border-radius:2px;font-family:'DM Mono',monospace;font-size:12px;color:var(--neutral);}
+  .concurso-info .num{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.06em;color:#fff;}
+  .btn-nav{display:inline-flex;align-items:center;gap:6px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:2px;transition:all .15s;}
+  .btn-nav:hover{filter:brightness(1.25);transform:translateY(-1px);}
+  .btn-nav:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+  .btn-prev{background:rgba(74,90,112,.25);color:var(--muted);border:1px solid var(--border);}
+  .btn-next{background:rgba(0,229,160,.12);color:var(--accent);border:1px solid rgba(0,229,160,.25);}
+  .btn-import{background:rgba(91,124,253,.12);color:var(--neutral);border:1px solid rgba(91,124,253,.28);}
+  .btn-resetall{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.28);}
+
+  /* ── SUMMARY ── */
+  .summary-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--border);border-bottom:1px solid var(--border);}
+  .summary-item{background:var(--surface);padding:14px 16px;text-align:center;}
+  .summary-value{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.04em;line-height:1;}
+  .summary-label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px;font-family:'DM Mono',monospace;}
+
+  /* ── CONTAINER ── */
+  .container{max-width:1180px;margin:0 auto;padding:20px 16px 48px;position:relative;z-index:1;}
+  .rules-card{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent3);padding:13px 18px;margin-bottom:18px;font-size:12px;color:var(--muted);line-height:1.7;font-family:'DM Mono',monospace;}
+  .rules-card strong{color:var(--accent3);}
+  .info-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px;}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:2px;padding:5px 11px;font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);}
+  .pill .dot-icon{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+  /* ── TABLE ── */
+  .table-wrapper{overflow-x:auto;border-radius:4px;border:1px solid var(--border);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead tr{background:var(--surface);border-bottom:2px solid var(--border);}
+  thead th{padding:11px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+  thead th:first-child{padding-left:14px;}
+  tbody tr{background:var(--card);border-bottom:1px solid var(--border);transition:background .15s;}
+  tbody tr:hover{background:rgba(22,28,42,.85);}
+  td{padding:10px;vertical-align:middle;white-space:nowrap;}
+  td:first-child{padding-left:14px;}
+
+  .game-num{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--muted);width:28px;text-align:center;}
+  .teams{font-weight:600;font-size:13px;color:var(--text);min-width:190px;}
+  .teams span.vs{color:var(--muted);font-weight:300;font-size:11px;margin:0 4px;}
+  .teams.ph{color:var(--muted);font-style:italic;font-weight:400;}
+  .day-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:2px;background:rgba(74,90,112,.3);color:var(--muted);}
+
+  .stage{display:inline-flex;align-items:center;font-family:'DM Mono',monospace;font-size:11px;padding:3px 8px;border-radius:2px;}
+  .s0{background:rgba(0,229,160,.08);color:var(--accent);border:1px solid rgba(0,229,160,.2);}
+  .s1{background:rgba(245,166,35,.1);color:var(--accent3);border:1px solid rgba(245,166,35,.25);}
+  .s2{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25);}
+  .s3{background:rgba(255,77,109,.18);color:#ff6b85;border:1px solid rgba(255,77,109,.35);}
+
+  .odd-input{background:var(--surface);border:1px solid var(--border);color:var(--accent3);font-family:'DM Mono',monospace;font-size:14px;font-weight:500;width:58px;text-align:center;padding:5px 4px;border-radius:2px;outline:none;transition:border-color .15s;}
+  .odd-input:focus{border-color:var(--accent3);box-shadow:0 0 0 2px rgba(245,166,35,.12);}
+  .aposta-r{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--accent);}
+  .lucro-t{font-family:'DM Mono',monospace;font-size:13px;color:var(--neutral);}
+  .pnl{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;}
+  .pos{color:var(--win);}.neg{color:var(--loss);}.zero{color:var(--muted);}
+  .accum-cell{font-family:'DM Mono',monospace;font-size:11px;}
+  .accum-cell.pos{color:rgba(0,229,160,.7);}.accum-cell.neg{color:rgba(255,77,109,.7);}.accum-cell.zero{color:var(--muted);}
+
+  .result-btns{display:flex;gap:5px;}
+  .btn-r{border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.04em;padding:5px 11px;border-radius:2px;transition:all .15s;background:var(--surface);color:var(--muted);border:1px solid var(--border);}
+  .btn-r:hover{filter:brightness(1.35);transform:translateY(-1px);}
+  .btn-r:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+  .btn-r.rst{background:rgba(74,90,112,.2);}
+  .btn-r.rst:hover{background:rgba(74,90,112,.4);color:var(--text);}
+
+  tfoot tr{background:var(--surface);border-top:2px solid var(--border);}
+  tfoot td{padding:12px 10px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.03em;}
+  tfoot td:first-child{padding-left:14px;}
+
+  /* ── MODALS ── */
+  .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:300;backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:16px;}
+  .mo.open{display:flex;}
+  .mc{background:var(--card);border:1px solid var(--border);padding:28px;width:100%;text-align:center;}
+  .mc h2{font-family:'Bebas Neue',sans-serif;font-size:26px;margin-bottom:8px;}
+  .mc p{color:var(--muted);font-size:12px;margin-bottom:16px;font-family:'DM Mono',monospace;line-height:1.65;}
+  .mc p strong{color:var(--accent);}
+  .mbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .mbtns button{padding:9px 20px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:17px;cursor:pointer;border-radius:2px;transition:all .15s;}
+  .mbtns button:hover{filter:brightness(1.3);}
+  .mbtns .ok{background:rgba(0,229,160,.15);color:var(--accent);border-color:rgba(0,229,160,.35);}
+  .mbtns .danger{background:rgba(255,77,109,.15);color:var(--accent2);border-color:rgba(255,77,109,.35);}
+
+  .next-num{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:.06em;width:150px;text-align:center;padding:8px;border-radius:2px;outline:none;display:block;margin:0 auto 6px;}
+  .next-num:focus{border-color:var(--accent);}
+
+  #mImport .mc{max-width:540px;text-align:left;}
+  #mImport .mc h2,#mImport .mc p{text-align:center;}
+  .imp-hint{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:14px;background:rgba(91,124,253,.07);border:1px solid rgba(91,124,253,.18);padding:10px 12px;border-radius:2px;line-height:1.65;}
+  .imp-hint strong{color:var(--neutral);}
+  .imp-grid{display:grid;grid-template-columns:22px 1fr auto 1fr 50px;gap:5px 7px;align-items:center;margin-bottom:16px;max-height:58vh;overflow-y:auto;padding-right:4px;}
+  .imp-grid .rn{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--muted);text-align:center;}
+  .imp-grid input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 9px;border-radius:2px;outline:none;width:100%;transition:border-color .15s;}
+  .imp-grid input:focus{border-color:var(--accent);}
+  .imp-grid .vss{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center;}
+
+  /* ── LOADING SCREEN ── */
+  #loading{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+  #loading h2{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.06em;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #loading p{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);}
+
+  @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+  tbody tr{animation:fadeIn .22s ease both;}
+  tbody tr:nth-child(1){animation-delay:.02s}tbody tr:nth-child(2){animation-delay:.04s}
+  tbody tr:nth-child(3){animation-delay:.06s}tbody tr:nth-child(4){animation-delay:.08s}
+  tbody tr:nth-child(5){animation-delay:.10s}tbody tr:nth-child(6){animation-delay:.12s}
+  tbody tr:nth-child(7){animation-delay:.14s}tbody tr:nth-child(8){animation-delay:.16s}
+  tbody tr:nth-child(9){animation-delay:.18s}tbody tr:nth-child(10){animation-delay:.20s}
+  tbody tr:nth-child(11){animation-delay:.22s}tbody tr:nth-child(12){animation-delay:.24s}
+  tbody tr:nth-child(13){animation-delay:.26s}tbody tr:nth-child(14){animation-delay:.28s}
+
+  @media(max-width:700px){
+    .teams{min-width:130px;font-size:12px;}
+    td{padding:8px 6px;}
+    .btn-r{padding:5px 8px;font-size:13px;}
+    .btn-nav{padding:7px 10px;font-size:10px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <h2>JAF Loteca</h2>
+  <div class="spinner"></div>
+  <p>Conectando ao banco de dados...</p>
+</div>
+
+<!-- SYNC BAR -->
+<div id="syncBar" class="hidden"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-badge">SISTEMA MARTINGALE EM EMPATE — JAF</div>
+  <h1>JAF Loteca</h1>
+  <div class="subtitle">controle por linha · recuperação total + lucro · sincronizado em tempo real</div>
+</div>
+
+<!-- CONCURSO NAV -->
+<div class="concurso-nav">
+  <button class="btn-nav btn-prev" id="btnPrev" onclick="goPrev()">
+    <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7.5 1.5L3.5 5.5L7.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    ANTERIOR
+  </button>
+  <div class="concurso-info">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M6 3.5V6.5L8 8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    CONCURSO&nbsp;<span class="num" id="navNum">—</span>&nbsp;·&nbsp;<span id="navIdx" style="font-size:10px">1/1</span>
+  </div>
+  <button class="btn-nav btn-import" onclick="openImport()">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3 5l3 3 3-3M1 10.5h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    IMPORTAR TIMES
+  </button>
+  <button class="btn-nav btn-next" onclick="openNext()">
+    PRÓXIMO CONCURSO
+    <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M3.5 1.5L7.5 5.5L3.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+  </button>
+  <button class="btn-nav btn-resetall" onclick="openM('mResetAll')">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6a4 4 0 1 0 8 0 4 4 0 0 0-8 0" stroke="currentColor" stroke-width="1.4"/><path d="M2 2l8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    RESET GERAL
+  </button>
+</div>
+
+<!-- SUMMARY -->
+<div class="summary-bar">
+  <div class="summary-item"><div class="summary-value" id="sTotal" style="color:var(--text)">—</div><div class="summary-label">A Apostar Agora</div></div>
+  <div class="summary-item"><div class="summary-value" id="sPnl" style="color:var(--muted)">—</div><div class="summary-label">P&L Concurso</div></div>
+  <div class="summary-item"><div class="summary-value" id="sPnlAcc" style="color:var(--muted)">—</div><div class="summary-label">P&L Acumulado</div></div>
+  <div class="summary-item"><div class="summary-value" id="sWins" style="color:var(--win)">0</div><div class="summary-label">Empates ✓</div></div>
+  <div class="summary-item"><div class="summary-value" id="sLoss" style="color:var(--loss)">0</div><div class="summary-label">Não Empates ✗</div></div>
+  <div class="summary-item"><div class="summary-value" id="sRecup" style="color:var(--accent3)">0</div><div class="summary-label">Em Recuperação</div></div>
+</div>
+
+<!-- MAIN -->
+<div class="container">
+  <div class="rules-card">
+    <strong>REGRAS:</strong> Stake inicial <strong>R$20,00</strong> · Meta <strong>R$20,00 de lucro</strong> ·
+    Se ganhar → reinicia. Se perder → recupera <strong>100% perdido + max(10% perdido, R$10)</strong> de lucro.
+    <strong>APOSTA REAL</strong> = retorno necessário ÷ odd ·
+    Dados salvos automaticamente na nuvem — acesse de qualquer dispositivo.
+  </div>
+  <div class="info-row">
+    <div class="pill"><span class="dot-icon" style="background:var(--accent)"></span> Stage 0: Inicial</div>
+    <div class="pill"><span class="dot-icon" style="background:var(--accent3)"></span> Stage 1: 1ª recuperação</div>
+    <div class="pill"><span class="dot-icon" style="background:var(--accent2)"></span> Stage 2+: Encadeado</div>
+    <div class="pill"><span class="dot-icon" style="background:var(--neutral)"></span> APOSTA REAL = retorno ÷ odd</div>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>JOGO</th><th>DIA</th><th>STAGE</th>
+          <th>ODD EMPATE</th><th>APOSTA REAL</th><th>LUCRO ALVO</th>
+          <th>P&amp;L CONCURSO</th><th>P&amp;L ACUM.</th><th>RESULTADO</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;">TOTAIS</td>
+          <td></td>
+          <td id="fAposta" style="color:var(--accent)">—</td>
+          <td id="fLucro"  style="color:var(--neutral)">—</td>
+          <td id="fPnl"    style="color:var(--muted)">—</td>
+          <td id="fAccum"  style="color:var(--muted)">—</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL: RESET LINHA -->
+<div class="mo" id="mReset"><div class="mc" style="max-width:360px">
+  <h2>Resetar Linha</h2>
+  <p id="mResetMsg">Confirmar reset do martingale?</p>
+  <div class="mbtns">
+    <button onclick="closeM('mReset')">Cancelar</button>
+    <button class="ok" onclick="confirmReset()">Confirmar</button>
+  </div>
+</div></div>
+
+<!-- MODAL: PRÓXIMO CONCURSO -->
+<div class="mo" id="mNext"><div class="mc" style="max-width:400px">
+  <h2>Próximo Concurso</h2>
+  <p>O <strong>martingale de cada linha será mantido</strong>.<br>Os jogos serão preenchidos com placeholders genéricos.<br>Use <strong>Importar Times</strong> quando a grade sair.</p>
+  <div style="margin:14px 0 4px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;">Nº DO PRÓXIMO CONCURSO</div>
+  <input type="number" id="nextNumIn" class="next-num" min="1" placeholder="1240">
+  <div style="text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:16px">em branco = incremento automático</div>
+  <div class="mbtns">
+    <button onclick="closeM('mNext')">Cancelar</button>
+    <button class="ok" onclick="confirmNext()">Avançar →</button>
+  </div>
+</div></div>
+
+<!-- MODAL: IMPORTAR TIMES -->
+<div class="mo" id="mImport"><div class="mc" style="max-width:540px;text-align:left">
+  <h2 style="text-align:center">Importar Times — Concurso <span id="impNum">—</span></h2>
+  <p style="text-align:center">Preencha conforme a programação divulgada.</p>
+  <div class="imp-hint">
+    <strong>Dica:</strong> Consulte <strong>romers.com.br</strong>, <strong>vovoteca.com</strong> ou <strong>loterias.caixa.gov.br</strong>
+  </div>
+  <div class="imp-grid" id="impGrid"></div>
+  <div class="mbtns">
+    <button onclick="closeM('mImport')">Cancelar</button>
+    <button class="ok" onclick="confirmImport()">✓ Salvar Times</button>
+  </div>
+</div></div>
+
+<!-- MODAL: RESET GERAL -->
+<div class="mo" id="mResetAll"><div class="mc" style="max-width:400px">
+  <h2 style="color:var(--accent2)">⚠ Reset Geral</h2>
+  <p>Isso vai <strong style="color:var(--accent2)">apagar TODO o histórico</strong> — concursos, resultados, martingale e P&L acumulado na nuvem.<br>Esta ação <strong style="color:var(--accent2)">não pode ser desfeita</strong>.</p>
+  <div class="mbtns">
+    <button onclick="closeM('mResetAll')">Cancelar</button>
+    <button class="danger" onclick="confirmResetAll()">🗑 Apagar Tudo</button>
+  </div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════════════
+     FIREBASE SDK (módulos ES via CDN)
+══════════════════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp }                          from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+// ══════════════════════════════════════════════════════
+// CONFIG FIREBASE
+// ══════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey:            "AIzaSyDJ7B3Ki7z24guMaLFh17tSzgZlYFoqEZ8",
+  authDomain:        "jaf-loteca.firebaseapp.com",
+  projectId:         "jaf-loteca",
+  storageBucket:     "jaf-loteca.firebasestorage.app",
+  messagingSenderId: "1096329329521",
+  appId:             "1:1096329329521:web:0ead94588a27d2e7eb94d0"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db          = getFirestore(firebaseApp);
+const DOC_REF     = doc(db, "jaf-loteca", "estado");
+
+// ══════════════════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════════════════
+const BASE_TARGET = 20;
+const N           = 14;
+
+// ══════════════════════════════════════════════════════
+// DEFAULTS
+// ══════════════════════════════════════════════════════
+function blankGames() {
+  return Array.from({length:N}, (_,i) => ({
+    home: `Casa ${i+1}`, away: `Visitante ${i+1}`,
+    day:  i % 2 === 0 ? 'Sáb' : 'Dom'
+  }));
+}
+
+function blankLines() {
+  return Array.from({length:N}, () => ({
+    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}
+  }));
+}
+
+function initState() {
+  return {
+    cur: 0,
+    concursos: [{
+      num: 1239,
+      games: [
+        {home:'Colômbia',          away:'França',         day:'Dom'},
+        {home:'CRB',               away:'Vitória',        day:'Sáb'},
+        {home:'Maranhão',          away:'Ferroviário CE', day:'Sáb'},
+        {home:'Retro Brasil PE',   away:'Ceará',          day:'Sáb'},
+        {home:'Fortaleza',         away:'Imperatriz MA',  day:'Sáb'},
+        {home:'México',            away:'Portugal',       day:'Sáb'},
+        {home:'EUA',               away:'Bélgica',        day:'Sáb'},
+        {home:'Lituânia',          away:'Geórgia',        day:'Dom'},
+        {home:'Juazeirense BA',    away:'Itabaiana SE',   day:'Dom'},
+        {home:'ABC',               away:'Sport',          day:'Dom'},
+        {home:'Confiança SE',      away:'Fluminense PI',  day:'Dom'},
+        {home:'Piauí Esp Clube PI',away:'Sousa PB',       day:'Dom'},
+        {home:'Athletico PR',      away:'Botafogo RJ',    day:'Dom'},
+        {home:'Botafogo PB',       away:'ASA AL',         day:'Dom'},
+      ]
+    }],
+    lines: blankLines()
+  };
+}
+
+// ══════════════════════════════════════════════════════
+// APP STATE
+// ══════════════════════════════════════════════════════
+let A            = null;   // estado atual
+let _saving      = false;  // flag para ignorar o próprio snapshot ao salvar
+let _unsubscribe = null;   // listener do Firestore
+
+// ══════════════════════════════════════════════════════
+// SYNC STATUS UI
+// ══════════════════════════════════════════════════════
+function syncUI(state, msg) {
+  const bar = document.getElementById('syncBar');
+  bar.className = state === 'hidden' ? 'hidden' : state;
+  if (state !== 'hidden') {
+    bar.innerHTML = `<span class="sync-dot"></span>${msg}`;
+    if (state === 'synced') setTimeout(() => bar.className = 'hidden', 2500);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// SAVE → FIRESTORE
+// ══════════════════════════════════════════════════════
+let _saveTimer = null;
+async function save() {
+  // debounce: espera 600ms de inatividade antes de salvar
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(async () => {
+    try {
+      syncUI('syncing', 'Salvando...');
+      _saving = true;
+      await setDoc(DOC_REF, JSON.parse(JSON.stringify(A)));
+      syncUI('synced', 'Salvo ✓');
+    } catch(e) {
+      console.error('Erro ao salvar:', e);
+      syncUI('error', 'Erro ao salvar — verifique conexão');
+    } finally {
+      _saving = false;
+    }
+  }, 600);
+}
+
+// ══════════════════════════════════════════════════════
+// LOAD + REALTIME LISTENER
+// ══════════════════════════════════════════════════════
+async function initFirebase() {
+  try {
+    // Carrega estado inicial
+    const snap = await getDoc(DOC_REF);
+    if (snap.exists()) {
+      A = snap.data();
+      // Garante campos novos para dados antigos (migração)
+      A.lines = A.lines.map(ln => ({
+        stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{},
+        ...ln
+      }));
+    } else {
+      A = initState();
+      await setDoc(DOC_REF, A);
+    }
+
+    // Esconde loading e renderiza
+    document.getElementById('loading').style.display = 'none';
+    render();
+
+    // Listener em tempo real — atualiza se outro dispositivo mudar
+    _unsubscribe = onSnapshot(DOC_REF, (snap) => {
+      if (_saving) return; // ignora echo do próprio save
+      if (snap.exists()) {
+        const remote = snap.data();
+        // Só aplica se for diferente do estado local
+        if (JSON.stringify(remote) !== JSON.stringify(A)) {
+          A = remote;
+          A.lines = A.lines.map(ln => ({
+            stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{},
+            ...ln
+          }));
+          render();
+          syncUI('synced', 'Sincronizado ↓');
+        }
+      }
+    }, (err) => {
+      console.error('Listener error:', err);
+      syncUI('error', 'Conexão perdida — tentando reconectar...');
+    });
+
+  } catch(e) {
+    console.error('Erro Firebase:', e);
+    document.getElementById('loading').innerHTML =
+      `<h2 style="color:var(--accent2)">Erro de conexão</h2>
+       <p style="font-family:'DM Mono',monospace;color:var(--muted);font-size:13px;margin-top:12px">
+         Verifique sua internet e recarregue a página.<br><br>
+         <code style="font-size:11px;color:var(--accent3)">${e.message}</code>
+       </p>`;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
+const curConc = () => A.concursos[A.cur];
+const curNum  = () => curConc().num;
+const r2      = v  => Math.round(v * 100) / 100;
+
+function calcBet(ln) {
+  const odd = ln.odd >= 1.01 ? ln.odd : 3.0;
+  if (ln.stage === 0) {
+    return { aposta: r2(BASE_TARGET / (odd - 1)), lucro: BASE_TARGET };
+  }
+  const profit = Math.max(ln.lostAccum * 0.10, 10);
+  return { aposta: r2((ln.lostAccum + profit) / odd), lucro: r2(profit) };
+}
+
+const pnlNow   = ln => (ln.pnlLog && ln.pnlLog[String(curNum())]) || 0;
+const pnlTotal = ln => ln.pnlTotal || 0;
+
+function fmtS(v) {
+  return (v < 0 ? '-' : v > 0 ? '+' : '') + 'R$\u00a0' + Math.abs(v).toFixed(2).replace('.', ',');
+}
+function fmtU(v) { return 'R$\u00a0' + v.toFixed(2).replace('.', ','); }
+function esc(s)  { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function colorPnl(el, v) {
+  el.textContent = v === 0 ? '—' : fmtS(v);
+  el.style.color = v > 0 ? 'var(--win)' : v < 0 ? 'var(--loss)' : 'var(--muted)';
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════
+function render() {
+  if (!A) return;
+  const conc = curConc();
+  document.getElementById('navNum').textContent = conc.num;
+  document.getElementById('navIdx').textContent = `${A.cur+1} / ${A.concursos.length}`;
+  document.getElementById('btnPrev').disabled   = A.cur === 0;
+
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  let totAposta=0, totLucro=0, totPnl=0, totAcc=0, wins=0, loss=0, recup=0;
+
+  A.lines.forEach((ln, i) => {
+    const g            = conc.games[i];
+    const {aposta, lucro} = calcBet(ln);
+    const pN           = pnlNow(ln);
+    const pT           = pnlTotal(ln);
+    totAposta += aposta; totLucro += lucro; totPnl += pN; totAcc += pT;
+    if (pN > 0) wins++; if (pN < 0) loss++;
+    if (ln.stage > 0) recup++;
+
+    const sc  = `s${Math.min(ln.stage, 3)}`;
+    const sl  = ln.stage === 0 ? 'INICIAL' : `RECUP #${ln.stage}`;
+    const ph  = g.home.startsWith('Casa ') || g.away.startsWith('Visitante ');
+    const pNC = pN > 0 ? 'pos' : pN < 0 ? 'neg' : 'zero';
+    const pTC = pT > 0 ? 'pos' : pT < 0 ? 'neg' : 'zero';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="game-num">${i+1}</td>
+      <td class="teams${ph?' ph':''}"><b>${esc(g.home)}</b> <span class="vs">x</span> <b>${esc(g.away)}</b></td>
+      <td><span class="day-badge">${esc(g.day)}</span></td>
+      <td><span class="stage ${sc}">${sl}</span></td>
+      <td><input type="number" min="1.01" max="99" step="0.01" class="odd-input"
+            value="${Number(ln.odd||3).toFixed(2)}" onchange="window._setOdd(${i},this.value)"></td>
+      <td class="aposta-r">${fmtU(aposta)}</td>
+      <td class="lucro-t">${fmtU(lucro)}</td>
+      <td class="pnl ${pNC}">${pN===0?'—':fmtS(pN)}</td>
+      <td class="accum-cell ${pTC}">${pT===0?'—':fmtS(pT)}</td>
+      <td><div class="result-btns">
+        <button class="btn-r" onclick="window._doResult(${i},true)">✓ EMPATE</button>
+        <button class="btn-r" onclick="window._doResult(${i},false)">✗ NÃO</button>
+        <button class="btn-r rst" onclick="window._askReset(${i})">↺</button>
+      </div></td>`;
+    tbody.appendChild(tr);
+  });
+
+  // Totals
+  document.getElementById('sTotal').textContent = fmtU(totAposta);
+  colorPnl(document.getElementById('sPnl'),    totPnl);
+  colorPnl(document.getElementById('sPnlAcc'), totAcc);
+  document.getElementById('sWins').textContent  = wins;
+  document.getElementById('sLoss').textContent  = loss;
+  document.getElementById('sRecup').textContent = recup;
+
+  document.getElementById('fAposta').textContent = fmtU(totAposta);
+  document.getElementById('fLucro').textContent  = fmtU(totLucro);
+  colorPnl(document.getElementById('fPnl'),   totPnl);
+  colorPnl(document.getElementById('fAccum'), totAcc);
+}
+
+// ══════════════════════════════════════════════════════
+// ACTIONS — expostos via window._ para os onclick inline
+// ══════════════════════════════════════════════════════
+window._doResult = function(i, won) {
+  const ln  = A.lines[i];
+  const key = String(curNum());
+  if (!ln.pnlLog) ln.pnlLog = {};
+  const {aposta, lucro} = calcBet(ln);
+  const prevLog = ln.pnlLog[key] || 0;
+
+  if (won) {
+    // GREEN: recupera tudo que foi perdido (lostAccum já debitado) + lucro líquido
+    ln.pnlTotal    = r2((ln.pnlTotal||0) + ln.lostAccum + lucro);
+    // No pnlLog deste concurso: recupera o que foi perdido AQUI + lucro
+    const lostHere = prevLog < 0 ? Math.abs(prevLog) : 0;
+    const recover  = Math.min(ln.lostAccum, lostHere);
+    ln.pnlLog[key] = r2(prevLog + recover + lucro);
+    ln.stage       = 0;
+    ln.lostAccum   = 0;
+  } else {
+    // RED: debita nos dois contadores
+    ln.pnlLog[key] = r2(prevLog - aposta);
+    ln.pnlTotal    = r2((ln.pnlTotal||0) - aposta);
+    ln.lostAccum   = r2((ln.lostAccum||0) + aposta);
+    ln.stage++;
+  }
+  save(); render();
+};
+
+window._setOdd = function(i, val) {
+  const v = parseFloat(val);
+  if (!isNaN(v) && v >= 1.01) {
+    A.lines[i].odd = Math.round(v * 100) / 100;
+    save(); render();
+  }
+};
+
+// ── NAVIGATION ──
+window.goPrev = function() {
+  if (A.cur > 0) { A.cur--; save(); render(); }
+};
+
+window.openNext = function() {
+  document.getElementById('nextNumIn').value = curNum() + 1;
+  openM('mNext');
+};
+
+window.confirmNext = function() {
+  const raw = document.getElementById('nextNumIn').value.trim();
+  const num = raw ? parseInt(raw) : curNum() + 1;
+  if (isNaN(num) || num < 1) return;
+  if (A.cur < A.concursos.length - 1) {
+    A.cur++;
+  } else {
+    A.concursos.push({ num, games: blankGames() });
+    A.cur = A.concursos.length - 1;
+  }
+  closeM('mNext'); save(); render();
+};
+
+// ── IMPORT ──
+window.openImport = function() {
+  document.getElementById('impNum').textContent = curNum();
+  const grid  = document.getElementById('impGrid');
+  grid.innerHTML = '';
+  const games = curConc().games;
+  games.forEach((g, i) => {
+    const ph = g.home.startsWith('Casa ') || g.away.startsWith('Visitante ');
+    const rn = document.createElement('div');
+    rn.className = 'rn'; rn.textContent = i + 1; grid.appendChild(rn);
+
+    const hi = document.createElement('input');
+    hi.type='text'; hi.id=`ih${i}`; hi.placeholder=`Time da Casa ${i+1}`;
+    hi.value = ph ? '' : g.home; grid.appendChild(hi);
+
+    const vs = document.createElement('div');
+    vs.className='vss'; vs.textContent='x'; grid.appendChild(vs);
+
+    const ai = document.createElement('input');
+    ai.type='text'; ai.id=`ia${i}`; ai.placeholder=`Visitante ${i+1}`;
+    ai.value = ph ? '' : g.away; grid.appendChild(ai);
+
+    const di = document.createElement('input');
+    di.type='text'; di.id=`id${i}`; di.placeholder='Sáb'; di.maxLength=3;
+    di.value = g.day || 'Sáb';
+    di.style.cssText='width:50px;text-align:center;font-family:"DM Mono",monospace;font-size:12px;padding:7px 4px;';
+    grid.appendChild(di);
+  });
+  openM('mImport');
+};
+
+window.confirmImport = function() {
+  const games = curConc().games;
+  games.forEach((gm, i) => {
+    const h = document.getElementById(`ih${i}`).value.trim();
+    const a = document.getElementById(`ia${i}`).value.trim();
+    const d = document.getElementById(`id${i}`).value.trim();
+    if (h) gm.home = h;
+    if (a) gm.away = a;
+    if (d) gm.day  = d;
+  });
+  save(); closeM('mImport'); render();
+};
+
+// ── RESET LINHA ──
+let _ri = null;
+window._askReset = function(i) {
+  _ri = i;
+  const g = curConc().games[i];
+  document.getElementById('mResetMsg').textContent =
+    `Resetar linha ${i+1}: ${g.home} x ${g.away}?\nStage e acumulado voltam ao zero.`;
+  openM('mReset');
+};
+window.confirmReset = function() {
+  if (_ri !== null) {
+    const ln = A.lines[_ri];
+    ln.stage = 0; ln.lostAccum = 0;
+    save(); render();
+  }
+  closeM('mReset'); _ri = null;
+};
+
+// ── RESET GERAL ──
+window.confirmResetAll = function() {
+  A = initState();
+  save();
+  closeM('mResetAll');
+  render();
+};
+
+// ── MODAL UTILS ──
+window.openM  = function(id) { document.getElementById(id).classList.add('open'); };
+window.closeM = function(id) { document.getElementById(id).classList.remove('open'); };
+document.querySelectorAll('.mo').forEach(el =>
+  el.addEventListener('click', e => { if (e.target === el) closeM(el.id); })
+);
+
+// ══════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════
+initFirebase();
+</script>
+</body>
+</html>
