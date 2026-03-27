@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -76,6 +77,9 @@
   .s2{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25);}
   .s3{background:rgba(255,77,109,.18);color:#ff6b85;border:1px solid rgba(255,77,109,.35);}
 
+  .aposta-input{background:var(--surface);border:1px solid rgba(0,229,160,.3);color:var(--accent);font-family:'DM Mono',monospace;font-size:14px;font-weight:500;width:82px;text-align:center;padding:5px 4px;border-radius:2px;outline:none;transition:border-color .15s;}
+  .aposta-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,229,160,.12);}
+  .aposta-input.modified{border-color:rgba(245,166,35,.6);color:var(--accent3);}
   .odd-input{background:var(--surface);border:1px solid var(--border);color:var(--accent3);font-family:'DM Mono',monospace;font-size:14px;font-weight:500;width:58px;text-align:center;padding:5px 4px;border-radius:2px;outline:none;transition:border-color .15s;}
   .odd-input:focus{border-color:var(--accent3);box-shadow:0 0 0 2px rgba(245,166,35,.12);}
   .aposta-r{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--accent);}
@@ -198,13 +202,14 @@
   <div class="summary-item"><div class="summary-value" id="sWins" style="color:var(--win)">0</div><div class="summary-label">Empates ✓</div></div>
   <div class="summary-item"><div class="summary-value" id="sLoss" style="color:var(--loss)">0</div><div class="summary-label">Não Empates ✗</div></div>
   <div class="summary-item"><div class="summary-value" id="sRecup" style="color:var(--accent3)">0</div><div class="summary-label">Em Recuperação</div></div>
+  <div class="summary-item"><div class="summary-value" id="sDebit" style="color:var(--loss)">—</div><div class="summary-label">P&amp;L Acum. Negativo</div></div>
 </div>
 
 <!-- MAIN -->
 <div class="container">
   <div class="rules-card">
     <strong>REGRAS:</strong> Stake inicial <strong>R$20,00</strong> · Meta <strong>R$20,00 de lucro</strong> ·
-    Se ganhar → reinicia. Se perder → recupera <strong>100% perdido + max(10% perdido, R$10)</strong> de lucro.
+    Se ganhar → reinicia. Se perder → recupera <strong>100% perdido + max(10% perdido, R$20)</strong> de lucro.
     <strong>APOSTA REAL</strong> = retorno necessário ÷ odd ·
     Dados salvos automaticamente na nuvem — acesse de qualquer dispositivo.
   </div>
@@ -327,7 +332,7 @@ function blankGames() {
 
 function blankLines() {
   return Array.from({length:N}, () => ({
-    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}
+    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}
   }));
 }
 
@@ -409,7 +414,7 @@ async function initFirebase() {
       A = snap.data();
       // Garante campos novos para dados antigos (migração)
       A.lines = A.lines.map(ln => ({
-        stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{},
+        stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{}, apostaOverride:{},
         ...ln
       }));
     } else {
@@ -465,7 +470,7 @@ function calcBet(ln) {
   if (ln.stage === 0) {
     return { aposta: r2(BASE_TARGET / (odd - 1)), lucro: BASE_TARGET };
   }
-  const profit = Math.max(ln.lostAccum * 0.10, 10);
+  const profit = Math.max(ln.lostAccum * 0.10, 20);
   return { aposta: r2((ln.lostAccum + profit) / odd), lucro: r2(profit) };
 }
 
@@ -496,16 +501,20 @@ function render() {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
 
-  let totAposta=0, totLucro=0, totPnl=0, totAcc=0, wins=0, loss=0, recup=0;
+  let totAposta=0, totLucro=0, totPnl=0, totAcc=0, wins=0, loss=0, recup=0, totDebit=0;
 
   A.lines.forEach((ln, i) => {
     const g            = conc.games[i];
-    const {aposta, lucro} = calcBet(ln);
+    const {aposta: apostaCalc, lucro} = calcBet(ln);
+    const key2 = String(curNum());
+    const aposta = (ln.apostaOverride && ln.apostaOverride[key2] != null)
+      ? ln.apostaOverride[key2] : apostaCalc;
     const pN           = pnlNow(ln);
     const pT           = pnlTotal(ln);
     totAposta += aposta; totLucro += lucro; totPnl += pN; totAcc += pT;
     if (pN > 0) wins++; if (pN < 0) loss++;
     if (ln.stage > 0) recup++;
+    if (pT < 0) totDebit += pT;
 
     const sc  = `s${Math.min(ln.stage, 3)}`;
     const sl  = ln.stage === 0 ? 'INICIAL' : `RECUP #${ln.stage}`;
@@ -521,7 +530,14 @@ function render() {
       <td><span class="stage ${sc}">${sl}</span></td>
       <td><input type="number" min="1.01" max="99" step="0.01" class="odd-input"
             value="${Number(ln.odd||3).toFixed(2)}" onchange="window._setOdd(${i},this.value)"></td>
-      <td class="aposta-r">${fmtU(aposta)}</td>
+      <td>
+        <input type="number" min="0.01" step="0.01" class="aposta-input"
+          value="${(ln.apostaOverride && ln.apostaOverride[String(curNum())]) != null ? Number(ln.apostaOverride[String(curNum())]).toFixed(2) : aposta.toFixed(2)}"
+          data-auto="${aposta.toFixed(2)}"
+          title="Valor calculado: ${fmtU(aposta)}. Edite para ajustar manualmente."
+          onchange="window._setAposta(${i},this.value)"
+          ondblclick="window._resetAposta(${i},this)">
+      </td>
       <td class="lucro-t">${fmtU(lucro)}</td>
       <td class="pnl ${pNC}">${pN===0?'—':fmtS(pN)}</td>
       <td class="accum-cell ${pTC}">${pT===0?'—':fmtS(pT)}</td>
@@ -540,6 +556,14 @@ function render() {
   document.getElementById('sWins').textContent  = wins;
   document.getElementById('sLoss').textContent  = loss;
   document.getElementById('sRecup').textContent = recup;
+  const debitEl = document.getElementById('sDebit');
+  if (totDebit < 0) {
+    debitEl.textContent = fmtS(totDebit);
+    debitEl.style.color = 'var(--loss)';
+  } else {
+    debitEl.textContent = '—';
+    debitEl.style.color = 'var(--muted)';
+  }
 
   document.getElementById('fAposta').textContent = fmtU(totAposta);
   document.getElementById('fLucro').textContent  = fmtU(totLucro);
@@ -554,7 +578,13 @@ window._doResult = function(i, won) {
   const ln  = A.lines[i];
   const key = String(curNum());
   if (!ln.pnlLog) ln.pnlLog = {};
-  const {aposta, lucro} = calcBet(ln);
+  const {aposta: apostaCalc, lucro} = calcBet(ln);
+  // Usa override se existir, senão usa o calculado
+  const aposta = (ln.apostaOverride && ln.apostaOverride[key] != null)
+    ? ln.apostaOverride[key]
+    : apostaCalc;
+  // Limpa override após usar (resultado registrado)
+  if (ln.apostaOverride) delete ln.apostaOverride[key];
   const prevLog = ln.pnlLog[key] || 0;
 
   if (won) {
@@ -574,6 +604,40 @@ window._doResult = function(i, won) {
     ln.stage++;
   }
   save(); render();
+};
+
+window._setAposta = function(i, val) {
+  const v = parseFloat(val);
+  if (isNaN(v) || v <= 0) return;
+  const ln  = A.lines[i];
+  const key = String(curNum());
+  if (!ln.apostaOverride) ln.apostaOverride = {};
+  const {aposta} = calcBet(ln);
+  // Se igual ao calculado, remove override
+  if (Math.abs(v - aposta) < 0.005) {
+    delete ln.apostaOverride[key];
+  } else {
+    ln.apostaOverride[key] = Math.round(v * 100) / 100;
+  }
+  // Atualiza visual do input
+  const inputs = document.querySelectorAll('.aposta-input');
+  if (inputs[i]) {
+    const isModified = ln.apostaOverride && ln.apostaOverride[key] != null;
+    inputs[i].classList.toggle('modified', isModified);
+  }
+  save();
+};
+
+window._resetAposta = function(i, el) {
+  // Duplo clique restaura o valor calculado
+  const ln  = A.lines[i];
+  const key = String(curNum());
+  if (!ln.apostaOverride) ln.apostaOverride = {};
+  delete ln.apostaOverride[key];
+  const {aposta} = calcBet(ln);
+  el.value = aposta.toFixed(2);
+  el.classList.remove('modified');
+  save();
 };
 
 window._setOdd = function(i, val) {
