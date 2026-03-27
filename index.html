@@ -38,6 +38,19 @@
   .btn-next{background:rgba(0,229,160,.12);color:var(--accent);border:1px solid rgba(0,229,160,.25);}
   .btn-import{background:rgba(91,124,253,.12);color:var(--neutral);border:1px solid rgba(91,124,253,.28);}
   .btn-resetall{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.28);}
+  .btn-filter-off{background:rgba(74,90,112,.2);color:var(--muted);border:1px solid var(--border);}
+  .btn-filter-on{background:rgba(245,166,35,.18);color:var(--accent3);border:1px solid rgba(245,166,35,.45);}
+  tr.blocked{opacity:.35;}
+  tr.blocked td{pointer-events:none;}
+  .blocked-badge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;border-radius:2px;background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.3);letter-spacing:.06em;}
+  .pct-input{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;width:46px;text-align:center;padding:4px 3px;border-radius:2px;outline:none;transition:all .15s;}
+  .pct-input:focus{border-color:var(--accent3);}
+  .pct-input.low{border-color:rgba(245,166,35,.6);color:var(--accent3);background:rgba(245,166,35,.06);}
+  .filter-bar{display:none;align-items:center;gap:10px;padding:10px 16px;background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.2);border-radius:2px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);flex-wrap:wrap;}
+  .filter-bar strong{color:var(--accent3);}
+  .filter-bar.active{display:flex;}
+  .threshold-input{background:var(--surface);border:1px solid rgba(245,166,35,.4);color:var(--accent3);font-family:'DM Mono',monospace;font-size:14px;font-weight:600;width:46px;text-align:center;padding:4px;border-radius:2px;outline:none;}
+  .threshold-input:focus{border-color:var(--accent3);}
 
   /* ── SUMMARY ── */
   .summary-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--border);border-bottom:1px solid var(--border);}
@@ -128,12 +141,78 @@
   .imp-grid input:focus{border-color:var(--accent);}
   .imp-grid .vss{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center;}
 
+  /* ── AUTH SCREEN ── */
+  #authScreen{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .auth-box{background:var(--card);border:1px solid var(--border);padding:36px 32px;width:100%;max-width:380px;}
+  .auth-box h2{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.04em;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+  .auth-box .auth-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:24px;}
+  .auth-tabs{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--border);border-radius:2px;overflow:hidden;}
+  .auth-tab{flex:1;padding:9px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:var(--surface);color:var(--muted);border:none;transition:all .15s;}
+  .auth-tab.active{background:rgba(0,229,160,.12);color:var(--accent);}
+  .auth-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+  .auth-field label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .auth-field input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 12px;border-radius:2px;outline:none;transition:border-color .15s;}
+  .auth-field input:focus{border-color:var(--accent);}
+  .auth-btn{width:100%;padding:12px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.06em;border:none;cursor:pointer;border-radius:2px;transition:all .15s;margin-top:4px;}
+  .auth-btn.primary{background:rgba(0,229,160,.15);color:var(--accent);border:1px solid rgba(0,229,160,.35);}
+  .auth-btn.primary:hover{background:rgba(0,229,160,.25);}
+  .auth-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .auth-msg{font-family:'DM Mono',monospace;font-size:11px;padding:8px 12px;border-radius:2px;margin-top:12px;text-align:center;}
+  .auth-msg.error{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25);}
+  .auth-msg.success{background:rgba(0,229,160,.08);color:var(--accent);border:1px solid rgba(0,229,160,.2);}
+  .auth-msg.pending{background:rgba(245,166,35,.08);color:var(--accent3);border:1px solid rgba(245,166,35,.2);}
+  /* Badge usuário no header */
+  .user-bar{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:6px 20px;background:var(--surface);border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
+  .user-bar .user-email{color:var(--neutral);}
+  .user-bar .admin-badge{background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.25);padding:2px 8px;border-radius:2px;font-size:10px;letter-spacing:.08em;}
+  .btn-logout{background:none;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);padding:3px 8px;border-radius:2px;transition:all .15s;}
+  .btn-logout:hover{color:var(--accent2);}
+  /* Painel admin */
+  #adminPanel{background:var(--card);border:1px solid rgba(245,166,35,.25);border-left:3px solid var(--accent3);padding:16px 18px;margin-bottom:18px;}
+  #adminPanel h3{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent3);margin-bottom:12px;}
+  .admin-user-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:12px;}
+  .admin-user-row:last-child{border-bottom:none;}
+  .admin-user-email{flex:1;color:var(--text);}
+  .admin-user-status{font-size:10px;padding:2px 8px;border-radius:2px;}
+  .status-pendente{background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.2);}
+  .status-aprovado{background:rgba(0,229,160,.08);color:var(--accent);border:1px solid rgba(0,229,160,.2);}
+  .status-rejeitado{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.2);}
+  .admin-btn{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.06em;padding:3px 10px;border-radius:2px;border:none;cursor:pointer;transition:all .15s;}
+  .admin-btn.aprovar{background:rgba(0,229,160,.15);color:var(--accent);border:1px solid rgba(0,229,160,.3);}
+  .admin-btn.aprovar:hover{background:rgba(0,229,160,.28);}
+  .admin-btn.rejeitar{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25);}
+  .admin-btn.rejeitar:hover{background:rgba(255,77,109,.22);}
   /* ── LOADING SCREEN ── */
   #loading{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
   #loading h2{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.06em;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
   .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg)}}
   #loading p{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);}
+
+  /* ── CALCULADORA ── */
+  #mCalc .mc{max-width:620px;text-align:left;}
+  #mCalc .mc h2{text-align:center;}
+  .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+  .calc-field{display:flex;flex-direction:column;gap:5px;}
+  .calc-field label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .calc-field input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.04em;padding:10px 12px;border-radius:2px;outline:none;width:100%;transition:border-color .15s;}
+  .calc-field input:focus{border-color:var(--accent);}
+  .calc-field span{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
+  .calc-result{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:16px;margin-bottom:16px;}
+  .calc-result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin-bottom:14px;}
+  .calc-kpi{background:var(--card);padding:12px 10px;text-align:center;}
+  .calc-kpi-val{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;line-height:1;}
+  .calc-kpi-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px;font-family:'DM Mono',monospace;}
+  .prob-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .prob-table th{padding:7px 8px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}
+  .prob-table td{padding:6px 8px;font-family:'DM Mono',monospace;border-bottom:1px solid rgba(30,42,58,.5);}
+  .prob-table tr.profit td{color:var(--win);}
+  .prob-table tr.loss-row td{color:rgba(255,77,109,.7);}
+  .prob-table tr.expected td{background:rgba(91,124,253,.08);}
+  .prob-bar{display:inline-block;height:8px;border-radius:2px;margin-left:6px;vertical-align:middle;}
+  .calc-note{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);line-height:1.6;padding:10px 12px;background:rgba(91,124,253,.06);border:1px solid rgba(91,124,253,.15);border-radius:2px;}
+  .calc-note strong{color:var(--neutral);}
+  @media(max-width:500px){.calc-grid{grid-template-columns:1fr;}.calc-result-grid{grid-template-columns:1fr 1fr;}}
 
   @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
   tbody tr{animation:fadeIn .22s ease both;}
@@ -154,6 +233,40 @@
 </style>
 </head>
 <body>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen" style="display:none">
+  <div class="auth-box">
+    <h2>JAF Loteca</h2>
+    <div class="auth-sub">SISTEMA MARTINGALE EM EMPATE</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">ENTRAR</button>
+      <button class="auth-tab" id="tabCadastro" onclick="switchTab('cadastro')">CADASTRAR</button>
+    </div>
+    <!-- LOGIN -->
+    <div id="formLogin">
+      <div class="auth-field"><label>E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com"></div>
+      <div class="auth-field"><label>Senha</label><input type="password" id="loginSenha" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="auth-btn primary" onclick="doLogin()">ENTRAR</button>
+    </div>
+    <!-- CADASTRO -->
+    <div id="formCadastro" style="display:none">
+      <div class="auth-field"><label>Nome</label><input type="text" id="cadNome" placeholder="Seu nome"></div>
+      <div class="auth-field"><label>E-mail</label><input type="email" id="cadEmail" placeholder="seu@email.com"></div>
+      <div class="auth-field"><label>Senha</label><input type="password" id="cadSenha" placeholder="mínimo 6 caracteres"></div>
+      <div class="auth-field"><label>Confirmar senha</label><input type="password" id="cadSenha2" placeholder="repita a senha" onkeydown="if(event.key==='Enter')doCadastro()"></div>
+      <button class="auth-btn primary" onclick="doCadastro()">SOLICITAR ACESSO</button>
+    </div>
+    <div id="authMsg"></div>
+  </div>
+</div>
+
+<!-- USER BAR -->
+<div class="user-bar" id="userBar" style="display:none">
+  <span class="user-email" id="userEmail"></span>
+  <span class="admin-badge" id="adminBadge" style="display:none">ADMIN</span>
+  <button class="btn-logout" onclick="doLogout()">Sair</button>
+</div>
 
 <!-- LOADING -->
 <div id="loading">
@@ -190,6 +303,14 @@
     PRÓXIMO CONCURSO
     <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M3.5 1.5L7.5 5.5L3.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
   </button>
+  <button class="btn-nav btn-import" onclick="openM('mCalc')" title="Calculadora de Stake">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M3 4h6M3 6h4M3 8h2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    CALCULADORA
+  </button>
+  <button class="btn-nav btn-filter-off" id="btnFilter" onclick="toggleFilter()" title="Filtro Super Favoritos (% empate)">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 2h10M3 6h6M5 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <span id="btnFilterLabel">FILTRO OFF</span>
+  </button>
   <button class="btn-nav btn-resetall" onclick="openM('mResetAll')">
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6a4 4 0 1 0 8 0 4 4 0 0 0-8 0" stroke="currentColor" stroke-width="1.4"/><path d="M2 2l8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
     RESET GERAL
@@ -209,6 +330,12 @@
 
 <!-- MAIN -->
 <div class="container">
+  <!-- PAINEL ADMIN -->
+  <div id="adminPanel" style="display:none">
+    <h3>⚙ Painel Admin — Usuários</h3>
+    <div id="adminUserList"><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">Carregando...</span></div>
+  </div>
+
   <div class="rules-card">
     <strong>REGRAS:</strong> Stake inicial <strong>R$20,00</strong> · Meta <strong>R$20,00 de lucro</strong> ·
     Se ganhar → reinicia. Se perder → recupera <strong>100% perdido + max(10% perdido, R$20)</strong> de lucro.
@@ -221,19 +348,26 @@
     <div class="pill"><span class="dot-icon" style="background:var(--accent2)"></span> Stage 2+: Encadeado</div>
     <div class="pill"><span class="dot-icon" style="background:var(--neutral)"></span> APOSTA REAL = retorno ÷ odd</div>
   </div>
+  <div class="filter-bar" id="filterBar">
+    <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M1 2h10M3 6h6M5 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <strong>FILTRO SUPER FAVORITOS ATIVO</strong>
+    &nbsp;·&nbsp; Pular quando % empate ≤
+    <input type="number" id="thresholdInput" class="threshold-input" min="1" max="50" value="12" onchange="render()">
+    % &nbsp;·&nbsp; Preencha a coluna <strong>% X</strong> com o % do Romers / Vovoteca
+  </div>
   <div class="table-wrapper">
     <table>
       <thead>
         <tr>
           <th>#</th><th>JOGO</th><th>DIA</th><th>STAGE</th>
-          <th>ODD EMPATE</th><th>APOSTA REAL</th><th>LUCRO ALVO</th>
+          <th>% X</th><th>ODD EMPATE</th><th>APOSTA REAL</th><th>LUCRO ALVO</th>
           <th>P&amp;L CONCURSO</th><th>P&amp;L ACUM.</th><th>RESULTADO</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
       <tfoot>
         <tr>
-          <td colspan="4" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;">TOTAIS</td>
+          <td colspan="5" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;">TOTAIS</td>
           <td></td>
           <td id="fAposta" style="color:var(--accent)">—</td>
           <td id="fLucro"  style="color:var(--neutral)">—</td>
@@ -247,6 +381,43 @@
 </div>
 
 <!-- Modal reset linha removido -->
+
+<!-- MODAL: CALCULADORA DE STAKE -->
+<div class="mo" id="mCalc"><div class="mc" style="max-width:620px;text-align:left">
+  <h2 style="text-align:center">Calculadora de Stake</h2>
+  <p style="text-align:center">Defina o lucro alvo e veja quanto apostar por linha.</p>
+
+  <div class="calc-grid">
+    <div class="calc-field">
+      <label>Lucro alvo por rodada (R$)</label>
+      <input type="number" id="cLucro" value="1000" min="1" oninput="calcUpdate()">
+      <span>quanto quer ganhar numa boa rodada</span>
+    </div>
+    <div class="calc-field">
+      <label>Odd do empate</label>
+      <input type="number" id="cOdd" value="3.00" min="1.1" step="0.05" oninput="calcUpdate()">
+      <span>odd média praticada nas bets</span>
+    </div>
+    <div class="calc-field">
+      <label>% de empates esperado</label>
+      <input type="number" id="cPct" value="30" min="1" max="99" oninput="calcUpdate()">
+      <span>histórico 2026: 30,6% · use entre 25–35%</span>
+    </div>
+    <div class="calc-field">
+      <label>Jogos na grade</label>
+      <input type="number" id="cJogos" value="14" min="1" max="14" oninput="calcUpdate()">
+      <span>14 na Loteca · menos se usar filtro</span>
+    </div>
+  </div>
+
+  <div class="calc-result" id="calcResult">
+    <!-- preenchido pelo JS -->
+  </div>
+
+  <div class="mbtns">
+    <button onclick="closeM('mCalc')">Fechar</button>
+  </div>
+</div></div>
 
 <!-- MODAL: PRÓXIMO CONCURSO -->
 <div class="mo" id="mNext"><div class="mc" style="max-width:400px">
@@ -289,8 +460,9 @@
      FIREBASE SDK (módulos ES via CDN)
 ══════════════════════════════════════════════════════ -->
 <script type="module">
-import { initializeApp }                          from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import { initializeApp }                                                from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
 // ══════════════════════════════════════════════════════
 // CONFIG FIREBASE
@@ -306,13 +478,21 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const db          = getFirestore(firebaseApp);
+const auth        = getAuth(firebaseApp);
 const DOC_REF     = doc(db, "jaf-loteca", "estado");
+const USUARIOS    = collection(db, "usuarios");
+
+// ← COLOQUE SEU E-MAIL AQUI (será o admin automático)
+const ADMIN_EMAIL = "renanlara@live.com";
 
 // ══════════════════════════════════════════════════════
 // CONSTANTS
 // ══════════════════════════════════════════════════════
 const BASE_TARGET = 20;
 const N           = 14;
+
+// Filtro super favoritos — estado local (não salvo no Firebase)
+let _filterOn = false;
 
 // ══════════════════════════════════════════════════════
 // DEFAULTS
@@ -326,7 +506,7 @@ function blankGames() {
 
 function blankLines() {
   return Array.from({length:N}, () => ({
-    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}, lastAction: null
+    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}, lastAction: null, pctX: {}
   }));
 }
 
@@ -400,6 +580,147 @@ async function save() {
 // ══════════════════════════════════════════════════════
 // LOAD + REALTIME LISTENER
 // ══════════════════════════════════════════════════════
+// ── AUTH UI HELPERS ──
+window.switchTab = function(tab) {
+  document.getElementById('formLogin').style.display    = tab==='login'    ? '' : 'none';
+  document.getElementById('formCadastro').style.display = tab==='cadastro' ? '' : 'none';
+  document.getElementById('tabLogin').classList.toggle('active',    tab==='login');
+  document.getElementById('tabCadastro').classList.toggle('active', tab==='cadastro');
+  document.getElementById('authMsg').innerHTML = '';
+};
+
+function showAuthMsg(msg, type) {
+  document.getElementById('authMsg').innerHTML = `<div class="auth-msg ${type}">${msg}</div>`;
+}
+
+window.doLogin = async function() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const senha = document.getElementById('loginSenha').value;
+  if (!email || !senha) return showAuthMsg('Preencha e-mail e senha.', 'error');
+  try {
+    await signInWithEmailAndPassword(auth, email, senha);
+  } catch(e) {
+    const msgs = {
+      'auth/invalid-credential': 'E-mail ou senha incorretos.',
+      'auth/user-not-found':     'Usuário não encontrado.',
+      'auth/wrong-password':     'Senha incorreta.',
+      'auth/too-many-requests':  'Muitas tentativas. Aguarde um momento.',
+    };
+    showAuthMsg(msgs[e.code] || 'Erro ao entrar: ' + e.message, 'error');
+  }
+};
+
+window.doCadastro = async function() {
+  const nome  = document.getElementById('cadNome').value.trim();
+  const email = document.getElementById('cadEmail').value.trim();
+  const senha = document.getElementById('cadSenha').value;
+  const senha2= document.getElementById('cadSenha2').value;
+  if (!nome || !email || !senha) return showAuthMsg('Preencha todos os campos.', 'error');
+  if (senha !== senha2) return showAuthMsg('As senhas não coincidem.', 'error');
+  if (senha.length < 6) return showAuthMsg('Senha deve ter pelo menos 6 caracteres.', 'error');
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, senha);
+    // Define status como pendente (admin aprova depois) — admin é aprovado direto
+    const status = email === ADMIN_EMAIL ? 'aprovado' : 'pendente';
+    await setDoc(doc(db, "usuarios", cred.user.uid), { nome, email, status, criadoEm: Date.now() });
+    if (status === 'pendente') {
+      await signOut(auth);
+      showAuthMsg('Cadastro realizado! Aguarde a aprovação do administrador.', 'pending');
+    }
+  } catch(e) {
+    const msgs = {
+      'auth/email-already-in-use': 'Este e-mail já está cadastrado.',
+      'auth/invalid-email':        'E-mail inválido.',
+      'auth/weak-password':        'Senha muito fraca.',
+    };
+    showAuthMsg(msgs[e.code] || 'Erro ao cadastrar: ' + e.message, 'error');
+  }
+};
+
+window.doLogout = async function() {
+  await signOut(auth);
+};
+
+// ── ADMIN ──
+async function loadAdminPanel() {
+  const listEl = document.getElementById('adminUserList');
+  try {
+    const snap = await getDocs(USUARIOS);
+    if (snap.empty) { listEl.innerHTML = '<span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">Nenhum usuário.</span>'; return; }
+    let html = '';
+    snap.forEach(d => {
+      const u = d.data();
+      const sid = u.status || 'pendente';
+      html += `<div class="admin-user-row">
+        <span class="admin-user-email">${u.nome || ''} &lt;${u.email}&gt;</span>
+        <span class="admin-user-status status-${sid}">${sid.toUpperCase()}</span>
+        ${sid !== 'aprovado' ? `<button class="admin-btn aprovar" onclick="adminAction('${d.id}','aprovado')">APROVAR</button>` : ''}
+        ${sid !== 'rejeitado' ? `<button class="admin-btn rejeitar" onclick="adminAction('${d.id}','rejeitado')">REJEITAR</button>` : ''}
+      </div>`;
+    });
+    listEl.innerHTML = html;
+  } catch(e) { listEl.innerHTML = '<span style="color:var(--accent2);font-size:12px">Erro ao carregar usuários.</span>'; }
+}
+
+window.adminAction = async function(uid, novoStatus) {
+  await setDoc(doc(db, "usuarios", uid), { status: novoStatus }, { merge: true });
+  loadAdminPanel();
+};
+
+// ── AUTH STATE LISTENER (ponto de entrada principal) ──
+onAuthStateChanged(auth, async (user) => {
+  const authScreen = document.getElementById('authScreen');
+  const userBar    = document.getElementById('userBar');
+  const loading    = document.getElementById('loading');
+
+  if (!user) {
+    // Não logado — mostra tela de auth
+    loading.style.display    = 'none';
+    authScreen.style.display = 'flex';
+    userBar.style.display    = 'none';
+    document.getElementById('adminPanel').style.display = 'none';
+    return;
+  }
+
+  // Logado — verifica status no Firestore
+  authScreen.style.display = 'none';
+  loading.style.display    = 'flex';
+  loading.querySelector('p').textContent = 'Verificando acesso...';
+
+  try {
+    const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+    if (!userDoc.exists() || userDoc.data().status !== 'aprovado') {
+      // Não aprovado
+      loading.style.display = 'none';
+      authScreen.style.display = 'flex';
+      switchTab('login');
+      if (userDoc.exists() && userDoc.data().status === 'pendente') {
+        showAuthMsg('Seu cadastro está pendente de aprovação.', 'pending');
+      } else {
+        showAuthMsg('Acesso não autorizado.', 'error');
+      }
+      await signOut(auth);
+      return;
+    }
+
+    // Aprovado — mostra user bar
+    userBar.style.display = 'flex';
+    document.getElementById('userEmail').textContent = user.email;
+    const isAdmin = user.email === ADMIN_EMAIL;
+    document.getElementById('adminBadge').style.display = isAdmin ? '' : 'none';
+    if (isAdmin) {
+      document.getElementById('adminPanel').style.display = '';
+      loadAdminPanel();
+    }
+
+    // Carrega o app
+    await initFirebase();
+
+  } catch(e) {
+    loading.innerHTML = `<h2 style="color:var(--accent2)">Erro</h2><p style="font-family:'DM Mono',monospace;color:var(--muted);font-size:13px;margin-top:12px">${e.message}</p>`;
+  }
+});
+
 async function initFirebase() {
   try {
     // Carrega estado inicial
@@ -408,7 +729,7 @@ async function initFirebase() {
       A = snap.data();
       // Garante campos novos para dados antigos (migração)
       A.lines = A.lines.map(ln => ({
-        stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{}, apostaOverride:{}, lastAction:null,
+        stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{}, apostaOverride:{}, lastAction:null, pctX:{},
         ...ln
       }));
     } else {
@@ -495,6 +816,7 @@ function render() {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
 
+  const threshold = parseInt(document.getElementById('thresholdInput')?.value || 12);
   let totAposta=0, totLucro=0, totPnl=0, totAcc=0, wins=0, loss=0, recup=0, totDebit=0;
 
   A.lines.forEach((ln, i) => {
@@ -505,10 +827,16 @@ function render() {
       ? ln.apostaOverride[key2] : apostaCalc;
     const pN           = pnlNow(ln);
     const pT           = pnlTotal(ln);
-    totAposta += aposta; totLucro += lucro; totPnl += pN; totAcc += pT;
+    if (!isBlocked) { totAposta += aposta; totLucro += lucro; }
+    totPnl += pN; totAcc += pT;
     if (pN > 0) wins++; if (pN < 0) loss++;
     if (ln.stage > 0) recup++;
     if (pT < 0) totDebit += pT;
+
+    // Filtro super favorito
+    const keyPct   = String(curNum());
+    const pctVal   = (ln.pctX && ln.pctX[keyPct] != null) ? ln.pctX[keyPct] : null;
+    const isBlocked = _filterOn && pctVal !== null && pctVal <= threshold;
 
     const sc  = `s${Math.min(ln.stage, 3)}`;
     const sl  = ln.stage === 0 ? 'INICIAL' : `RECUP #${ln.stage}`;
@@ -517,11 +845,21 @@ function render() {
     const pTC = pT > 0 ? 'pos' : pT < 0 ? 'neg' : 'zero';
 
     const tr = document.createElement('tr');
+    if (isBlocked) tr.classList.add('blocked');
     tr.innerHTML = `
       <td class="game-num">${i+1}</td>
       <td class="teams${ph?' ph':''}"><b>${esc(g.home)}</b> <span class="vs">x</span> <b>${esc(g.away)}</b></td>
       <td><span class="day-badge">${esc(g.day)}</span></td>
       <td><span class="stage ${sc}">${sl}</span></td>
+      <td>
+        ${isBlocked
+          ? '<span class="blocked-badge">⊘ PULADO</span>'
+          : (pctVal !== null
+              ? `<input type="number" min="1" max="100" class="pct-input${pctVal <= threshold ? ' low' : ''}" value="${pctVal}" onchange="window._setPct(${i},this.value)" title="% apostas no empate">`
+              : `<input type="number" min="1" max="100" class="pct-input" placeholder="%" onchange="window._setPct(${i},this.value)" title="% apostas no empate">`
+            )
+        }
+      </td>
       <td><input type="number" min="1.01" max="99" step="0.01" class="odd-input"
             value="${Number(ln.odd||3).toFixed(2)}" onchange="window._setOdd(${i},this.value)"></td>
       <td>
@@ -536,8 +874,8 @@ function render() {
       <td class="pnl ${pNC}">${pN===0?'—':fmtS(pN)}</td>
       <td class="accum-cell ${pTC}">${pT===0?'—':fmtS(pT)}</td>
       <td><div class="result-btns">
-        <button class="btn-r" onclick="window._doResult(${i},true)">✓ EMPATE</button>
-        <button class="btn-r" onclick="window._doResult(${i},false)">✗ NÃO</button>
+        <button class="btn-r" onclick="window._doResult(${i},true)" ${isBlocked?"disabled":""}>✓ EMPATE</button>
+        <button class="btn-r" onclick="window._doResult(${i},false)" ${isBlocked?"disabled":""}>✗ NÃO</button>
         <button class="btn-r undo" onclick="window._undoResult(${i})" title="Desfazer última marcação desta linha" ${!ln.lastAction?"disabled":""}>↩</button>
       </div></td>`;
     tbody.appendChild(tr);
@@ -669,6 +1007,36 @@ window._resetAposta = function(i, el) {
   save();
 };
 
+window.toggleFilter = function() {
+  _filterOn = !_filterOn;
+  const btn   = document.getElementById('btnFilter');
+  const label = document.getElementById('btnFilterLabel');
+  const bar   = document.getElementById('filterBar');
+  if (_filterOn) {
+    btn.className   = 'btn-nav btn-filter-on';
+    label.textContent = 'FILTRO ON';
+    bar.classList.add('active');
+  } else {
+    btn.className   = 'btn-nav btn-filter-off';
+    label.textContent = 'FILTRO OFF';
+    bar.classList.remove('active');
+  }
+  render();
+};
+
+window._setPct = function(i, val) {
+  const v   = parseFloat(val);
+  const key = String(curNum());
+  const ln  = A.lines[i];
+  if (!ln.pctX) ln.pctX = {};
+  if (isNaN(v) || val === '') {
+    delete ln.pctX[key];
+  } else {
+    ln.pctX[key] = Math.round(Math.max(0, Math.min(100, v)));
+  }
+  save(); render();
+};
+
 window._setOdd = function(i, val) {
   const v = parseFloat(val);
   if (!isNaN(v) && v >= 1.01) {
@@ -760,6 +1128,123 @@ window.closeM = function(id) { document.getElementById(id).classList.remove('ope
 document.querySelectorAll('.mo').forEach(el =>
   el.addEventListener('click', e => { if (e.target === el) closeM(el.id); })
 );
+
+// ══════════════════════════════════════════════════════
+// CALCULADORA DE STAKE
+// ══════════════════════════════════════════════════════
+function binomCoef(n, k) {
+  if (k < 0 || k > n) return 0;
+  if (k === 0 || k === n) return 1;
+  let c = 1;
+  for (let i = 0; i < k; i++) c = c * (n - i) / (i + 1);
+  return c;
+}
+function binomProb(n, k, p) {
+  return binomCoef(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
+}
+
+window.calcUpdate = function() {
+  const lucroAlvo = parseFloat(document.getElementById('cLucro').value) || 1000;
+  const odd       = parseFloat(document.getElementById('cOdd').value)   || 3.0;
+  const pct       = parseFloat(document.getElementById('cPct').value)   || 30;
+  const jogos     = parseInt(document.getElementById('cJogos').value)   || 14;
+  const p         = pct / 100;
+
+  // Empates esperados
+  const empEsp = p * jogos;
+
+  // Lucro por linha = lucroAlvo / empEsp
+  const lucroLinha = lucroAlvo / empEsp;
+
+  // Aposta por linha = lucroLinha / (odd - 1)
+  const apostaPorLinha = lucroLinha / (odd - 1);
+
+  // Total apostado
+  const totalApostado = apostaPorLinha * jogos;
+
+  // Capital de reserva: suportar 3 rodadas sem nenhum empate
+  // Na pior: perde apostaPorLinha × jogos por rodada
+  const reserva = totalApostado * 3;
+
+  // Distribuição binomial
+  let rows = '';
+  let probLucro = 0;
+  let probPrejuizo = 0;
+
+  for (let k = 0; k <= jogos; k++) {
+    const prob    = binomProb(jogos, k, p);
+    const pnl     = k * lucroLinha - (jogos - k) * apostaPorLinha;
+    const isProft = pnl >= 0;
+    const isExp   = k === Math.round(empEsp);
+    const barW    = Math.round(prob * 100 * 4);
+    const barCol  = isProft ? 'var(--win)' : 'var(--loss)';
+    const pnlStr  = (pnl >= 0 ? '+' : '') + 'R$ ' + Math.abs(pnl).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    if (isProft) probLucro += prob;
+    else probPrejuizo += prob;
+
+    if (prob < 0.003 && k !== Math.round(empEsp)) continue; // omite linhas insignificantes
+
+    rows += `<tr class="${isProft ? 'profit' : 'loss-row'}${isExp ? ' expected' : ''}">
+      <td>${k} empate${k!==1?'s':''}</td>
+      <td>${(prob*100).toFixed(1)}%
+        <span class="prob-bar" style="width:${barW}px;background:${barCol};opacity:.6"></span>
+      </td>
+      <td style="font-weight:600">${pnlStr}</td>
+    </tr>`;
+  }
+
+  const fmtBRL = v => 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+
+  document.getElementById('calcResult').innerHTML = `
+    <div class="calc-result-grid">
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--accent)">${fmtBRL(apostaPorLinha)}</div>
+        <div class="calc-kpi-lbl">Aposta por linha</div>
+      </div>
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--accent3)">${fmtBRL(totalApostado)}</div>
+        <div class="calc-kpi-lbl">Total apostado</div>
+      </div>
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--neutral)">${empEsp.toFixed(1)}</div>
+        <div class="calc-kpi-lbl">Empates esperados</div>
+      </div>
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--win)">${(probLucro*100).toFixed(1)}%</div>
+        <div class="calc-kpi-lbl">Prob. lucro na rodada</div>
+      </div>
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--loss)">${(probPrejuizo*100).toFixed(1)}%</div>
+        <div class="calc-kpi-lbl">Prob. prejuízo na rodada</div>
+      </div>
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--accent2)">${fmtBRL(reserva)}</div>
+        <div class="calc-kpi-lbl">Reserva recomendada (3×)</div>
+      </div>
+    </div>
+    <table class="prob-table">
+      <thead><tr><th>Resultado</th><th>Probabilidade</th><th>P&L estimado</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="calc-note" style="margin-top:12px">
+      <strong>Como usar:</strong> Linha destacada = cenário mais provável.
+      Verde = rodada lucrativa · Vermelho = rodada de prejuízo (martingale recupera nas seguintes).
+      A <strong>reserva recomendada</strong> cobre 3 rodadas sem nenhum empate — o pior cenário razoável.
+      Com filtro de super favoritos ativo, aumente o % esperado para ~33%.
+    </div>`;
+};
+
+// Inicializa ao abrir o modal
+document.getElementById('mCalc').addEventListener('click', function(e) {
+  if (e.target === this) closeM('mCalc');
+});
+// Calcula ao abrir
+const _origOpenM = window.openM;
+window.openM = function(id) {
+  _origOpenM(id);
+  if (id === 'mCalc') calcUpdate();
+};
 
 // ══════════════════════════════════════════════════════
 // BOOT
