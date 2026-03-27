@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -483,7 +484,7 @@ const DOC_REF     = doc(db, "jaf-loteca", "estado");
 const USUARIOS    = collection(db, "usuarios");
 
 // ← COLOQUE SEU E-MAIL AQUI (será o admin automático)
-const ADMIN_EMAIL = "renanlara@live.com";
+const ADMIN_EMAIL = "renan@jaf.com.br";
 
 // ══════════════════════════════════════════════════════
 // CONSTANTS
@@ -646,17 +647,18 @@ async function loadAdminPanel() {
   const listEl = document.getElementById('adminUserList');
   try {
     const snap = await getDocs(USUARIOS);
-    if (snap.empty) { listEl.innerHTML = '<span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">Nenhum usuário.</span>'; return; }
+    if (snap.empty) { listEl.innerHTML = '<span style="font-family:monospace;font-size:12px;color:var(--muted)">Nenhum usuário.</span>'; return; }
     let html = '';
     snap.forEach(d => {
-      const u = d.data();
+      const u   = d.data();
       const sid = u.status || 'pendente';
-      html += `<div class="admin-user-row">
-        <span class="admin-user-email">${u.nome || ''} &lt;${u.email}&gt;</span>
-        <span class="admin-user-status status-${sid}">${sid.toUpperCase()}</span>
-        ${sid !== 'aprovado' ? `<button class="admin-btn aprovar" onclick="adminAction('${d.id}','aprovado')">APROVAR</button>` : ''}
-        ${sid !== 'rejeitado' ? `<button class="admin-btn rejeitar" onclick="adminAction('${d.id}','rejeitado')">REJEITAR</button>` : ''}
-      </div>`;
+      const btnAprovar  = sid !== 'aprovado'  ? '<button class="admin-btn aprovar" onclick="adminAction(\''+d.id+'\',\'aprovado\')">APROVAR</button>' : '';
+      const btnRejeitar = sid !== 'rejeitado' ? '<button class="admin-btn rejeitar" onclick="adminAction(\''+d.id+'\',\'rejeitado\')">REJEITAR</button>' : '';
+      html += '<div class="admin-user-row">'
+            + '<span class="admin-user-email">' + (u.nome||'') + ' &lt;' + u.email + '&gt;</span>'
+            + '<span class="admin-user-status status-' + sid + '">' + sid.toUpperCase() + '</span>'
+            + btnAprovar + btnRejeitar
+            + '</div>';
     });
     listEl.innerHTML = html;
   } catch(e) { listEl.innerHTML = '<span style="color:var(--accent2);font-size:12px">Erro ao carregar usuários.</span>'; }
@@ -717,7 +719,7 @@ onAuthStateChanged(auth, async (user) => {
     await initFirebase();
 
   } catch(e) {
-    loading.innerHTML = `<h2 style="color:var(--accent2)">Erro</h2><p style="font-family:'DM Mono',monospace;color:var(--muted);font-size:13px;margin-top:12px">${e.message}</p>`;
+    loading.innerHTML = `<h2 style="color:var(--accent2)">Erro</h2><p style="font-family:monospace;color:var(--muted);font-size:13px;margin-top:12px">${e.message}</p>`;
   }
 });
 
@@ -853,10 +855,10 @@ function render() {
       <td><span class="stage ${sc}">${sl}</span></td>
       <td>
         ${isBlocked
-          ? '<span class="blocked-badge">⊘ PULADO</span>'
+          ? '<span class="blocked-badge">&#8856; PULADO</span>'
           : (pctVal !== null
-              ? `<input type="number" min="1" max="100" class="pct-input${pctVal <= threshold ? ' low' : ''}" value="${pctVal}" onchange="window._setPct(${i},this.value)" title="% apostas no empate">`
-              : `<input type="number" min="1" max="100" class="pct-input" placeholder="%" onchange="window._setPct(${i},this.value)" title="% apostas no empate">`
+              ? '<input type="number" min="1" max="100" class="pct-input' + (pctVal <= threshold ? ' low' : '') + '" value="' + pctVal + '" onchange="window._setPct(' + i + ',this.value)" title="% apostas no empate">'
+              : '<input type="number" min="1" max="100" class="pct-input" placeholder="%" onchange="window._setPct(' + i + ',this.value)" title="% apostas no empate">'
             )
         }
       </td>
@@ -1178,7 +1180,7 @@ window.calcUpdate = function() {
     const isExp   = k === Math.round(empEsp);
     const barW    = Math.round(prob * 100 * 4);
     const barCol  = isProft ? 'var(--win)' : 'var(--loss)';
-    const pnlStr  = (pnl >= 0 ? '+' : '') + 'R$ ' + Math.abs(pnl).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const pnlStr  = (pnl >= 0 ? '+' : '') + 'R$ ' + Math.abs(pnl).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
     if (isProft) probLucro += prob;
     else probPrejuizo += prob;
@@ -1194,7 +1196,7 @@ window.calcUpdate = function() {
     </tr>`;
   }
 
-  const fmtBRL = v => 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  const fmtBRL = v => 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 
   document.getElementById('calcResult').innerHTML = `
     <div class="calc-result-grid">
