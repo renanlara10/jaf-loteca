@@ -824,21 +824,22 @@ function render() {
   A.lines.forEach((ln, i) => {
     const g            = conc.games[i];
     const {aposta: apostaCalc, lucro} = calcBet(ln);
-    const key2 = String(curNum());
+    const key2   = String(curNum());
     const aposta = (ln.apostaOverride && ln.apostaOverride[key2] != null)
       ? ln.apostaOverride[key2] : apostaCalc;
-    const pN           = pnlNow(ln);
-    const pT           = pnlTotal(ln);
+    const pN     = pnlNow(ln);
+    const pT     = pnlTotal(ln);
+
+    // Filtro super favorito — declarado ANTES de ser usado
+    const keyPct    = String(curNum());
+    const pctVal    = (ln.pctX && ln.pctX[keyPct] != null) ? ln.pctX[keyPct] : null;
+    const isBlocked = _filterOn && pctVal !== null && pctVal <= threshold;
+
     if (!isBlocked) { totAposta += aposta; totLucro += lucro; }
     totPnl += pN; totAcc += pT;
     if (pN > 0) wins++; if (pN < 0) loss++;
     if (ln.stage > 0) recup++;
     if (pT < 0) totDebit += pT;
-
-    // Filtro super favorito
-    const keyPct   = String(curNum());
-    const pctVal   = (ln.pctX && ln.pctX[keyPct] != null) ? ln.pctX[keyPct] : null;
-    const isBlocked = _filterOn && pctVal !== null && pctVal <= threshold;
 
     const sc  = `s${Math.min(ln.stage, 3)}`;
     const sl  = ln.stage === 0 ? 'INICIAL' : `RECUP #${ln.stage}`;
