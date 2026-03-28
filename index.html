@@ -480,8 +480,8 @@
 <div class="mo" id="mRedistrib"><div class="mc" style="max-width:480px;text-align:left">
   <h2 style="text-align:center">↔ Redistribuir Saldo</h2>
   <p style="text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">
-    <strong>50%</strong> do P&L negativo será distribuído entre linhas <strong>Stage 0</strong>.<br>
-    A linha de origem continua ativa com os outros 50%.
+    <strong>50%</strong> do P&L negativo será transferido para as outras <strong>13 linhas</strong> (todas, independente do stage).<br>
+    A linha de origem fica com os outros 50%. O saldo negativo é real nas receptoras.
   </p>
   <div class="redist-preview" id="redistPreview"></div>
   <div class="mbtns">
@@ -936,7 +936,7 @@ function render() {
       <td><div class="result-btns">
         ${(() => {
           const jaM        = ln.lastAction && ln.lastAction.key === String(curNum());
-          const podaRedist = !jaM && ln.stage > 0 && (ln.pnlTotal||0) < 0;
+          const podaRedist = !jaM && (ln.pnlTotal||0) < 0;
           if (jaM) {
             const label = ln.lastAction.won ? '✓ EMPATE' : '✗ NÃO';
             const cls   = ln.lastAction.won ? 'btn-r marcado-win' : 'btn-r marcado-loss';
@@ -1092,26 +1092,28 @@ window._openRedistrib = function(i) {
   const ln     = A.lines[i];
   const debito = Math.abs(ln.pnlTotal || 0);
   if (debito === 0) return;
-  const alvos = A.lines.map((l,j)=>({j,l})).filter(({j,l})=> j!==i && l.stage===0);
-  if (alvos.length === 0) { alert('Não há linhas no Stage 0 disponíveis.'); return; }
+
+  // Todas as outras 13 linhas recebem, independente do stage
+  const outras        = A.lines.filter((_,j) => j !== i);
   const metade        = r2(debito * 0.5);
-  const valorPorLinha = r2(metade / alvos.length);
+  const valorPorLinha = r2(metade / outras.length);  // metade ÷ 13
   const g             = curConc().games[i];
   _redistIdx          = i;
+
   document.getElementById('redistPreview').innerHTML =
       '<div class="redist-row"><span class="redist-lbl">Linha de origem</span>'
     + '<span class="redist-val" style="color:var(--accent2)">' + (i+1) + '. ' + esc(g.home) + ' x ' + esc(g.away) + '</span></div>'
-    + '<div class="redist-row"><span class="redist-lbl">P&L negativo</span>'
+    + '<div class="redist-row"><span class="redist-lbl">P&L negativo atual</span>'
     + '<span class="redist-val" style="color:var(--accent2)">' + fmtS(ln.pnlTotal||0) + '</span></div>'
-    + '<div class="redist-row"><span class="redist-lbl">50% redistribuído</span>'
+    + '<div class="redist-row"><span class="redist-lbl">50% transferido para as demais</span>'
     + '<span class="redist-val" style="color:var(--neutral)">- ' + fmtU(metade) + '</span></div>'
-    + '<div class="redist-row"><span class="redist-lbl">50% permanece na origem</span>'
-    + '<span class="redist-val" style="color:var(--accent2)">- ' + fmtU(metade) + '</span></div>'
-    + '<div class="redist-row"><span class="redist-lbl">Linhas Stage 0 receptoras</span>'
-    + '<span class="redist-val">' + alvos.length + ' linhas</span></div>'
+    + '<div class="redist-row"><span class="redist-lbl">P&L da linha após</span>'
+    + '<span class="redist-val" style="color:var(--accent2)">' + fmtS(r2((ln.pnlTotal||0) * 0.5)) + '</span></div>'
+    + '<div class="redist-row"><span class="redist-lbl">Linhas receptoras</span>'
+    + '<span class="redist-val">todas as outras ' + outras.length + '</span></div>'
     + '<div class="redist-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px">'
-    + '<span class="redist-lbl">Extra no lucro alvo de cada</span>'
-    + '<span class="redist-val" style="color:var(--neutral)">+' + fmtU(valorPorLinha) + '</span></div>';
+    + '<span class="redist-lbl">P&L extra (negativo) por linha</span>'
+    + '<span class="redist-val" style="color:var(--accent2)">- ' + fmtU(valorPorLinha) + '</span></div>';
   openM('mRedistrib');
 };
 
@@ -1121,13 +1123,19 @@ window.confirmRedistrib = function() {
   const ln     = A.lines[i];
   const debito = Math.abs(ln.pnlTotal || 0);
   const metade = r2(debito * 0.5);
-  const alvos  = A.lines.map((l,j)=>({j,l})).filter(({j,l})=> j!==i && l.stage===0);
-  if (alvos.length === 0) { closeM('mRedistrib'); return; }
-  const valorPorLinha = r2(metade / alvos.length);
-  // Distribui nas receptoras
-  alvos.forEach(({l}) => { l.redistExtra = r2((l.redistExtra||0) + valorPorLinha); });
-  // Linha de origem: lostAccum reduzido à metade (pnlTotal não muda)
+  const outras = A.lines.filter((_,j) => j !== i);
+  const valorPorLinha = r2(metade / outras.length);  // valor negativo por linha
+
+  // Cada receptora absorve parte do P&L negativo
+  outras.forEach(l => {
+    l.pnlTotal   = r2((l.pnlTotal||0) - valorPorLinha);
+    l.redistExtra = r2((l.redistExtra||0) + valorPorLinha); // aumenta lucro alvo p/ compensar
+  });
+
+  // Linha de origem: P&L e lostAccum reduzidos à metade
+  ln.pnlTotal  = r2((ln.pnlTotal||0) * 0.5);
   ln.lostAccum = r2((ln.lostAccum||0) * 0.5);
+
   _redistIdx = null;
   closeM('mRedistrib');
   save(); render();
