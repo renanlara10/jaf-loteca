@@ -132,9 +132,9 @@
   tfoot td:first-child{padding-left:14px;}
 
   /* ── MODALS ── */
-  .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:300;backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:16px;}
+  .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:300;backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
   .mo.open{display:flex;}
-  .mc{background:var(--card);border:1px solid var(--border);padding:28px;width:100%;text-align:center;}
+  .mc{background:var(--card);border:1px solid var(--border);padding:20px;width:100%;text-align:center;max-height:94vh;overflow-y:auto;}
   .mc h2{font-family:'Bebas Neue',sans-serif;font-size:26px;margin-bottom:8px;}
   .mc p{color:var(--muted);font-size:12px;margin-bottom:16px;font-family:'DM Mono',monospace;line-height:1.65;}
   .mc p strong{color:var(--accent);}
@@ -206,29 +206,30 @@
   #loading p{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);}
 
   /* ── CALCULADORA ── */
-  #mCalc .mc{max-width:620px;text-align:left;}
+  #mCalc .mc{max-width:700px;text-align:left;max-height:92vh;display:flex;flex-direction:column;}
   #mCalc .mc h2{text-align:center;}
-  .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
-  .calc-field{display:flex;flex-direction:column;gap:5px;}
-  .calc-field label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
-  .calc-field input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.04em;padding:10px 12px;border-radius:2px;outline:none;width:100%;transition:border-color .15s;}
+  .calc-scroll{overflow-y:auto;flex:1;padding-right:4px;}
+  .calc-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+  .calc-field{display:flex;flex-direction:column;gap:3px;}
+  .calc-field label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .calc-field input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;padding:7px 8px;border-radius:2px;outline:none;width:100%;transition:border-color .15s;}
   .calc-field input:focus{border-color:var(--accent);}
-  .calc-field span{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
-  .calc-result{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:16px;margin-bottom:16px;}
-  .calc-result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin-bottom:14px;}
-  .calc-kpi{background:var(--card);padding:12px 10px;text-align:center;}
-  .calc-kpi-val{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;line-height:1;}
-  .calc-kpi-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px;font-family:'DM Mono',monospace;}
-  .prob-table{width:100%;border-collapse:collapse;font-size:12px;}
-  .prob-table th{padding:7px 8px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}
-  .prob-table td{padding:6px 8px;font-family:'DM Mono',monospace;border-bottom:1px solid rgba(30,42,58,.5);}
+  .calc-field span{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);line-height:1.3;}
+  .calc-result{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:10px;}
+  .calc-result-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);margin-bottom:10px;}
+  .calc-kpi{background:var(--card);padding:8px 6px;text-align:center;}
+  .calc-kpi-val{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:.04em;line-height:1;}
+  .calc-kpi-lbl{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;}
+  .prob-table{width:100%;border-collapse:collapse;font-size:11px;}
+  .prob-table th{padding:5px 6px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}
+  .prob-table td{padding:4px 6px;font-family:'DM Mono',monospace;border-bottom:1px solid rgba(30,42,58,.5);}
   .prob-table tr.profit td{color:var(--win);}
   .prob-table tr.loss-row td{color:rgba(255,77,109,.7);}
   .prob-table tr.expected td{background:rgba(91,124,253,.08);}
-  .prob-bar{display:inline-block;height:8px;border-radius:2px;margin-left:6px;vertical-align:middle;}
-  .calc-note{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);line-height:1.6;padding:10px 12px;background:rgba(91,124,253,.06);border:1px solid rgba(91,124,253,.15);border-radius:2px;}
+  .prob-bar{display:inline-block;height:6px;border-radius:2px;margin-left:4px;vertical-align:middle;}
+  .calc-note{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);line-height:1.5;padding:8px 10px;background:rgba(91,124,253,.06);border:1px solid rgba(91,124,253,.15);border-radius:2px;}
   .calc-note strong{color:var(--neutral);}
-  @media(max-width:500px){.calc-grid{grid-template-columns:1fr;}.calc-result-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:600px){.calc-grid{grid-template-columns:1fr 1fr;}.calc-result-grid{grid-template-columns:repeat(3,1fr);}}
 
   @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
   tbody tr{animation:fadeIn .22s ease both;}
@@ -409,38 +410,40 @@
 <!-- Modal reset linha removido -->
 
 <!-- MODAL: CALCULADORA DE STAKE -->
-<div class="mo" id="mCalc"><div class="mc" style="max-width:620px;text-align:left">
-  <h2 style="text-align:center">Calculadora de Stake</h2>
-  <p style="text-align:center">Defina o lucro alvo e veja quanto apostar por linha.</p>
+<div class="mo" id="mCalc"><div class="mc" style="max-width:700px;text-align:left">
+  <h2 style="text-align:center;margin-bottom:4px">Calculadora de Stake</h2>
+  <p style="text-align:center;margin-bottom:10px">Defina o lucro alvo e veja quanto apostar por linha.</p>
 
   <div class="calc-grid">
     <div class="calc-field">
-      <label>Lucro alvo por rodada (R$)</label>
+      <label>Lucro alvo (R$)</label>
       <input type="number" id="cLucro" value="1000" min="1" oninput="calcUpdate()">
-      <span>quanto quer ganhar numa boa rodada</span>
+      <span>por rodada</span>
     </div>
     <div class="calc-field">
-      <label>Odd do empate</label>
+      <label>Odd empate</label>
       <input type="number" id="cOdd" value="3.00" min="1.1" step="0.05" oninput="calcUpdate()">
-      <span>odd média praticada nas bets</span>
+      <span>média nas bets</span>
     </div>
     <div class="calc-field">
-      <label>% de empates esperado</label>
+      <label>% empates</label>
       <input type="number" id="cPct" value="30" min="1" max="99" oninput="calcUpdate()">
-      <span>histórico 2026: 30,6% · use entre 25–35%</span>
+      <span>2026: ~30,6%</span>
     </div>
     <div class="calc-field">
-      <label>Jogos na grade</label>
+      <label>Jogos</label>
       <input type="number" id="cJogos" value="14" min="1" max="14" oninput="calcUpdate()">
-      <span>14 na Loteca · menos se usar filtro</span>
+      <span>14 na Loteca</span>
     </div>
   </div>
 
-  <div class="calc-result" id="calcResult">
-    <!-- preenchido pelo JS -->
+  <div class="calc-scroll">
+    <div class="calc-result" id="calcResult">
+      <!-- preenchido pelo JS -->
+    </div>
   </div>
 
-  <div class="mbtns">
+  <div class="mbtns" style="margin-top:10px">
     <button onclick="closeM('mCalc')">Fechar</button>
   </div>
 </div></div>
