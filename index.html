@@ -352,7 +352,7 @@
   </div>
 
   <div class="rules-card">
-    <strong>REGRAS:</strong> Stake inicial = lucro alvo ÷ (odd−1) · Meta = <strong id="rulesLucro">R$20,00</strong> de lucro por linha ·
+    <strong>REGRAS:</strong> Stake inicial = max(lucro alvo ÷ (odd−1), <strong>R$10,00</strong>) · Meta = <strong id="rulesLucro">R$20,00</strong> de lucro por linha ·
     Se ganhar → reinicia. Se perder → recupera <strong>100% perdido + max(10% perdido, lucro alvo)</strong> de lucro.
     <strong>APOSTA REAL</strong> = retorno necessário ÷ odd ·
     Dados salvos automaticamente na nuvem — acesse de qualquer dispositivo.
@@ -807,7 +807,7 @@ const r2      = v  => Math.round(v * 100) / 100;
 function calcBet(ln) {
   const odd = ln.odd >= 1.01 ? ln.odd : 3.0;
   if (ln.stage === 0) {
-    return { aposta: r2(BASE_TARGET / (odd - 1)), lucro: BASE_TARGET };
+    return { aposta: Math.max(r2(BASE_TARGET / (odd - 1)), 10), lucro: BASE_TARGET };
   }
   const profit = Math.max(ln.lostAccum * 0.10, BASE_TARGET);
   return { aposta: r2((ln.lostAccum + profit) / odd), lucro: r2(profit) };
