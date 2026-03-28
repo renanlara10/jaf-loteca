@@ -115,6 +115,17 @@
   .btn-r.undo{background:rgba(91,124,253,.12);color:var(--neutral);border-color:rgba(91,124,253,.25);}
   .btn-r.undo:hover{background:rgba(91,124,253,.25);color:#fff;}
   .btn-r.undo:disabled{opacity:.2;}
+  .btn-r.marcado-win{background:rgba(0,229,160,.15);color:var(--win);border-color:rgba(0,229,160,.4);font-weight:600;cursor:default;}
+  .btn-r.marcado-loss{background:rgba(255,77,109,.12);color:var(--loss);border-color:rgba(255,77,109,.35);font-weight:600;cursor:default;}
+  .btn-r.redistrib{background:rgba(91,124,253,.12);color:var(--neutral);border-color:rgba(91,124,253,.3);font-size:11px;padding:4px 9px;}
+  .btn-r.redistrib:hover{background:rgba(91,124,253,.25);color:#fff;}
+  .redistrib-badge{font-family:'DM Mono',monospace;font-size:9px;padding:1px 5px;border-radius:2px;background:rgba(91,124,253,.12);color:var(--neutral);border:1px solid rgba(91,124,253,.25);margin-left:4px;vertical-align:middle;}
+  #mRedistrib .mc{max-width:480px;text-align:left;}
+  .redist-preview{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:12px 14px;margin:14px 0;}
+  .redist-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(30,42,58,.5);font-family:'DM Mono',monospace;font-size:12px;}
+  .redist-row:last-child{border-bottom:none;}
+  .redist-lbl{color:var(--muted);}
+  .redist-val{font-weight:500;}
 
   tfoot tr{background:var(--surface);border-top:2px solid var(--border);}
   tfoot td{padding:12px 10px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.03em;}
@@ -465,6 +476,20 @@
   </div>
 </div></div>
 
+<!-- MODAL: REDISTRIBUIR SALDO -->
+<div class="mo" id="mRedistrib"><div class="mc" style="max-width:480px;text-align:left">
+  <h2 style="text-align:center">↔ Redistribuir Saldo</h2>
+  <p style="text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">
+    <strong>50%</strong> do P&L negativo será distribuído entre linhas <strong>Stage 0</strong>.<br>
+    A linha de origem continua ativa com os outros 50%.
+  </p>
+  <div class="redist-preview" id="redistPreview"></div>
+  <div class="mbtns">
+    <button onclick="closeM('mRedistrib')">Cancelar</button>
+    <button class="ok" onclick="confirmRedistrib()">↔ Confirmar</button>
+  </div>
+</div></div>
+
 <!-- MODAL: RESET GERAL -->
 <div class="mo" id="mResetAll"><div class="mc" style="max-width:400px">
   <h2 style="color:var(--accent2)">⚠ Reset Geral</h2>
@@ -525,7 +550,7 @@ function blankGames() {
 
 function blankLines() {
   return Array.from({length:N}, () => ({
-    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}, lastAction: null, pctX: {}
+    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}, lastAction: null, pctX: {}, redistExtra: 0
   }));
 }
 
@@ -753,7 +778,7 @@ async function initFirebase() {
       BASE_TARGET = A.lucroAlvo;
       // Garante campos novos para dados antigos (migração)
       A.lines = A.lines.map(ln => ({
-        stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{}, apostaOverride:{}, lastAction:null, pctX:{},
+        stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{}, apostaOverride:{}, lastAction:null, pctX:{}, redistExtra:0,
         ...ln
       }));
     } else {
@@ -805,11 +830,13 @@ const curNum  = () => curConc().num;
 const r2      = v  => Math.round(v * 100) / 100;
 
 function calcBet(ln) {
-  const odd = ln.odd >= 1.01 ? ln.odd : 3.0;
+  const odd   = ln.odd >= 1.01 ? ln.odd : 3.0;
+  const extra = r2(ln.redistExtra || 0);
   if (ln.stage === 0) {
-    return { aposta: Math.max(r2(BASE_TARGET / (odd - 1)), 10), lucro: BASE_TARGET };
+    const lucro = r2(BASE_TARGET + extra);
+    return { aposta: Math.max(r2(lucro / (odd - 1)), 10), lucro };
   }
-  const profit = Math.max(ln.lostAccum * 0.10, BASE_TARGET);
+  const profit = Math.max(ln.lostAccum * 0.10, BASE_TARGET + extra);
   return { aposta: r2((ln.lostAccum + profit) / odd), lucro: r2(profit) };
 }
 
@@ -905,11 +932,27 @@ function render() {
       </td>
       <td class="lucro-t">${fmtU(lucro)}</td>
       <td class="pnl ${pNC}">${pN===0?'—':fmtS(pN)}</td>
-      <td class="accum-cell ${pTC}">${pT===0?'—':fmtS(pT)}</td>
+      <td class="accum-cell ${pTC}">${pT===0?'—':fmtS(pT)}${(ln.redistExtra||0)>0?'<span class="redistrib-badge">+R$'+r2(ln.redistExtra).toFixed(2).replace('.',',')+'</span>':''}</td>
       <td><div class="result-btns">
-        <button class="btn-r" onclick="window._doResult(${i},true)" ${isBlocked?"disabled":""}>✓ EMPATE</button>
-        <button class="btn-r" onclick="window._doResult(${i},false)" ${isBlocked?"disabled":""}>✗ NÃO</button>
-        <button class="btn-r undo" onclick="window._undoResult(${i})" title="Desfazer última marcação desta linha" ${!ln.lastAction?"disabled":""}>↩</button>
+        ${(() => {
+          const jaM        = ln.lastAction && ln.lastAction.key === String(curNum());
+          const podaRedist = !jaM && ln.stage > 0 && (ln.pnlTotal||0) < 0;
+          if (jaM) {
+            const label = ln.lastAction.won ? '✓ EMPATE' : '✗ NÃO';
+            const cls   = ln.lastAction.won ? 'btn-r marcado-win' : 'btn-r marcado-loss';
+            return '<button class="' + cls + '" disabled>' + label + '</button>'
+                 + '<button class="btn-r undo" onclick="window._undoResult(' + i + ')" title="Desfazer marcação">↩</button>';
+          }
+          const btnsAcao = isBlocked
+            ? '<button class="btn-r" disabled>✓ EMPATE</button><button class="btn-r" disabled>✗ NÃO</button>'
+            : '<button class="btn-r" onclick="window._doResult(' + i + ',true)">✓ EMPATE</button>'
+            + '<button class="btn-r" onclick="window._doResult(' + i + ',false)">✗ NÃO</button>';
+          const btnUndo   = '<button class="btn-r undo" disabled>↩</button>';
+          const btnRedist = podaRedist
+            ? '<button class="btn-r redistrib" onclick="window._openRedistrib(' + i + ')" title="Redistribuir 50% do saldo negativo entre linhas Stage 0">↔</button>'
+            : '';
+          return btnsAcao + btnUndo + btnRedist;
+        })()}
       </div></td>`;
     tbody.appendChild(tr);
   });
@@ -943,6 +986,8 @@ window._doResult = function(i, won) {
   const ln  = A.lines[i];
   const key = String(curNum());
   if (!ln.pnlLog) ln.pnlLog = {};
+  // Bloquear dupla marcação no mesmo concurso
+  if (ln.lastAction && ln.lastAction.key === key) return;
   const {aposta: apostaCalc, lucro} = calcBet(ln);
   // Usa override se existir, senão usa o calculado
   const aposta = (ln.apostaOverride && ln.apostaOverride[key] != null)
@@ -965,6 +1010,7 @@ window._doResult = function(i, won) {
   if (won) {
     // GREEN: recupera tudo que foi perdido (lostAccum já debitado) + lucro líquido
     ln.pnlTotal    = r2((ln.pnlTotal||0) + ln.lostAccum + lucro);
+    ln.redistExtra = 0;  // extra foi recuperado
     // No pnlLog deste concurso: recupera o que foi perdido AQUI + lucro
     const lostHere = prevLog < 0 ? Math.abs(prevLog) : 0;
     const recover  = Math.min(ln.lostAccum, lostHere);
@@ -1038,6 +1084,53 @@ window._resetAposta = function(i, el) {
   el.value = aposta.toFixed(2);
   el.classList.remove('modified');
   save();
+};
+
+let _redistIdx = null;
+
+window._openRedistrib = function(i) {
+  const ln     = A.lines[i];
+  const debito = Math.abs(ln.pnlTotal || 0);
+  if (debito === 0) return;
+  const alvos = A.lines.map((l,j)=>({j,l})).filter(({j,l})=> j!==i && l.stage===0);
+  if (alvos.length === 0) { alert('Não há linhas no Stage 0 disponíveis.'); return; }
+  const metade        = r2(debito * 0.5);
+  const valorPorLinha = r2(metade / alvos.length);
+  const g             = curConc().games[i];
+  _redistIdx          = i;
+  document.getElementById('redistPreview').innerHTML =
+      '<div class="redist-row"><span class="redist-lbl">Linha de origem</span>'
+    + '<span class="redist-val" style="color:var(--accent2)">' + (i+1) + '. ' + esc(g.home) + ' x ' + esc(g.away) + '</span></div>'
+    + '<div class="redist-row"><span class="redist-lbl">P&L negativo</span>'
+    + '<span class="redist-val" style="color:var(--accent2)">' + fmtS(ln.pnlTotal||0) + '</span></div>'
+    + '<div class="redist-row"><span class="redist-lbl">50% redistribuído</span>'
+    + '<span class="redist-val" style="color:var(--neutral)">- ' + fmtU(metade) + '</span></div>'
+    + '<div class="redist-row"><span class="redist-lbl">50% permanece na origem</span>'
+    + '<span class="redist-val" style="color:var(--accent2)">- ' + fmtU(metade) + '</span></div>'
+    + '<div class="redist-row"><span class="redist-lbl">Linhas Stage 0 receptoras</span>'
+    + '<span class="redist-val">' + alvos.length + ' linhas</span></div>'
+    + '<div class="redist-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px">'
+    + '<span class="redist-lbl">Extra no lucro alvo de cada</span>'
+    + '<span class="redist-val" style="color:var(--neutral)">+' + fmtU(valorPorLinha) + '</span></div>';
+  openM('mRedistrib');
+};
+
+window.confirmRedistrib = function() {
+  if (_redistIdx === null) return;
+  const i      = _redistIdx;
+  const ln     = A.lines[i];
+  const debito = Math.abs(ln.pnlTotal || 0);
+  const metade = r2(debito * 0.5);
+  const alvos  = A.lines.map((l,j)=>({j,l})).filter(({j,l})=> j!==i && l.stage===0);
+  if (alvos.length === 0) { closeM('mRedistrib'); return; }
+  const valorPorLinha = r2(metade / alvos.length);
+  // Distribui nas receptoras
+  alvos.forEach(({l}) => { l.redistExtra = r2((l.redistExtra||0) + valorPorLinha); });
+  // Linha de origem: lostAccum reduzido à metade (pnlTotal não muda)
+  ln.lostAccum = r2((ln.lostAccum||0) * 0.5);
+  _redistIdx = null;
+  closeM('mRedistrib');
+  save(); render();
 };
 
 window.setLucroAlvo = function(val) {
