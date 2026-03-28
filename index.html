@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -57,6 +56,11 @@
   .summary-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--border);border-bottom:1px solid var(--border);}
   .summary-item{background:var(--surface);padding:14px 16px;text-align:center;}
   .summary-value{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.04em;line-height:1;}
+  .summary-item.editable{cursor:pointer;position:relative;}
+  .summary-item.editable:hover{background:rgba(0,229,160,.04);}
+  .lucro-alvo-input{background:transparent;border:none;border-bottom:1px solid rgba(0,229,160,.4);color:var(--accent);font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.04em;line-height:1;width:100px;text-align:center;outline:none;padding:0;}
+  .lucro-alvo-input:focus{border-bottom-color:var(--accent);}
+  .edit-hint{font-size:8px;letter-spacing:.08em;color:rgba(0,229,160,.4);font-family:'DM Mono',monospace;margin-top:2px;}
   .summary-label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px;font-family:'DM Mono',monospace;}
 
   /* ── CONTAINER ── */
@@ -223,8 +227,11 @@
   tbody tr:nth-child(7){animation-delay:.14s}tbody tr:nth-child(8){animation-delay:.16s}
   tbody tr:nth-child(9){animation-delay:.18s}tbody tr:nth-child(10){animation-delay:.20s}
   tbody tr:nth-child(11){animation-delay:.22s}tbody tr:nth-child(12){animation-delay:.24s}
-  tbody tr:nth-child(13){animation-delay:.26s}tbody tr:nth-child(14){animation-delay:.28s}
+  tbody tr:nth-child(13){animation-delay:.26s}tbody tr:nth-child(14){animation-delay:.28s}50%{opacity:.5}}50%{opacity:.5}}50%{opacity:.5}}50%{opacity:.4}} 50%{opacity:.4;}} 50%{opacity:.4} } 50%{opacity:.4;} }50%{opacity:.4}100%{opacity:1}}
 
+  /* modal odds resultado */
+
+  
   @media(max-width:700px){
     .teams{min-width:130px;font-size:12px;}
     td{padding:8px 6px;}
@@ -320,6 +327,13 @@
 
 <!-- SUMMARY -->
 <div class="summary-bar">
+  <div class="summary-item editable" title="Clique para editar o lucro alvo por linha" onclick="document.getElementById('lucroAlvoInput').select()">
+    <input type="number" id="lucroAlvoInput" class="lucro-alvo-input" min="1" step="1" value="20"
+      onchange="setLucroAlvo(this.value)" onblur="setLucroAlvo(this.value)"
+      onclick="event.stopPropagation();this.select()">
+    <div class="summary-label">Lucro Alvo / Linha</div>
+    <div class="edit-hint">✎ EDITÁVEL</div>
+  </div>
   <div class="summary-item"><div class="summary-value" id="sTotal" style="color:var(--text)">—</div><div class="summary-label">A Apostar Agora</div></div>
   <div class="summary-item"><div class="summary-value" id="sPnl" style="color:var(--muted)">—</div><div class="summary-label">P&L Concurso</div></div>
   <div class="summary-item"><div class="summary-value" id="sPnlAcc" style="color:var(--muted)">—</div><div class="summary-label">P&L Acumulado</div></div>
@@ -338,8 +352,8 @@
   </div>
 
   <div class="rules-card">
-    <strong>REGRAS:</strong> Stake inicial <strong>R$20,00</strong> · Meta <strong>R$20,00 de lucro</strong> ·
-    Se ganhar → reinicia. Se perder → recupera <strong>100% perdido + max(10% perdido, R$20)</strong> de lucro.
+    <strong>REGRAS:</strong> Stake inicial = lucro alvo ÷ (odd−1) · Meta = <strong id="rulesLucro">R$20,00</strong> de lucro por linha ·
+    Se ganhar → reinicia. Se perder → recupera <strong>100% perdido + max(10% perdido, lucro alvo)</strong> de lucro.
     <strong>APOSTA REAL</strong> = retorno necessário ÷ odd ·
     Dados salvos automaticamente na nuvem — acesse de qualquer dispositivo.
   </div>
@@ -420,6 +434,10 @@
   </div>
 </div></div>
 
+
+<!-- Busca de odds removida -->
+
+
 <!-- MODAL: PRÓXIMO CONCURSO -->
 <div class="mo" id="mNext"><div class="mc" style="max-width:400px">
   <h2>Próximo Concurso</h2>
@@ -489,8 +507,8 @@ const ADMIN_EMAIL = "renanlara@live.com";
 // ══════════════════════════════════════════════════════
 // CONSTANTS
 // ══════════════════════════════════════════════════════
-const BASE_TARGET = 20;
-const N           = 14;
+let BASE_TARGET = 20;   // lucro alvo por linha — editável pelo usuário
+const N         = 14;
 
 // Filtro super favoritos — estado local (não salvo no Firebase)
 let _filterOn = false;
@@ -514,6 +532,7 @@ function blankLines() {
 function initState() {
   return {
     cur: 0,
+    lucroAlvo: 20,
     concursos: [{
       num: 1239,
       games: [
@@ -729,6 +748,9 @@ async function initFirebase() {
     const snap = await getDoc(DOC_REF);
     if (snap.exists()) {
       A = snap.data();
+      // Migração — garante campo lucroAlvo
+      if (!A.lucroAlvo) A.lucroAlvo = 20;
+      BASE_TARGET = A.lucroAlvo;
       // Garante campos novos para dados antigos (migração)
       A.lines = A.lines.map(ln => ({
         stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{}, apostaOverride:{}, lastAction:null, pctX:{},
@@ -787,7 +809,7 @@ function calcBet(ln) {
   if (ln.stage === 0) {
     return { aposta: r2(BASE_TARGET / (odd - 1)), lucro: BASE_TARGET };
   }
-  const profit = Math.max(ln.lostAccum * 0.10, 20);
+  const profit = Math.max(ln.lostAccum * 0.10, BASE_TARGET);
   return { aposta: r2((ln.lostAccum + profit) / odd), lucro: r2(profit) };
 }
 
@@ -810,8 +832,16 @@ function colorPnl(el, v) {
 // ══════════════════════════════════════════════════════
 function render() {
   if (!A) return;
+  // Sincroniza lucro alvo com o estado salvo
+  if (A.lucroAlvo && A.lucroAlvo !== BASE_TARGET) {
+    BASE_TARGET = A.lucroAlvo;
+  }
+  const inp = document.getElementById('lucroAlvoInput');
+  if (inp && parseFloat(inp.value) !== BASE_TARGET) inp.value = BASE_TARGET;
   const conc = curConc();
   document.getElementById('navNum').textContent = conc.num;
+  const rulesEl = document.getElementById('rulesLucro');
+  if (rulesEl) rulesEl.textContent = 'R$ ' + BASE_TARGET.toFixed(2).replace('.',',');
   document.getElementById('navIdx').textContent = `${A.cur+1} / ${A.concursos.length}`;
   document.getElementById('btnPrev').disabled   = A.cur === 0;
 
@@ -1010,6 +1040,17 @@ window._resetAposta = function(i, el) {
   save();
 };
 
+window.setLucroAlvo = function(val) {
+  const v = parseFloat(val);
+  if (isNaN(v) || v < 1) return;
+  BASE_TARGET    = Math.round(v * 100) / 100;
+  A.lucroAlvo    = BASE_TARGET;
+  // Sincroniza o input visualmente
+  const inp = document.getElementById('lucroAlvoInput');
+  if (inp) inp.value = BASE_TARGET;
+  save(); render();
+};
+
 window.toggleFilter = function() {
   _filterOn = !_filterOn;
   const btn   = document.getElementById('btnFilter');
@@ -1181,7 +1222,7 @@ window.calcUpdate = function() {
     const isExp   = k === Math.round(empEsp);
     const barW    = Math.round(prob * 100 * 4);
     const barCol  = isProft ? 'var(--win)' : 'var(--loss)';
-    const pnlStr  = (pnl >= 0 ? '+' : '') + 'R$ ' + Math.abs(pnl).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const pnlStr  = (pnl >= 0 ? '+' : '') + 'R$ ' + Math.abs(pnl).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
     if (isProft) probLucro += prob;
     else probPrejuizo += prob;
@@ -1197,7 +1238,7 @@ window.calcUpdate = function() {
     </tr>`;
   }
 
-  const fmtBRL = v => 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  const fmtBRL = v => 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 
   document.getElementById('calcResult').innerHTML = `
     <div class="calc-result-grid">
@@ -1248,6 +1289,9 @@ window.openM = function(id) {
   _origOpenM(id);
   if (id === 'mCalc') calcUpdate();
 };
+
+
+// Busca de odds removida
 
 // ══════════════════════════════════════════════════════
 // BOOT
