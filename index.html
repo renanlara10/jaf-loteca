@@ -43,9 +43,7 @@
   tr.blocked{opacity:.35;}
   tr.blocked td{pointer-events:none;}
   .blocked-badge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;border-radius:2px;background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.3);letter-spacing:.06em;}
-  .pct-input{background:var(--surface);border:1px solid var(--border);color:var(--accent3);font-family:'DM Mono',monospace;font-size:12px;width:52px;text-align:center;padding:3px 2px;border-radius:2px;outline:none;transition:all .15s;}
-  .pct-input:focus{border-color:var(--accent3);}
-  .pct-input.high{border-color:rgba(245,166,35,.6);color:var(--accent3);background:rgba(245,166,35,.06);}
+
   .filter-bar{display:none;align-items:center;gap:10px;padding:10px 16px;background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.2);border-radius:2px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);flex-wrap:wrap;}
   .filter-bar strong{color:var(--accent3);}
   .filter-bar.active{display:flex;}
@@ -99,6 +97,7 @@
   .aposta-input.modified{border-color:rgba(245,166,35,.6);color:var(--accent3);}
   .odd-input{background:var(--surface);border:1px solid var(--border);color:var(--accent3);font-family:'DM Mono',monospace;font-size:13px;font-weight:500;width:54px;text-align:center;padding:4px 3px;border-radius:2px;outline:none;transition:border-color .15s;}
   .odd-input:focus{border-color:var(--accent3);box-shadow:0 0 0 2px rgba(245,166,35,.12);}
+  .odd-input.odd-blocked{border-color:rgba(245,166,35,.6);background:rgba(245,166,35,.06);}
   .aposta-r{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--accent);}
   .lucro-t{font-family:'DM Mono',monospace;font-size:13px;color:var(--neutral);}
   .pnl{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;}
@@ -374,28 +373,28 @@
     <div class="pill"><span class="dot-icon" style="background:var(--accent3)"></span> Stage 1: 1ª recuperação</div>
     <div class="pill"><span class="dot-icon" style="background:var(--accent2)"></span> Stage 2+: Encadeado</div>
     <div class="pill"><span class="dot-icon" style="background:var(--neutral)"></span> APOSTA REAL = retorno ÷ odd</div>
-    <div class="pill"><span class="dot-icon" style="background:var(--accent3)"></span> ODD FILTRO ≥ 6.5 = super favorito</div>
+    <div class="pill"><span class="dot-icon" style="background:var(--accent3)"></span> Filtro: ODD ≥ 6.5 = super favorito</div>
   </div>
   <div class="filter-bar" id="filterBar">
     <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M1 2h10M3 6h6M5 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     <strong>FILTRO SUPER FAVORITOS ATIVO</strong>
     &nbsp;·&nbsp; Pular quando odd empate ≥
     <input type="number" id="thresholdInput" class="threshold-input" min="1.5" max="30" step="0.5" value="6.5" onchange="render()">
-    &nbsp;·&nbsp; Preencha <strong>ODD FILTRO</strong> com a odd de empate da Betfair / bet365
+    &nbsp;·&nbsp; A própria <strong>ODD EMPATE</strong> é usada como critério — sem coluna extra
   </div>
   <div class="table-wrapper">
     <table>
       <thead>
         <tr>
           <th>#</th><th>JOGO</th><th>DIA</th><th>STAGE</th>
-          <th>ODD FILTRO</th><th>ODD APOSTA</th><th>APOSTA REAL</th><th>LUCRO ALVO</th>
+          <th>ODD EMPATE</th><th>APOSTA REAL</th><th>LUCRO ALVO</th>
           <th>P&amp;L CONCURSO</th><th>P&amp;L ACUM.</th><th>RESULTADO</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
       <tfoot>
         <tr>
-          <td colspan="5" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;">TOTAIS</td>
+          <td colspan="4" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;">TOTAIS</td>
           <td></td>
           <td id="fAposta" style="color:var(--accent)">—</td>
           <td id="fLucro"  style="color:var(--neutral)">—</td>
@@ -894,10 +893,8 @@ function render() {
     const pN     = pnlNow(ln);
     const pT     = pnlTotal(ln);
 
-    // Filtro super favorito — declarado ANTES de ser usado
-    const keyPct    = String(curNum());
-    const pctVal    = (ln.pctX && ln.pctX[keyPct] != null) ? ln.pctX[keyPct] : null;
-    const isBlocked = _filterOn && pctVal !== null && pctVal >= threshold;
+    // Filtro super favorito — usa a própria odd de aposta
+    const isBlocked = _filterOn && (ln.odd || 3.0) >= threshold;
 
     if (!isBlocked) { totAposta += aposta; totLucro += lucro; }
     totPnl += pN; totAcc += pT;
@@ -918,17 +915,9 @@ function render() {
       <td class="teams${ph?' ph':''}"><b>${esc(g.home)}</b> <span class="vs">x</span> <b>${esc(g.away)}</b></td>
       <td><span class="day-badge">${esc(g.day)}</span></td>
       <td><span class="stage ${sc}">${sl}</span></td>
-      <td>
-        ${isBlocked
-          ? '<span class="blocked-badge">&#8856; PULADO</span>'
-          : (pctVal !== null
-              ? '<input type="number" min="1" max="30" step="0.1" class="pct-input' + (pctVal >= threshold ? ' high' : '') + '" value="' + pctVal + '" onchange="window._setPct(' + i + ',this.value)" title="Odd de empate (Betfair/bet365)">'
-              : '<input type="number" min="1" max="30" step="0.1" class="pct-input" placeholder="odd" onchange="window._setPct(' + i + ',this.value)" title="Odd de empate (Betfair/bet365)">'
-            )
-        }
-      </td>
-      <td><input type="number" min="1.01" max="99" step="0.01" class="odd-input"
-            value="${Number(ln.odd||3).toFixed(2)}" onchange="window._setOdd(${i},this.value)"></td>
+      <td><input type="number" min="1.01" max="99" step="0.01" class="odd-input${isBlocked?' odd-blocked':''}"
+            value="${Number(ln.odd||3).toFixed(2)}" onchange="window._setOdd(${i},this.value)"
+            title="${isBlocked?'Super favorito — linha bloqueada pelo filtro':'Odd de empate'}"></td>
       <td>
         <input type="number" min="0.01" step="0.01" class="aposta-input"
           value="${(ln.apostaOverride && ln.apostaOverride[String(curNum())]) != null ? Number(ln.apostaOverride[String(curNum())]).toFixed(2) : aposta.toFixed(2)}"
@@ -1176,18 +1165,7 @@ window.toggleFilter = function() {
   render();
 };
 
-window._setPct = function(i, val) {
-  const v   = parseFloat(val);
-  const key = String(curNum());
-  const ln  = A.lines[i];
-  if (!ln.pctX) ln.pctX = {};
-  if (isNaN(v) || val === '') {
-    delete ln.pctX[key];
-  } else {
-    ln.pctX[key] = Math.round(v * 100) / 100;  // odd com 2 decimais
-  }
-  save(); render();
-};
+// _setPct removido — filtro usa odd de aposta diretamente
 
 window._setOdd = function(i, val) {
   const v = parseFloat(val);
