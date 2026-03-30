@@ -797,6 +797,7 @@ async function initFirebase() {
 
     // Esconde loading e renderiza
     document.getElementById('loading').style.display = 'none';
+    loadOddsFromConc();  // restaura odds do concurso atual
     render();
 
     // Listener em tempo real — atualiza se outro dispositivo mudar
@@ -811,6 +812,7 @@ async function initFirebase() {
             stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{},
             ...ln
           }));
+          loadOddsFromConc();  // restaura odds do concurso atual
           render();
           syncUI('synced', 'Sincronizado ↓');
         }
@@ -1191,13 +1193,37 @@ window._setOdd = function(i, val) {
   const v = parseFloat(val);
   if (!isNaN(v) && v >= 1.01) {
     A.lines[i].odd = Math.round(v * 100) / 100;
+    // Persiste também no objeto concurso
+    if (!curConc().odds) curConc().odds = Array(N).fill(3.0);
+    curConc().odds[i] = A.lines[i].odd;
     save(); render();
   }
 };
 
 // ── NAVIGATION ──
+function saveOddsToConc() {
+  // Salva as odds atuais dentro do objeto concurso
+  curConc().odds = A.lines.map(ln => ln.odd || 3.0);
+}
+
+function loadOddsFromConc() {
+  // Carrega as odds do concurso para as lines
+  const odds = curConc().odds;
+  if (odds && odds.length === N) {
+    A.lines.forEach((ln, i) => { ln.odd = odds[i]; });
+  } else {
+    // Sem odds salvas → 3.0 padrão
+    A.lines.forEach(ln => { ln.odd = 3.0; });
+  }
+}
+
 window.goPrev = function() {
-  if (A.cur > 0) { A.cur--; save(); render(); }
+  if (A.cur > 0) {
+    saveOddsToConc();  // salva odds do concurso atual
+    A.cur--;
+    loadOddsFromConc(); // carrega odds do concurso anterior
+    save(); render();
+  }
 };
 
 window.openNext = function() {
@@ -1210,18 +1236,21 @@ window.confirmNext = function() {
   const num = raw ? parseInt(raw) : curNum() + 1;
   if (isNaN(num) || num < 1) return;
   if (A.cur < A.concursos.length - 1) {
+    saveOddsToConc();   // salva odds do concurso atual
     A.cur++;
+    loadOddsFromConc(); // carrega odds do próximo
   } else {
+    saveOddsToConc();   // salva odds do concurso atual
     const prev = curConc();
     A.concursos.push({
       num,
       games:     blankGames(),
       filterOn:  prev.filterOn  || false,
       threshold: prev.threshold || 6.5,
+      odds:      Array(N).fill(3.0),  // odds zeradas para o novo concurso
     });
     A.cur = A.concursos.length - 1;
-    // Reseta odds para 3.0 no novo concurso
-    A.lines.forEach(ln => { ln.odd = 3.0; });
+    loadOddsFromConc(); // carrega 3.0 do novo concurso
   }
   closeM('mNext'); save(); render();
 };
