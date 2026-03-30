@@ -842,7 +842,7 @@ async function initFirebase() {
     console.error('Erro Firebase:', e);
     document.getElementById('loading').innerHTML =
       `<h2 style="color:var(--accent2)">Erro de conexão</h2>
-       <p style="font-family:'DM Mono',monospace;color:var(--muted);font-size:13px;margin-top:12px">
+       <p style="font-family:monospace;color:var(--muted);font-size:13px;margin-top:12px">
          Verifique sua internet e recarregue a página.<br><br>
          <code style="font-size:11px;color:var(--accent3)">${e.message}</code>
        </p>`;
@@ -1298,7 +1298,7 @@ window.openImport = function() {
     const di = document.createElement('input');
     di.type='text'; di.id=`id${i}`; di.placeholder='Sáb'; di.maxLength=3;
     di.value = g.day || 'Sáb';
-    di.style.cssText='width:50px;text-align:center;font-family:"DM Mono",monospace;font-size:12px;padding:7px 4px;';
+    di.style.cssText='width:50px;text-align:center;font-family:monospace;font-size:12px;padding:7px 4px;';
     grid.appendChild(di);
   });
   openM('mImport');
@@ -1451,9 +1451,9 @@ window.openM = function(id) {
     const c = curConc();
     document.getElementById('mDelConcMsg').innerHTML =
       'Excluir o concurso <strong>' + c.num + '</strong>?<br>'
-      + '<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">'
-      + 'Os times e resultados deste concurso serão removidos.<br>'
-      + 'O martingale das linhas <strong style="color:var(--accent3)">não é afetado</strong>.</span>';
+      + '<span style="font-family:monospace;font-size:11px;color:var(--muted)">'
+      + 'Os times e resultados deste concurso ser\u00e3o removidos.<br>'
+      + 'O martingale das linhas <strong style="color:var(--accent3)">n\u00e3o \u00e9 afetado</strong>.</span>';
   }
   _origOpenM(id);
   if (id === 'mCalc') calcUpdate();
