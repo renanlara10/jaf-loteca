@@ -379,7 +379,7 @@
     <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M1 2h10M3 6h6M5 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     <strong>FILTRO SUPER FAVORITOS ATIVO</strong>
     &nbsp;·&nbsp; Pular quando odd empate ≥
-    <input type="number" id="thresholdInput" class="threshold-input" min="1.5" max="30" step="0.5" value="6.5" onchange="render()">
+    <input type="number" id="thresholdInput" class="threshold-input" min="1.5" max="30" step="0.5" value="6.5" onchange="window.setThreshold(this.value)">
     &nbsp;·&nbsp; A própria <strong>ODD EMPATE</strong> é usada como critério — sem coluna extra
   </div>
   <div class="table-wrapper">
@@ -539,7 +539,7 @@ let BASE_TARGET = 20;   // lucro alvo por linha — editável pelo usuário
 const N         = 14;
 
 // Filtro super favoritos — estado local (não salvo no Firebase)
-let _filterOn = false;
+// _filterOn agora é salvo por concurso em A.concursos[A.cur].filterOn
 
 // ══════════════════════════════════════════════════════
 // DEFAULTS
@@ -563,6 +563,8 @@ function initState() {
     lucroAlvo: 20,
     concursos: [{
       num: 1239,
+      filterOn: false,
+      threshold: 6.5,
       games: [
         {home:'Colômbia',          away:'França',         day:'Dom'},
         {home:'CRB',               away:'Vitória',        day:'Sáb'},
@@ -776,9 +778,13 @@ async function initFirebase() {
     const snap = await getDoc(DOC_REF);
     if (snap.exists()) {
       A = snap.data();
-      // Migração — garante campo lucroAlvo
+      // Migração — garante campos
       if (!A.lucroAlvo) A.lucroAlvo = 20;
       BASE_TARGET = A.lucroAlvo;
+      // Garante filterOn e threshold em cada concurso
+      A.concursos = A.concursos.map(c => ({
+        filterOn: false, threshold: 6.5, ...c
+      }));
       // Garante campos novos para dados antigos (migração)
       A.lines = A.lines.map(ln => ({
         stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{}, apostaOverride:{}, lastAction:null, pctX:{}, redistExtra:0,
@@ -881,7 +887,25 @@ function render() {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
 
-  const threshold = parseInt(document.getElementById('thresholdInput')?.value || 12);
+  // Lê filterOn e threshold do concurso atual
+  const conc_filter = curConc();
+  const _filterOn   = conc_filter.filterOn || false;
+  const threshold   = conc_filter.threshold || 6.5;
+  // Sincroniza UI do botão e input
+  const _btn   = document.getElementById('btnFilter');
+  const _lbl   = document.getElementById('btnFilterLabel');
+  const _bar   = document.getElementById('filterBar');
+  const _tinp  = document.getElementById('thresholdInput');
+  if (_filterOn) {
+    _btn.className    = 'btn-nav btn-filter-on';
+    _lbl.textContent  = 'FILTRO ON';
+    _bar.classList.add('active');
+  } else {
+    _btn.className    = 'btn-nav btn-filter-off';
+    _lbl.textContent  = 'FILTRO OFF';
+    _bar.classList.remove('active');
+  }
+  if (_tinp && parseFloat(_tinp.value) !== threshold) _tinp.value = threshold;
   let totAposta=0, totLucro=0, totPnl=0, totAcc=0, wins=0, loss=0, recup=0, totDebit=0;
 
   A.lines.forEach((ln, i) => {
@@ -1148,21 +1172,17 @@ window.setLucroAlvo = function(val) {
   save(); render();
 };
 
+window.setThreshold = function(val) {
+  const v = parseFloat(val);
+  if (isNaN(v) || v < 1.5) return;
+  curConc().threshold = Math.round(v * 10) / 10;
+  save(); render();
+};
+
 window.toggleFilter = function() {
-  _filterOn = !_filterOn;
-  const btn   = document.getElementById('btnFilter');
-  const label = document.getElementById('btnFilterLabel');
-  const bar   = document.getElementById('filterBar');
-  if (_filterOn) {
-    btn.className   = 'btn-nav btn-filter-on';
-    label.textContent = 'FILTRO ON';
-    bar.classList.add('active');
-  } else {
-    btn.className   = 'btn-nav btn-filter-off';
-    label.textContent = 'FILTRO OFF';
-    bar.classList.remove('active');
-  }
-  render();
+  const c  = curConc();
+  c.filterOn = !(c.filterOn || false);
+  save(); render();
 };
 
 // _setPct removido — filtro usa odd de aposta diretamente
@@ -1192,7 +1212,13 @@ window.confirmNext = function() {
   if (A.cur < A.concursos.length - 1) {
     A.cur++;
   } else {
-    A.concursos.push({ num, games: blankGames() });
+    const prev = curConc();
+    A.concursos.push({
+      num,
+      games:     blankGames(),
+      filterOn:  prev.filterOn  || false,
+      threshold: prev.threshold || 6.5,
+    });
     A.cur = A.concursos.length - 1;
   }
   closeM('mNext'); save(); render();
