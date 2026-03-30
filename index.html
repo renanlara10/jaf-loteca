@@ -1220,6 +1220,8 @@ window.confirmNext = function() {
       threshold: prev.threshold || 6.5,
     });
     A.cur = A.concursos.length - 1;
+    // Reseta odds para 3.0 no novo concurso
+    A.lines.forEach(ln => { ln.odd = 3.0; });
   }
   closeM('mNext'); save(); render();
 };
