@@ -360,6 +360,7 @@
   <div class="summary-item"><div class="summary-value" id="sLoss" style="color:var(--loss)">0</div><div class="summary-label">Não Empates ✗</div></div>
   <div class="summary-item"><div class="summary-value" id="sRecup" style="color:var(--accent3)">0</div><div class="summary-label">Em Recuperação</div></div>
   <div class="summary-item"><div class="summary-value" id="sDebit" style="color:var(--loss)">—</div><div class="summary-label">P&amp;L Acum. Negativo</div></div>
+  <div class="summary-item"><div class="summary-value" id="sRisco" style="color:var(--loss)">—</div><div class="summary-label">Total Em Risco</div></div>
 </div>
 
 <!-- MAIN -->
@@ -404,6 +405,7 @@
         <tr>
           <td colspan="5" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;">TOTAIS</td>
           <td></td>
+          <td id="fRisco"  style="color:var(--loss)">—</td>
           <td id="fAposta" style="color:var(--accent)">—</td>
           <td id="fLucro"  style="color:var(--neutral)">—</td>
           <td id="fPnl"    style="color:var(--muted)">—</td>
@@ -928,7 +930,7 @@ function render() {
     _bar.classList.remove('active');
   }
   if (_tinp && parseFloat(_tinp.value) !== threshold) _tinp.value = threshold;
-  let totAposta=0, totLucro=0, totPnl=0, totAcc=0, wins=0, loss=0, recup=0, totDebit=0;
+  let totAposta=0, totLucro=0, totPnl=0, totAcc=0, wins=0, loss=0, recup=0, totDebit=0, totRisco=0;
 
   A.lines.forEach((ln, i) => {
     const g            = conc.games[i];
@@ -947,6 +949,7 @@ function render() {
     if (pN > 0) wins++; if (pN < 0) loss++;
     if (ln.stage > 0) recup++;
     if (pT < 0) totDebit += pT;
+    totRisco += (ln.lostAccum || 0);
 
     const sc  = `s${Math.min(ln.stage, 3)}`;
     const sl  = ln.stage === 0 ? 'INICIAL' : `RECUP #${ln.stage}`;
@@ -1007,6 +1010,14 @@ function render() {
   document.getElementById('sWins').textContent  = wins;
   document.getElementById('sLoss').textContent  = loss;
   document.getElementById('sRecup').textContent = recup;
+  const riscoEl = document.getElementById('sRisco');
+  if (totRisco > 0) {
+    riscoEl.textContent = '-' + fmtU(totRisco);
+    riscoEl.style.color = 'var(--loss)';
+  } else {
+    riscoEl.textContent = '—';
+    riscoEl.style.color = 'var(--muted)';
+  }
   const debitEl = document.getElementById('sDebit');
   if (totDebit < 0) {
     debitEl.textContent = fmtS(totDebit);
@@ -1016,6 +1027,7 @@ function render() {
     debitEl.style.color = 'var(--muted)';
   }
 
+  document.getElementById('fRisco').textContent  = totRisco > 0 ? '-' + fmtU(totRisco) : '—';
   document.getElementById('fAposta').textContent = fmtU(totAposta);
   document.getElementById('fLucro').textContent  = fmtU(totLucro);
   colorPnl(document.getElementById('fPnl'),   totPnl);
