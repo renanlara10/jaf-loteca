@@ -105,6 +105,8 @@
   .pnl{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;}
   .pos{color:var(--win);}.neg{color:var(--loss);}.zero{color:var(--muted);}
   .accum-cell{font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;}
+  .risco-cell{font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;color:var(--loss);}
+  .risco-cell.zero{color:var(--muted);}
   .accum-cell.pos{color:rgba(0,229,160,.7);}.accum-cell.neg{color:rgba(255,77,109,.7);}.accum-cell.zero{color:var(--muted);}
 
   .result-btns{display:flex;gap:3px;flex-wrap:nowrap;}
@@ -392,7 +394,7 @@
     <table>
       <thead>
         <tr>
-          <th>#</th><th>JOGO</th><th>DIA</th><th>STAGE</th>
+          <th>#</th><th>JOGO</th><th>DIA</th><th>STAGE</th><th>EM RISCO</th>
           <th>ODD EMPATE</th><th>APOSTA REAL</th><th>LUCRO ALVO</th>
           <th>P&amp;L CONCURSO</th><th>P&amp;L ACUM.</th><th>RESULTADO</th>
         </tr>
@@ -400,7 +402,7 @@
       <tbody id="tbody"></tbody>
       <tfoot>
         <tr>
-          <td colspan="4" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;">TOTAIS</td>
+          <td colspan="5" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;">TOTAIS</td>
           <td></td>
           <td id="fAposta" style="color:var(--accent)">—</td>
           <td id="fLucro"  style="color:var(--neutral)">—</td>
@@ -489,8 +491,8 @@
 <div class="mo" id="mRedistrib"><div class="mc" style="max-width:480px;text-align:left">
   <h2 style="text-align:center">↔ Redistribuir Saldo</h2>
   <p style="text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">
-    <strong>50%</strong> do P&L negativo será transferido para as outras <strong>13 linhas</strong> (todas, independente do stage).<br>
-    A linha de origem fica com os outros 50%. O saldo negativo é real nas receptoras.
+    <strong>50%</strong> do valor <strong>Em Risco</strong> desta linha aumenta o lucro alvo das outras 13.<br>
+    A linha de origem fica com os outros 50% em risco.
   </p>
   <div class="redist-preview" id="redistPreview"></div>
   <div class="mbtns">
@@ -959,6 +961,7 @@ function render() {
       <td class="teams${ph?' ph':''}"><b>${esc(g.home)}</b> <span class="vs">x</span> <b>${esc(g.away)}</b></td>
       <td><span class="day-badge">${esc(g.day)}</span></td>
       <td><span class="stage ${sc}">${sl}</span></td>
+      <td class="risco-cell${(ln.lostAccum||0)===0?' zero':''}">${(ln.lostAccum||0)===0?'—':'-R$'+(ln.lostAccum||0).toFixed(2).replace('.',',')}</td>
       <td><input type="number" min="1.01" max="99" step="0.01" class="odd-input${isBlocked?' odd-blocked':''}"
             value="${Number(ln.odd||3).toFixed(2)}" onchange="window._setOdd(${i},this.value)"
             title="${isBlocked?'Super favorito — linha bloqueada pelo filtro':'Odd de empate'}"></td>
@@ -976,7 +979,7 @@ function render() {
       <td><div class="result-btns">
         ${(() => {
           const jaM        = ln.lastAction && ln.lastAction.key === String(curNum());
-          const podaRedist = !jaM && (ln.pnlTotal||0) < 0;
+          const podaRedist = !jaM && (ln.lostAccum||0) > 0;
           if (jaM) {
             const label = ln.lastAction.won ? '✓ EMPATE' : '✗ NÃO';
             const cls   = ln.lastAction.won ? 'btn-r marcado-win' : 'btn-r marcado-loss';
@@ -1130,30 +1133,29 @@ let _redistIdx = null;
 
 window._openRedistrib = function(i) {
   const ln     = A.lines[i];
-  const debito = Math.abs(ln.pnlTotal || 0);
-  if (debito === 0) return;
+  const debito = ln.lostAccum || 0;  // EM RISCO desde último green
+  if (debito === 0) { alert('Esta linha não tem saldo em risco.'); return; }
 
-  // Todas as outras 13 linhas recebem, independente do stage
   const outras        = A.lines.filter((_,j) => j !== i);
   const metade        = r2(debito * 0.5);
-  const valorPorLinha = r2(metade / outras.length);  // metade ÷ 13
+  const valorPorLinha = r2(metade / outras.length);
   const g             = curConc().games[i];
   _redistIdx          = i;
 
   document.getElementById('redistPreview').innerHTML =
       '<div class="redist-row"><span class="redist-lbl">Linha de origem</span>'
     + '<span class="redist-val" style="color:var(--accent2)">' + (i+1) + '. ' + esc(g.home) + ' x ' + esc(g.away) + '</span></div>'
-    + '<div class="redist-row"><span class="redist-lbl">P&L negativo atual</span>'
-    + '<span class="redist-val" style="color:var(--accent2)">' + fmtS(ln.pnlTotal||0) + '</span></div>'
-    + '<div class="redist-row"><span class="redist-lbl">50% transferido para as demais</span>'
-    + '<span class="redist-val" style="color:var(--neutral)">- ' + fmtU(metade) + '</span></div>'
-    + '<div class="redist-row"><span class="redist-lbl">P&L da linha após</span>'
-    + '<span class="redist-val" style="color:var(--accent2)">' + fmtS(r2((ln.pnlTotal||0) * 0.5)) + '</span></div>'
+    + '<div class="redist-row"><span class="redist-lbl">Em risco (desde último green)</span>'
+    + '<span class="redist-val" style="color:var(--accent2)">-' + fmtU(debito) + '</span></div>'
+    + '<div class="redist-row"><span class="redist-lbl">50% redistribuído como lucro alvo</span>'
+    + '<span class="redist-val" style="color:var(--neutral)">' + fmtU(metade) + '</span></div>'
+    + '<div class="redist-row"><span class="redist-lbl">Em risco após redistribuição</span>'
+    + '<span class="redist-val" style="color:var(--accent2)">-' + fmtU(metade) + '</span></div>'
     + '<div class="redist-row"><span class="redist-lbl">Linhas receptoras</span>'
     + '<span class="redist-val">todas as outras ' + outras.length + '</span></div>'
     + '<div class="redist-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px">'
-    + '<span class="redist-lbl">P&L extra (negativo) por linha</span>'
-    + '<span class="redist-val" style="color:var(--accent2)">- ' + fmtU(valorPorLinha) + '</span></div>';
+    + '<span class="redist-lbl">Extra no lucro alvo de cada</span>'
+    + '<span class="redist-val" style="color:var(--neutral)">+' + fmtU(valorPorLinha) + '</span></div>';
   openM('mRedistrib');
 };
 
@@ -1161,20 +1163,18 @@ window.confirmRedistrib = function() {
   if (_redistIdx === null) return;
   const i      = _redistIdx;
   const ln     = A.lines[i];
-  const debito = Math.abs(ln.pnlTotal || 0);
+  const debito = ln.lostAccum || 0;  // EM RISCO, não pnlTotal
   const metade = r2(debito * 0.5);
   const outras = A.lines.filter((_,j) => j !== i);
-  const valorPorLinha = r2(metade / outras.length);  // valor negativo por linha
+  const valorPorLinha = r2(metade / outras.length);
 
-  // Cada receptora absorve parte do P&L negativo
+  // Receptoras: aumenta lucro alvo via redistExtra (pnlTotal delas não muda)
   outras.forEach(l => {
-    l.pnlTotal   = r2((l.pnlTotal||0) - valorPorLinha);
-    l.redistExtra = r2((l.redistExtra||0) + valorPorLinha); // aumenta lucro alvo p/ compensar
+    l.redistExtra = r2((l.redistExtra||0) + valorPorLinha);
   });
 
-  // Linha de origem: P&L e lostAccum reduzidos à metade
-  ln.pnlTotal  = r2((ln.pnlTotal||0) * 0.5);
-  ln.lostAccum = r2((ln.lostAccum||0) * 0.5);
+  // Linha de origem: lostAccum reduzido à metade (pnlTotal não muda)
+  ln.lostAccum = r2(metade);
 
   _redistIdx = null;
   closeM('mRedistrib');
