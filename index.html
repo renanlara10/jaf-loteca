@@ -360,7 +360,7 @@
   <div class="summary-item"><div class="summary-value" id="sLoss" style="color:var(--loss)">0</div><div class="summary-label">Não Empates ✗</div></div>
   <div class="summary-item"><div class="summary-value" id="sRecup" style="color:var(--accent3)">0</div><div class="summary-label">Em Recuperação</div></div>
   <div class="summary-item"><div class="summary-value" id="sDebit" style="color:var(--loss)">—</div><div class="summary-label">P&amp;L Acum. Negativo</div></div>
-  <div class="summary-item"><div class="summary-value" id="sRisco" style="color:var(--loss)">—</div><div class="summary-label">Total Em Risco</div></div>
+  <div class="summary-item"><div class="summary-value" id="sRisco" style="color:var(--loss)">—</div><div class="summary-label">Haver</div></div>
 </div>
 
 <!-- MAIN -->
@@ -478,7 +478,12 @@
 <!-- MODAL: IMPORTAR TIMES -->
 <div class="mo" id="mImport"><div class="mc" style="max-width:540px;text-align:left">
   <h2 style="text-align:center">Importar Times — Concurso <span id="impNum">—</span></h2>
-  <p style="text-align:center">Preencha conforme a programação divulgada.</p>
+  <div style="text-align:center;margin-bottom:12px">
+    <button id="btnAutoImport" onclick="autoImport()" style="background:rgba(0,229,160,.15);color:var(--accent);border:1px solid rgba(0,229,160,.35);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.04em;padding:8px 20px;border-radius:2px;cursor:pointer;transition:all .15s">
+      ✦ BUSCAR AUTOMATICAMENTE
+    </button>
+    <div id="autoImportStatus" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;min-height:16px"></div>
+  </div>
   <div class="imp-hint">
     <strong>Dica:</strong> Consulte <strong>romers.com.br</strong>, <strong>vovoteca.com</strong> ou <strong>loterias.caixa.gov.br</strong>
   </div>
@@ -1288,6 +1293,11 @@ window.confirmNext = function() {
 // ── IMPORT ──
 window.openImport = function() {
   document.getElementById('impNum').textContent = curNum();
+  // Resetar estado do botão de auto-import
+  const btnAI = document.getElementById('btnAutoImport');
+  if (btnAI) { btnAI.disabled = false; btnAI.textContent = '✦ BUSCAR AUTOMATICAMENTE'; }
+  const stAI = document.getElementById('autoImportStatus');
+  if (stAI) stAI.textContent = '';
   const grid  = document.getElementById('impGrid');
   grid.innerHTML = '';
   const games = curConc().games;
@@ -1314,6 +1324,52 @@ window.openImport = function() {
     grid.appendChild(di);
   });
   openM('mImport');
+};
+
+window.autoImport = async function() {
+  const btn    = document.getElementById('btnAutoImport');
+  const status = document.getElementById('autoImportStatus');
+  const num    = curNum();
+
+  btn.disabled = true;
+  btn.textContent = '⏳ BUSCANDO...';
+  status.textContent = 'Consultando a grade do concurso ' + num + '...';
+  status.style.color = 'var(--accent3)';
+
+  try {
+    const resp = await fetch('https://jaf-loteca-proxy.renanlara.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ concurso: num })
+    });
+
+    if (!resp.ok) throw new Error('Erro HTTP ' + resp.status);
+
+    const data = await resp.json();
+    const jogos = data.jogos || [];
+
+    if (jogos.length === 0) throw new Error('Nenhum jogo encontrado');
+
+    // Preencher os campos do grid
+    jogos.forEach((j, i) => {
+      const ih = document.getElementById('ih' + i);
+      const ia = document.getElementById('ia' + i);
+      const id = document.getElementById('id' + i);
+      if (ih && j.home) ih.value = j.home;
+      if (ia && j.away) ia.value = j.away;
+      if (id && j.day)  id.value = j.day;
+    });
+
+    status.textContent = '✓ ' + jogos.length + ' jogos encontrados! Verifique e salve.';
+    status.style.color = 'var(--win)';
+    btn.textContent = '✓ BUSCADO';
+
+  } catch (e) {
+    status.textContent = '✗ Erro: ' + e.message + '. Preencha manualmente.';
+    status.style.color = 'var(--loss)';
+    btn.disabled = false;
+    btn.textContent = '↺ TENTAR NOVAMENTE';
+  }
 };
 
 window.confirmImport = function() {
