@@ -120,6 +120,10 @@
   .btn-r.undo:disabled{opacity:.2;}
   .btn-r.marcado-win{background:rgba(0,229,160,.15);color:var(--win);border-color:rgba(0,229,160,.4);font-weight:600;cursor:default;}
   .btn-r.marcado-loss{background:rgba(255,77,109,.12);color:var(--loss);border-color:rgba(255,77,109,.35);font-weight:600;cursor:default;}
+  .btn-apostado{font-size:11px;padding:4px 8px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s;}
+  .btn-apostado:hover{border-color:var(--accent3);color:var(--accent3);}
+  .btn-apostado.sim{background:rgba(245,166,35,.12);color:var(--accent3);border-color:rgba(245,166,35,.4);font-weight:600;}
+  tr.apostado-sim td{background:rgba(245,166,35,.04);}
   .btn-r.redistrib{background:rgba(91,124,253,.12);color:var(--neutral);border-color:rgba(91,124,253,.3);font-size:11px;padding:4px 9px;}
   .btn-r.redistrib:hover{background:rgba(91,124,253,.25);color:#fff;}
   .redistrib-badge{font-family:'DM Mono',monospace;font-size:9px;padding:1px 5px;border-radius:2px;background:rgba(91,124,253,.12);color:var(--neutral);border:1px solid rgba(91,124,253,.25);margin-left:4px;vertical-align:middle;}
@@ -578,7 +582,7 @@ function blankGames() {
 
 function blankLines() {
   return Array.from({length:N}, () => ({
-    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}, lastAction: null, pctX: {}, redistExtra: 0
+    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}, lastAction: null, pctX: {}, redistExtra: 0, apostado: {}
   }));
 }
 
@@ -987,6 +991,8 @@ function render() {
       <td><div class="result-btns">
         ${(() => {
           const jaM        = ln.lastAction && ln.lastAction.key === String(curNum());
+          const isApostado = !!(ln.apostado && ln.apostado[String(curNum())]);
+          if (isApostado) tr.classList.add('apostado-sim');
           const podaRedist = !jaM && (ln.lostAccum||0) > 0;
           if (jaM) {
             const label = ln.lastAction.won ? '✓ EMPATE' : '✗ NÃO';
@@ -1002,7 +1008,8 @@ function render() {
           const btnRedist = podaRedist
             ? '<button class="btn-r redistrib" onclick="window._openRedistrib(' + i + ')" title="Redistribuir 50% do saldo negativo entre linhas Stage 0">↔</button>'
             : '';
-          return btnsAcao + btnUndo + btnRedist;
+          const btnApostado = '<button class="btn-apostado' + (isApostado ? ' sim' : '') + '" onclick="window._toggleApostado(' + i + ')" title="' + (isApostado ? 'Aposta feita ✓' : 'Marcar como apostado') + '">' + (isApostado ? '💰 APOSTADO' : '💰') + '</button>';
+          return btnsAcao + btnUndo + btnRedist + btnApostado;
         })()}
       </div></td>`;
     tbody.appendChild(tr);
@@ -1176,6 +1183,14 @@ window._openRedistrib = function(i) {
   openM('mRedistrib');
 };
 
+window._toggleApostado = function(i) {
+  const ln  = A.lines[i];
+  const key = String(curNum());
+  if (!ln.apostado) ln.apostado = {};
+  ln.apostado[key] = !ln.apostado[key];
+  save(); render();
+};
+
 window.confirmRedistrib = function() {
   if (_redistIdx === null) return;
   const i      = _redistIdx;
@@ -1343,12 +1358,18 @@ window.autoImport = async function() {
       body: JSON.stringify({ concurso: num })
     });
 
-    if (!resp.ok) throw new Error('Erro HTTP ' + resp.status);
-
     const data = await resp.json();
-    const jogos = data.jogos || [];
 
-    if (jogos.length === 0) throw new Error('Nenhum jogo encontrado');
+    // Tratar rate limit (429) com mensagem amigável
+    if (!resp.ok) {
+      if (resp.status === 429 || (data.error && data.error.includes('429'))) {
+        throw new Error('rate_limit');
+      }
+      throw new Error('Erro HTTP ' + resp.status);
+    }
+
+    const jogos = data.jogos || [];
+    if (jogos.length === 0) throw new Error('not_found');
 
     // Preencher os campos do grid
     jogos.forEach((j, i) => {
@@ -1365,7 +1386,10 @@ window.autoImport = async function() {
     btn.textContent = '✓ BUSCADO';
 
   } catch (e) {
-    status.textContent = '✗ Erro: ' + e.message + '. Preencha manualmente.';
+    const msg = e.message === 'rate_limit' ? 'Muitas tentativas. Aguarde 1 minuto e tente novamente.' :
+               e.message === 'not_found' ? 'Grade ainda não disponível. Tente mais tarde ou preencha manualmente.' :
+               'Erro: ' + e.message + '. Preencha manualmente.';
+    status.textContent = '✗ ' + msg;
     status.style.color = 'var(--loss)';
     btn.disabled = false;
     btn.textContent = '↺ TENTAR NOVAMENTE';
