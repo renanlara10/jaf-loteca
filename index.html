@@ -880,7 +880,7 @@ function calcBet(ln) {
     return { aposta, lucro };
   }
   const profit = Math.max(ln.lostAccum * 0.10, BASE_TARGET + extra);
-  return { aposta: r2((ln.lostAccum + profit) / odd), lucro: r2(profit) };
+  return { aposta: r2((ln.lostAccum + profit) / (odd - 1)), lucro: r2(profit) };
 }
 
 const pnlNow   = ln => (ln.pnlLog && ln.pnlLog[String(curNum())]) || 0;
