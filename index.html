@@ -365,6 +365,7 @@
   <div class="summary-item"><div class="summary-value" id="sRecup" style="color:var(--accent3)">0</div><div class="summary-label">Em Recuperação</div></div>
   <div class="summary-item"><div class="summary-value" id="sDebit" style="color:var(--loss)">—</div><div class="summary-label">P&amp;L Acum. Negativo</div></div>
   <div class="summary-item"><div class="summary-value" id="sRisco" style="color:var(--loss)">—</div><div class="summary-label">Haver</div></div>
+  <div class="summary-item" title="Média histórica das odds de empate em todos os concursos"><div class="summary-value" id="sMediaOddHist" style="color:var(--accent3)">—</div><div class="summary-label">Odd Média Histórica</div></div>
 </div>
 
 <!-- MAIN -->
@@ -409,7 +410,7 @@
         <tr>
           <td colspan="4" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;">TOTAIS</td>
           <td id="fRisco"  style="color:var(--loss);font-family:'DM Mono',monospace;font-size:12px;">—</td>
-          <td></td>
+          <td id="fMediaOdd" style="color:var(--accent3);font-family:'DM Mono',monospace;font-size:12px;" title="Média das odds deste concurso">—</td>
           <td id="fAposta" style="color:var(--accent);font-family:'DM Mono',monospace;font-size:12px;">—</td>
           <td id="fLucro"  style="color:var(--neutral);font-family:'DM Mono',monospace;font-size:12px;">—</td>
           <td id="fPnl"    style="color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;">—</td>
@@ -939,7 +940,7 @@ function render() {
     _bar.classList.remove('active');
   }
   if (_tinp && parseFloat(_tinp.value) !== threshold) _tinp.value = threshold;
-  let totAposta=0, totLucro=0, totPnl=0, totAcc=0, wins=0, loss=0, recup=0, totDebit=0, totRisco=0;
+  let totAposta=0, totLucro=0, totPnl=0, totAcc=0, wins=0, loss=0, recup=0, totDebit=0, totRisco=0, totOdd=0, cntOdd=0;
 
   A.lines.forEach((ln, i) => {
     const g            = conc.games[i];
@@ -959,6 +960,7 @@ function render() {
     if (ln.stage > 0) recup++;
     if (pT < 0) totDebit += pT;
     totRisco += (ln.lostAccum || 0);
+    if (!isBlocked) { totOdd += (ln.odd >= 1.01 ? ln.odd : 3.0); cntOdd++; }
 
     const sc  = `s${Math.min(ln.stage, 3)}`;
     const sl  = ln.stage === 0 ? 'INICIAL' : `RECUP #${ln.stage}`;
@@ -1040,6 +1042,19 @@ function render() {
   }
 
   document.getElementById('fRisco').textContent  = totRisco > 0 ? '-' + fmtU(totRisco) : '—';
+  // Média odd do concurso atual
+  const mediaOddConc = cntOdd > 0 ? (totOdd / cntOdd).toFixed(2) : null;
+  const fMediaEl = document.getElementById('fMediaOdd');
+  if (fMediaEl) fMediaEl.textContent = mediaOddConc ? mediaOddConc : '—';
+  // Média odd histórica (todos concursos)
+  const todasOdds = A.concursos.flatMap(c =>
+    (c.games || []).map(g => g.odd >= 1.01 ? g.odd : 3.0)
+  );
+  const mediaOddHist = todasOdds.length > 0
+    ? (todasOdds.reduce((a,b) => a+b, 0) / todasOdds.length).toFixed(2)
+    : null;
+  const sMediaHistEl = document.getElementById('sMediaOddHist');
+  if (sMediaHistEl) sMediaHistEl.textContent = mediaOddHist ? mediaOddHist : '—';
   document.getElementById('fAposta').textContent = fmtU(totAposta);
   document.getElementById('fLucro').textContent  = fmtU(totLucro);
   colorPnl(document.getElementById('fPnl'),   totPnl);
