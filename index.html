@@ -363,7 +363,6 @@
   <div class="summary-item"><div class="summary-value" id="sWins" style="color:var(--win)">0</div><div class="summary-label">Empates ✓</div></div>
   <div class="summary-item"><div class="summary-value" id="sLoss" style="color:var(--loss)">0</div><div class="summary-label">Não Empates ✗</div></div>
   <div class="summary-item"><div class="summary-value" id="sRecup" style="color:var(--accent3)">0</div><div class="summary-label">Em Recuperação</div></div>
-  <div class="summary-item"><div class="summary-value" id="sDebit" style="color:var(--loss)">—</div><div class="summary-label">P&amp;L Acum. Negativo</div></div>
   <div class="summary-item"><div class="summary-value" id="sRisco" style="color:var(--loss)">—</div><div class="summary-label">Haver</div></div>
   <div class="summary-item" title="Média histórica das odds de empate em todos os concursos"><div class="summary-value" id="sMediaOddHist" style="color:var(--accent3)">—</div><div class="summary-label">Odd Média Histórica</div></div>
 </div>
@@ -1032,14 +1031,7 @@ function render() {
     riscoEl.textContent = '—';
     riscoEl.style.color = 'var(--muted)';
   }
-  const debitEl = document.getElementById('sDebit');
-  if (totDebit < 0) {
-    debitEl.textContent = fmtS(totDebit);
-    debitEl.style.color = 'var(--loss)';
-  } else {
-    debitEl.textContent = '—';
-    debitEl.style.color = 'var(--muted)';
-  }
+
 
   document.getElementById('fRisco').textContent  = totRisco > 0 ? '-' + fmtU(totRisco) : '—';
   // Média odd do concurso atual
