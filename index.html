@@ -1376,7 +1376,10 @@ window.autoImport = async function() {
     }
 
     const jogos = data.jogos || [];
-    if (jogos.length === 0) throw new Error('not_found');
+    if (jogos.length === 0) {
+      const detalhe = data.error ? data.error : (data.debug ? data.debug.slice(0,100) : 'sem jogos');
+      throw new Error('not_found:' + detalhe);
+    }
 
     // Preencher os campos do grid
     jogos.forEach((j, i) => {
@@ -1394,7 +1397,7 @@ window.autoImport = async function() {
 
   } catch (e) {
     const msg = e.message === 'rate_limit' ? 'Muitas tentativas. Aguarde 1 minuto e tente novamente.' :
-               e.message === 'not_found' ? 'Grade ainda não disponível. Tente mais tarde ou preencha manualmente.' :
+               e.message.startsWith('not_found') ? 'Grade não encontrada: ' + e.message.slice(9) :
                'Erro: ' + e.message + '. Preencha manualmente.';
     status.textContent = '✗ ' + msg;
     status.style.color = 'var(--loss)';
