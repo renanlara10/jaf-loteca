@@ -482,14 +482,22 @@
 <!-- MODAL: IMPORTAR TIMES -->
 <div class="mo" id="mImport"><div class="mc" style="max-width:540px;text-align:left">
   <h2 style="text-align:center">Importar Times — Concurso <span id="impNum">—</span></h2>
-  <div style="text-align:center;margin-bottom:12px">
-    <button id="btnAutoImport" onclick="autoImport()" style="background:rgba(0,229,160,.15);color:var(--accent);border:1px solid rgba(0,229,160,.35);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.04em;padding:8px 20px;border-radius:2px;cursor:pointer;transition:all .15s">
-      ✦ BUSCAR AUTOMATICAMENTE
-    </button>
-    <div id="autoImportStatus" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;min-height:16px"></div>
-  </div>
-  <div class="imp-hint">
-    <strong>Dica:</strong> Consulte <strong>romers.com.br</strong>, <strong>vovoteca.com</strong> ou <strong>loterias.caixa.gov.br</strong>
+  <div class="imp-hint" style="margin-bottom:14px">
+    <strong>Consulte a grade e preencha abaixo:</strong><br>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+      <a id="linkJornalheiros" href="#" target="_blank"
+        style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);border:1px solid rgba(0,229,160,.3);padding:5px 10px;border-radius:2px;text-decoration:none;background:rgba(0,229,160,.07)">
+        📋 Jornalheiros
+      </a>
+      <a id="linkVovoteca" href="#" target="_blank"
+        style="font-family:'DM Mono',monospace;font-size:11px;color:var(--neutral);border:1px solid rgba(91,124,253,.3);padding:5px 10px;border-radius:2px;text-decoration:none;background:rgba(91,124,253,.07)">
+        📋 Vovoteca
+      </a>
+      <a id="linkCaixa" href="https://loterias.caixa.gov.br/Paginas/Loteca.aspx" target="_blank"
+        style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);border:1px solid rgba(255,255,255,.1);padding:5px 10px;border-radius:2px;text-decoration:none;background:rgba(255,255,255,.04)">
+        📋 Caixa Oficial
+      </a>
+    </div>
   </div>
   <div class="imp-grid" id="impGrid"></div>
   <div class="mbtns">
@@ -1315,11 +1323,12 @@ window.confirmNext = function() {
 // ── IMPORT ──
 window.openImport = function() {
   document.getElementById('impNum').textContent = curNum();
-  // Resetar estado do botão de auto-import
-  const btnAI = document.getElementById('btnAutoImport');
-  if (btnAI) { btnAI.disabled = false; btnAI.textContent = '✦ BUSCAR AUTOMATICAMENTE'; }
-  const stAI = document.getElementById('autoImportStatus');
-  if (stAI) stAI.textContent = '';
+  // Atualizar links com número do concurso
+  const num2 = curNum();
+  const lj = document.getElementById('linkJornalheiros');
+  if (lj) lj.href = 'https://jornalheiros.blogspot.com/search?q=loteca+programacao+concurso+' + num2;
+  const lv = document.getElementById('linkVovoteca');
+  if (lv) lv.href = 'https://vovoteca.com/?s=loteca+' + num2;
   const grid  = document.getElementById('impGrid');
   grid.innerHTML = '';
   const games = curConc().games;
@@ -1349,14 +1358,9 @@ window.openImport = function() {
 };
 
 window.autoImport = async function() {
-  const btn    = document.getElementById('btnAutoImport');
-  const status = document.getElementById('autoImportStatus');
-  const num    = curNum();
-
-  btn.disabled = true;
-  btn.textContent = '⏳ BUSCANDO...';
-  status.textContent = 'Consultando a grade do concurso ' + num + '...';
-  status.style.color = 'var(--accent3)';
+  // autoImport desativado — use os links do modal
+  return;
+  const num = curNum();
 
   try {
     const resp = await fetch('https://jaf-loteca-proxy.renanlara.workers.dev', {
