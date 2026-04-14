@@ -44,6 +44,10 @@
   .btn-filter-on{background:rgba(245,166,35,.18);color:var(--accent3);border:1px solid rgba(245,166,35,.45);}
   tr.blocked{opacity:.35;}
   tr.blocked td{pointer-events:none;}
+  tr.nulo td{opacity:.3;text-decoration:line-through;}
+  .btn-nulo{font-size:11px;padding:4px 8px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s;}
+  .btn-nulo:hover{border-color:var(--accent2);color:var(--accent2);}
+  .btn-nulo.sim{background:rgba(255,77,109,.1);color:var(--loss);border-color:rgba(255,77,109,.4);font-weight:600;}
   .blocked-badge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;border-radius:2px;background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.3);letter-spacing:.06em;}
 
   .filter-bar{display:none;align-items:center;gap:10px;padding:10px 16px;background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.2);border-radius:2px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);flex-wrap:wrap;}
@@ -590,7 +594,7 @@ function blankGames() {
 
 function blankLines() {
   return Array.from({length:N}, () => ({
-    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}, lastAction: null, pctX: {}, redistExtra: 0, apostado: {}
+    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}, lastAction: null, pctX: {}, redistExtra: 0, apostado: {}, nulo: {}
   }));
 }
 
@@ -600,7 +604,7 @@ function initState() {
     lucroAlvo: 20,
     concursos: [{
       num: 1239,
-      filterOn: false,
+      filterOn: true,
       threshold: 6.5,
       games: [
         {home:'Colômbia',          away:'França',         day:'Dom'},
@@ -820,7 +824,7 @@ async function initFirebase() {
       BASE_TARGET = A.lucroAlvo;
       // Garante filterOn e threshold em cada concurso
       A.concursos = A.concursos.map(c => ({
-        filterOn: false, threshold: 6.5, ...c
+        filterOn: (c.filterOn !== undefined ? c.filterOn : true), threshold: 6.5, ...c
       }));
       // Garante campos novos para dados antigos (migração)
       A.lines = A.lines.map(ln => ({
@@ -930,7 +934,7 @@ function render() {
 
   // Lê filterOn e threshold do concurso atual
   const conc_filter = curConc();
-  const _filterOn   = conc_filter.filterOn || false;
+  const _filterOn   = conc_filter.filterOn !== undefined ? conc_filter.filterOn : true;
   const threshold   = conc_filter.threshold || 6.5;
   // Sincroniza UI do botão e input
   const _btn   = document.getElementById('btnFilter');
@@ -959,15 +963,16 @@ function render() {
     const pT     = pnlTotal(ln);
 
     // Filtro super favorito — usa a própria odd de aposta
-    const isBlocked = _filterOn && (ln.odd || 3.0) >= threshold;
+    const isNulo    = !!(ln.nulo && ln.nulo[String(curNum())]);
+    const isBlocked = !isNulo && (_filterOn && (ln.odd || 3.0) >= threshold);
 
-    if (!isBlocked) { totAposta += aposta; totLucro += lucro; }
+    if (!isBlocked && !isNulo) { totAposta += aposta; totLucro += lucro; }
     totPnl += pN; totAcc += pT;
     if (pN > 0) wins++; if (pN < 0) loss++;
     if (ln.stage > 0) recup++;
     if (pT < 0) totDebit += pT;
     totRisco += (ln.lostAccum || 0);
-    if (!isBlocked) { totOdd += (ln.odd >= 1.01 ? ln.odd : 3.0); cntOdd++; }
+    if (!isBlocked && !isNulo) { totOdd += (ln.odd >= 1.01 ? ln.odd : 3.0); cntOdd++; }
 
     const sc  = `s${Math.min(ln.stage, 3)}`;
     const sl  = ln.stage === 0 ? 'INICIAL' : `RECUP #${ln.stage}`;
@@ -977,6 +982,7 @@ function render() {
 
     const tr = document.createElement('tr');
     if (isBlocked) tr.classList.add('blocked');
+    if (isNulo)    tr.classList.add('nulo');
     tr.innerHTML = `
       <td class="game-num">${i+1}</td>
       <td class="teams${ph?' ph':''}"><b>${esc(g.home)}</b> <span class="vs">x</span> <b>${esc(g.away)}</b></td>
@@ -1009,7 +1015,7 @@ function render() {
             return '<button class="' + cls + '" disabled>' + label + '</button>'
                  + '<button class="btn-r undo" onclick="window._undoResult(' + i + ')" title="Desfazer marcação">↩</button>';
           }
-          const btnsAcao = isBlocked
+          const btnsAcao = (isBlocked || isNulo)
             ? '<button class="btn-r" disabled>✓ EMPATE</button><button class="btn-r" disabled>✗ NÃO</button>'
             : '<button class="btn-r" onclick="window._doResult(' + i + ',true)">✓ EMPATE</button>'
             + '<button class="btn-r" onclick="window._doResult(' + i + ',false)">✗ NÃO</button>';
@@ -1018,7 +1024,8 @@ function render() {
             ? '<button class="btn-r redistrib" onclick="window._openRedistrib(' + i + ')" title="Redistribuir 50% do saldo negativo entre linhas Stage 0">↔</button>'
             : '';
           const btnApostado = '<button class="btn-apostado' + (isApostado ? ' sim' : '') + '" onclick="window._toggleApostado(' + i + ')" title="' + (isApostado ? 'Aposta feita ✓' : 'Marcar como apostado') + '">' + (isApostado ? '💰 APOSTADO' : '💰') + '</button>';
-          return btnsAcao + btnUndo + btnRedist + btnApostado;
+          const btnNulo     = '<button class="btn-nulo' + (isNulo ? ' sim' : '') + '" onclick="window._toggleNulo(' + i + ')" title="' + (isNulo ? 'Jogo nulo/inativo — clique para reativar' : 'Marcar como nulo/inativo') + '">' + (isNulo ? '🚫 NULO' : '🚫') + '</button>';
+          return btnsAcao + btnUndo + btnRedist + btnApostado + btnNulo;
         })()}
       </div></td>`;
     tbody.appendChild(tr);
@@ -1196,6 +1203,14 @@ window._openRedistrib = function(i) {
     + '<span class="redist-lbl">Extra no lucro alvo de cada</span>'
     + '<span class="redist-val" style="color:var(--neutral)">+' + fmtU(valorPorLinha) + '</span></div>';
   openM('mRedistrib');
+};
+
+window._toggleNulo = function(i) {
+  const ln  = A.lines[i];
+  const key = String(curNum());
+  if (!ln.nulo) ln.nulo = {};
+  ln.nulo[key] = !ln.nulo[key];
+  save(); render();
 };
 
 window._toggleApostado = function(i) {
