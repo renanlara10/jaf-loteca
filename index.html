@@ -354,11 +354,18 @@
 
 <!-- SUMMARY -->
 <div class="summary-bar">
-  <div class="summary-item editable" title="Clique para editar o lucro alvo por linha" onclick="document.getElementById('lucroAlvoInput').select()">
+  <div class="summary-item editable" title="Lucro alvo Stage 0 a 5" onclick="document.getElementById('lucroAlvoInput').select()">
     <input type="number" id="lucroAlvoInput" class="lucro-alvo-input" min="1" step="1" value="20"
       onchange="setLucroAlvo(this.value)" onblur="setLucroAlvo(this.value)"
       onclick="event.stopPropagation();this.select()">
-    <div class="summary-label">Lucro Alvo / Linha</div>
+    <div class="summary-label">Lucro Alvo S0–S5</div>
+    <div class="edit-hint">✎ EDITÁVEL</div>
+  </div>
+  <div class="summary-item editable" title="Lucro alvo Stage 6 em diante" onclick="document.getElementById('lucroAlvoInput6').select()">
+    <input type="number" id="lucroAlvoInput6" class="lucro-alvo-input" min="1" step="1" value="20"
+      onchange="setLucroAlvo6(this.value)" onblur="setLucroAlvo6(this.value)"
+      onclick="event.stopPropagation();this.select()">
+    <div class="summary-label">Lucro Alvo S6+</div>
     <div class="edit-hint">✎ EDITÁVEL</div>
   </div>
   <div class="summary-item"><div class="summary-value" id="sTotal" style="color:var(--text)">—</div><div class="summary-label">A Apostar Agora</div></div>
@@ -576,7 +583,8 @@ const ADMIN_EMAIL = "renanlara@live.com";
 // ══════════════════════════════════════════════════════
 // CONSTANTS
 // ══════════════════════════════════════════════════════
-let BASE_TARGET = 20;   // lucro alvo por linha — editável pelo usuário
+let BASE_TARGET  = 20;  // lucro alvo Stage 0–5
+let BASE_TARGET6 = 20;  // lucro alvo Stage 6+
 const N         = 14;
 
 // Filtro super favoritos — estado local (não salvo no Firebase)
@@ -602,6 +610,7 @@ function initState() {
   return {
     cur: 0,
     lucroAlvo: 20,
+    lucroAlvo6: 20,
     concursos: [{
       num: 1239,
       filterOn: true,
@@ -820,8 +829,10 @@ async function initFirebase() {
     if (snap.exists()) {
       A = snap.data();
       // Migração — garante campos
-      if (!A.lucroAlvo) A.lucroAlvo = 20;
-      BASE_TARGET = A.lucroAlvo;
+      if (!A.lucroAlvo)  A.lucroAlvo  = 20;
+      if (!A.lucroAlvo6) A.lucroAlvo6 = 20;
+      BASE_TARGET  = A.lucroAlvo;
+      BASE_TARGET6 = A.lucroAlvo6;
       // Garante filterOn e threshold em cada concurso
       A.concursos = A.concursos.map(c => ({
         filterOn: (c.filterOn !== undefined ? c.filterOn : true), threshold: 6.5, ...c
@@ -884,14 +895,15 @@ const r2      = v  => Math.round(v * 100) / 100;
 function calcBet(ln) {
   const odd   = ln.odd >= 1.01 ? ln.odd : 3.0;
   const extra = r2(ln.redistExtra || 0);
+  const targetBase = ln.stage >= 6 ? BASE_TARGET6 : BASE_TARGET;
   if (ln.stage === 0) {
-    const lucroAlvo  = r2(BASE_TARGET + extra);
+    const lucroAlvo  = r2(targetBase + extra);
     const apostaCalc = r2(lucroAlvo / (odd - 1));
     const aposta     = Math.max(apostaCalc, 10);
     const lucro      = r2(aposta * (odd - 1));  // lucro real baseado na aposta efetiva
     return { aposta, lucro };
   }
-  const profit = Math.max(ln.lostAccum * 0.10, BASE_TARGET + extra);
+  const profit = Math.max(ln.lostAccum * 0.10, targetBase + extra);
   return { aposta: r2((ln.lostAccum + profit) / (odd - 1)), lucro: r2(profit) };
 }
 
@@ -915,11 +927,12 @@ function colorPnl(el, v) {
 function render() {
   if (!A) return;
   // Sincroniza lucro alvo com o estado salvo
-  if (A.lucroAlvo && A.lucroAlvo !== BASE_TARGET) {
-    BASE_TARGET = A.lucroAlvo;
-  }
+  if (A.lucroAlvo  && A.lucroAlvo  !== BASE_TARGET)  BASE_TARGET  = A.lucroAlvo;
+  if (A.lucroAlvo6 && A.lucroAlvo6 !== BASE_TARGET6) BASE_TARGET6 = A.lucroAlvo6;
   const inp = document.getElementById('lucroAlvoInput');
   if (inp && parseFloat(inp.value) !== BASE_TARGET) inp.value = BASE_TARGET;
+  const inp6 = document.getElementById('lucroAlvoInput6');
+  if (inp6 && parseFloat(inp6.value) !== BASE_TARGET6) inp6.value = BASE_TARGET6;
   const conc = curConc();
   document.getElementById('navNum').textContent = conc.num;
   const rulesEl = document.getElementById('rulesLucro');
@@ -1240,6 +1253,16 @@ window.confirmRedistrib = function() {
 
   _redistIdx = null;
   closeM('mRedistrib');
+  save(); render();
+};
+
+window.setLucroAlvo6 = function(val) {
+  const v = parseFloat(val);
+  if (!v || v < 1) return;
+  BASE_TARGET6 = Math.round(v * 100) / 100;
+  A.lucroAlvo6 = BASE_TARGET6;
+  const inp6 = document.getElementById('lucroAlvoInput6');
+  if (inp6) inp6.value = BASE_TARGET6;
   save(); render();
 };
 
