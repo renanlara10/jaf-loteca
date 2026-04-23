@@ -139,6 +139,22 @@
   .redist-val{font-weight:500;}
 
   tfoot tr{background:var(--surface);border-top:2px solid var(--border);}
+  /* HISTÓRICO */
+  .hist-section{margin-top:28px;}
+  .hist-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+  .hist-title::before{content:'';flex:1;height:1px;background:var(--border);}
+  .hist-table{width:100%;border-collapse:collapse;font-size:11px;}
+  .hist-table th{background:var(--surface);padding:7px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;}
+  .hist-table th:hover{color:var(--text);}
+  .hist-table td{padding:7px 10px;font-family:'DM Mono',monospace;border-bottom:1px solid rgba(30,42,58,.5);white-space:nowrap;}
+  .hist-table tr:hover td{background:rgba(255,255,255,.02);}
+  .hist-table tr.cur-row td{background:rgba(0,229,160,.05);border-left:2px solid var(--accent);}
+  .hist-table tr{cursor:pointer;}
+  .hist-pos{color:var(--win);}
+  .hist-neg{color:var(--loss);}
+  .hist-zero{color:var(--muted);}
+  .hist-num{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--accent);}
+  .hist-year{font-size:9px;padding:1px 5px;border-radius:2px;font-family:'DM Mono',monospace;}
   tfoot td{padding:12px 10px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.03em;}
   tfoot td:first-child{padding-left:14px;}
 
@@ -429,6 +445,31 @@
         </tr>
       </tfoot>
     </table>
+  </div>
+
+  <!-- HISTÓRICO -->
+  <div class="hist-section">
+    <div class="hist-title">TODAS AS RODADAS — CLIQUE PARA SELECIONAR</div>
+    <div class="table-wrapper">
+      <table class="hist-table" id="histTable">
+        <thead>
+          <tr>
+            <th>#CONC</th>
+            <th>ANO</th>
+            <th>DATA</th>
+            <th>APOSTADO</th>
+            <th>P&amp;L RODADA</th>
+            <th>P&amp;L ACUM.</th>
+            <th title="Vitórias (empates)">✓</th>
+            <th title="Empates">X</th>
+            <th title="Em recuperação">RECUP.</th>
+            <th>HAVER</th>
+            <th title="Apostado">💰</th>
+          </tr>
+        </thead>
+        <tbody id="histTbody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -1062,16 +1103,16 @@ function render() {
 
 
   document.getElementById('fRisco').textContent  = totRisco > 0 ? '-' + fmtU(totRisco) : '—';
+  renderHist();
   // Média odd do concurso atual
   const mediaOddConc = cntOdd > 0 ? (totOdd / cntOdd).toFixed(2) : null;
   const fMediaEl = document.getElementById('fMediaOdd');
   if (fMediaEl) fMediaEl.textContent = mediaOddConc ? mediaOddConc : '—';
   // Média odd histórica (todos concursos)
-  const todasOdds = A.concursos.flatMap(c =>
-    (c.games || []).map(g => g.odd >= 1.01 ? g.odd : 3.0)
-  );
-  const mediaOddHist = todasOdds.length > 0
-    ? (todasOdds.reduce((a,b) => a+b, 0) / todasOdds.length).toFixed(2)
+  // Média histórica: percorre todos concursos, pega só odds que foram editadas (diferentes de 3.0)
+  const todasOddsHist = A.concursos.flatMap(c => (c.odds || []).filter(o => o && o >= 1.01 && o !== 3.0));
+  const mediaOddHist = todasOddsHist.length >= 3
+    ? (todasOddsHist.reduce((a,b) => a+b, 0) / todasOddsHist.length).toFixed(2)
     : null;
   const sMediaHistEl = document.getElementById('sMediaOddHist');
   if (sMediaHistEl) sMediaHistEl.textContent = mediaOddHist ? mediaOddHist : '—';
@@ -1218,6 +1259,88 @@ window._openRedistrib = function(i) {
   openM('mRedistrib');
 };
 
+// ── HISTÓRICO ──
+function renderHist() {
+  const tbody = document.getElementById('histTbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  let pnlAcum = 0;
+
+  A.concursos.forEach((c, idx) => {
+    const num   = c.num;
+    const games = c.games || [];
+    const lines = A.lines;
+
+    // P&L desta rodada = soma dos pnlLog[num] de todas as linhas
+    const pnlRod = A.lines.reduce((s, ln) => s + ((ln.pnlLog && ln.pnlLog[String(num)]) || 0), 0);
+    pnlAcum = r2(pnlAcum + pnlRod);
+
+    // Apostado = soma das apostas registradas nesta rodada
+    // Estimativa: contar resultados marcados
+    let apostado = 0;
+    let wins = 0, xCount = 0, recup = 0, haver = 0, apostadoCount = 0;
+
+    A.lines.forEach(ln => {
+      const key = String(num);
+      // Verificar se teve lastAction nesta rodada (mais preciso)
+      if (ln.lastAction && ln.lastAction.key === key) {
+        if (ln.lastAction.won) wins++; else xCount++;
+      } else {
+        // Fallback: inferir pelo pnlLog
+        const logVal = (ln.pnlLog && ln.pnlLog[key]) || 0;
+        if (logVal > 0) wins++;
+        else if (logVal < 0) xCount++;
+      }
+      if (ln.apostado && ln.apostado[key]) apostadoCount++;
+    });
+
+    // Recup = linhas em stage > 0 neste ponto (aproximado pelo lostAccum atual se for concurso atual)
+    if (idx === A.cur) {
+      recup  = A.lines.filter(ln => ln.stage > 0).length;
+      haver  = r2(A.lines.reduce((s, ln) => s + (ln.lostAccum || 0), 0));
+    }
+
+    // Data e ano — inferir pelo número do concurso se não tiver
+    const data = c.date || '—';
+    function inferYear(n) {
+      if (n >= 1227) return 2026;
+      if (n >= 1166) return 2025;
+      if (n >= 1113) return 2024;
+      if (n >= 1058) return 2023;
+      return 2022;
+    }
+    const isCur = idx === A.cur;
+    const anoColors = {'2022':'#a0a0a0','2023':'#f5a623','2024':'#5b7cfd','2025':'#00e5a0','2026':'#ff4d6d'};
+    const anoFull = c.year ? String(c.year) : String(inferYear(num));
+
+    // P&L rodada cor
+    const pR = r2(pnlRod);
+    const pA = r2(pnlAcum);
+    const pRcls = pR > 0 ? 'hist-pos' : pR < 0 ? 'hist-neg' : 'hist-zero';
+    const pAcls = pA > 0 ? 'hist-pos' : pA < 0 ? 'hist-neg' : 'hist-zero';
+    const anoColor = anoColors[anoFull] || 'var(--muted)';
+
+    const tr = document.createElement('tr');
+    if (isCur) tr.classList.add('cur-row');
+    tr.onclick = () => { A.cur = idx; save(); render(); window.scrollTo({top:0,behavior:'smooth'}); };
+    tr.innerHTML = `
+      <td class="hist-num">${num}</td>
+      <td><span class="hist-year" style="background:${anoColor}22;color:${anoColor};border:1px solid ${anoColor}44">${anoFull}</span></td>
+      <td style="color:var(--muted)">${data}</td>
+      <td style="color:var(--text)">${pRcls !== 'hist-zero' ? fmtU(Math.abs(pR)) : '—'}</td>
+      <td class="${pRcls}">${pR === 0 ? '—' : (pR > 0 ? '+' : '') + 'R$ ' + Math.abs(pR).toFixed(2).replace('.',',')}</td>
+      <td class="${pAcls}">${pA === 0 ? '—' : (pA > 0 ? '+' : '') + 'R$ ' + Math.abs(pA).toFixed(2).replace('.',',')}</td>
+      <td style="color:var(--win)">${wins || '—'}</td>
+      <td style="color:var(--accent3)">${xCount || '—'}</td>
+      <td style="color:var(--accent3)">${isCur ? recup || '—' : '—'}</td>
+      <td style="color:var(--loss)">${isCur && haver > 0 ? 'R$ ' + haver.toFixed(2).replace('.',',') : '—'}</td>
+      <td style="color:var(--muted)">${apostadoCount || '—'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 window._toggleNulo = function(i) {
   const ln  = A.lines[i];
   const key = String(curNum());
@@ -1345,12 +1468,18 @@ window.confirmNext = function() {
   } else {
     saveOddsToConc();   // salva odds do concurso atual
     const prev = curConc();
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2,'0');
+    const mm = String(today.getMonth()+1).padStart(2,'0');
+    const yy = String(today.getFullYear()).slice(-2);
     A.concursos.push({
       num,
       games:     blankGames(),
-      filterOn:  prev.filterOn  || false,
+      filterOn:  prev.filterOn  !== undefined ? prev.filterOn : true,
       threshold: prev.threshold || 6.5,
-      odds:      Array(N).fill(3.0),  // odds zeradas para o novo concurso
+      odds:      Array(N).fill(3.0),
+      date:      dd + '/' + mm + '/' + yy,
+      year:      today.getFullYear(),
     });
     A.cur = A.concursos.length - 1;
     loadOddsFromConc(); // carrega 3.0 do novo concurso
