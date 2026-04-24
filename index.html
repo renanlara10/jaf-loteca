@@ -390,6 +390,7 @@
   <div class="summary-item"><div class="summary-value" id="sPnlAcc" style="color:var(--muted)">—</div><div class="summary-label">P&L Acumulado</div></div>
   <div class="summary-item"><div class="summary-value" id="sWins" style="color:var(--win)">0</div><div class="summary-label">Empates ✓</div></div>
   <div class="summary-item" title="Total de greens em todos os concursos"><div class="summary-value" id="sTotalGreens" style="color:var(--win)">—</div><div class="summary-label">Total Greens</div></div>
+  <div class="summary-item" title="Valor bruto total dos greens (soma dos lucros positivos)"><div class="summary-value" id="sValorGreens" style="color:var(--win)">—</div><div class="summary-label">Valor Greens</div></div>
   <div class="summary-item"><div class="summary-value" id="sLoss" style="color:var(--loss)">0</div><div class="summary-label">Não Empates ✗</div></div>
   <div class="summary-item"><div class="summary-value" id="sRecup" style="color:var(--accent3)">0</div><div class="summary-label">Em Recuperação</div></div>
   <div class="summary-item"><div class="summary-value" id="sRisco" style="color:var(--loss)">—</div><div class="summary-label">Haver</div></div>
@@ -1108,6 +1109,18 @@ function render() {
     return s + Object.values(ln.pnlLog).filter(v => v > 0).length;
   }, 0);
   document.getElementById('sTotalGreens').textContent = totalGreens || '—';
+  const valorGreens = A.lines.reduce((s, ln) => {
+    if (!ln.pnlLog) return s;
+    return r2(s + Object.values(ln.pnlLog).filter(v => v > 0).reduce((a, v) => r2(a + v), 0));
+  }, 0);
+  const vgEl = document.getElementById('sValorGreens');
+  if (valorGreens > 0) {
+    vgEl.textContent = '+R ' + valorGreens.toFixed(2).replace('.',',');
+    vgEl.style.color = 'var(--win)';
+  } else {
+    vgEl.textContent = '—';
+    vgEl.style.color = 'var(--muted)';
+  }
   document.getElementById('sLoss').textContent  = loss;
   document.getElementById('sRecup').textContent = recup;
   const riscoEl = document.getElementById('sRisco');
