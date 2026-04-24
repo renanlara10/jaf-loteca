@@ -113,7 +113,8 @@
   .risco-cell.zero{color:var(--muted);}
   .accum-cell.pos{color:rgba(0,229,160,.7);}.accum-cell.neg{color:rgba(255,77,109,.7);}.accum-cell.zero{color:var(--muted);}
 
-  .result-btns{display:flex;gap:3px;flex-wrap:nowrap;}
+  .result-btns{display:flex;gap:3px;flex-wrap:nowrap;align-items:center;}
+  .btn-spacer{display:inline-block;width:28px;}  /* espaçador para alinhar quando não há botão */
   .btn-r{border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.04em;padding:4px 8px;border-radius:2px;transition:all .15s;background:var(--surface);color:var(--muted);border:1px solid var(--border);}
   .btn-r:hover{filter:brightness(1.35);transform:translateY(-1px);}
   .btn-r:disabled{opacity:.35;cursor:not-allowed;transform:none;}
@@ -1078,12 +1079,18 @@ function render() {
             ? '<button class="btn-r" disabled>✓ EMPATE</button><button class="btn-r" disabled>✗ NÃO</button>'
             : '<button class="btn-r" onclick="window._doResult(' + i + ',true)">✓ EMPATE</button>'
             + '<button class="btn-r" onclick="window._doResult(' + i + ',false)">✗ NÃO</button>';
-          const btnUndo   = '<button class="btn-r undo" disabled>↩</button>';
+          // ↩ só aparece quando há resultado marcado (jaM=false aqui, então sempre oculto)
+          const btnUndo   = '<span class="btn-spacer"></span>';
+          // ↔ redistribuição — espaçador quando não há
           const btnRedist = podaRedist
-            ? '<button class="btn-r redistrib" onclick="window._openRedistrib(' + i + ')" title="Redistribuir 50% do saldo negativo entre linhas Stage 0">↔</button>'
-            : '';
-          const btnApostado = '<button class="btn-apostado' + (isApostado ? ' sim' : '') + '" onclick="window._toggleApostado(' + i + ')" title="' + (isApostado ? 'Aposta feita ✓' : 'Marcar como apostado') + '">' + (isApostado ? '💰 APOSTADO' : '💰') + '</button>';
-          const btnNulo     = '<button class="btn-nulo' + (isNulo ? ' sim' : '') + '" onclick="window._toggleNulo(' + i + ')" title="' + (isNulo ? 'Jogo nulo/inativo — clique para reativar' : 'Marcar como nulo/inativo') + '">' + (isNulo ? '🚫 NULO' : '🚫') + '</button>';
+            ? '<button class="btn-r redistrib" onclick="window._openRedistrib(' + i + ')" title="Redistribuir 50% do saldo em risco entre as demais linhas">↔</button>'
+            : '<span class="btn-spacer"></span>';
+          // 💰 apostado — só mostra quando marcado ou ainda não tem resultado
+          const btnApostado = (isApostado || !jaM)
+            ? '<button class="btn-apostado' + (isApostado ? ' sim' : '') + '" onclick="window._toggleApostado(' + i + ')" title="' + (isApostado ? 'Aposta feita ✓' : 'Marcar como apostado') + '">' + (isApostado ? '💰' : '💰') + '</button>'
+            : '<span class="btn-spacer"></span>';
+          // 🚫 nulo
+          const btnNulo = '<button class="btn-nulo' + (isNulo ? ' sim' : '') + '" onclick="window._toggleNulo(' + i + ')" title="' + (isNulo ? 'Jogo nulo — clique para reativar' : 'Marcar como nulo') + '">' + (isNulo ? '🚫' : '🚫') + '</button>';
           return btnsAcao + btnUndo + btnRedist + btnApostado + btnNulo;
         })()}
       </div></td>`;
@@ -1285,6 +1292,11 @@ function renderHist() {
   if (!tbody) return;
   tbody.innerHTML = '';
 
+  // P&L acumulado real = soma dos pnlTotal de todas as linhas (igual ao painel)
+  const pnlAcumTotal = r2(A.lines.reduce((s, ln) => s + (ln.pnlTotal || 0), 0));
+
+  // Construir pnlAcum por concurso somando pnlLog
+  // Para o concurso atual, forçar o valor real do painel
   let pnlAcum = 0;
 
   A.concursos.forEach((c, idx) => {
@@ -1295,6 +1307,9 @@ function renderHist() {
     // P&L desta rodada = soma dos pnlLog[num] de todas as linhas
     const pnlRod = A.lines.reduce((s, ln) => s + ((ln.pnlLog && ln.pnlLog[String(num)]) || 0), 0);
     pnlAcum = r2(pnlAcum + pnlRod);
+    // Para o último concurso, corrigir para o valor real do painel
+    const isLast = idx === A.concursos.length - 1;
+    if (isLast) pnlAcum = pnlAcumTotal;
 
     // Apostado = soma das apostas registradas nesta rodada
     // Estimativa: contar resultados marcados
