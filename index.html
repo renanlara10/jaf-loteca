@@ -1011,8 +1011,13 @@ function render() {
     const g            = conc.games[i];
     const {aposta: apostaCalc, lucro} = calcBet(ln);
     const key2   = String(curNum());
+    // Para concursos passados (lastAction neste concurso), usar o valor real salvo
+    const jaM2   = ln.lastAction && ln.lastAction.key === key2;
     const aposta = (ln.apostaOverride && ln.apostaOverride[key2] != null)
-      ? ln.apostaOverride[key2] : apostaCalc;
+      ? ln.apostaOverride[key2]
+      : (jaM2 && ln.apostaLog && ln.apostaLog[key2] != null)
+        ? ln.apostaLog[key2]
+        : apostaCalc;
     const pN     = pnlNow(ln);
     const pT     = pnlTotal(ln);
 
@@ -1048,7 +1053,7 @@ function render() {
             title="${isBlocked?'Super favorito — linha bloqueada pelo filtro':'Odd de empate'}"></td>
       <td>
         <input type="number" min="0.01" step="0.01" class="aposta-input"
-          value="${(ln.apostaOverride && ln.apostaOverride[String(curNum())]) != null ? Number(ln.apostaOverride[String(curNum())]).toFixed(2) : aposta.toFixed(2)}"
+          value="${aposta.toFixed(2)}"
           data-auto="${aposta.toFixed(2)}"
           title="Valor calculado: ${fmtU(aposta)}. Edite para ajustar manualmente."
           onchange="window._setAposta(${i},this.value)"
@@ -1146,6 +1151,9 @@ window._doResult = function(i, won) {
     hadOverride: (ln.apostaOverride && ln.apostaOverride[key] != null),
     overrideVal: (ln.apostaOverride && ln.apostaOverride[key]),
   };
+  // Salvar aposta real por concurso para exibição no histórico
+  if (!ln.apostaLog) ln.apostaLog = {};
+  ln.apostaLog[key] = aposta;
   // Limpa override após usar (resultado registrado)
   if (ln.apostaOverride) delete ln.apostaOverride[key];
   const prevLog = ln.pnlLog[key] || 0;
@@ -1197,6 +1205,8 @@ window._undoResult = function(i) {
     delete ln.apostaOverride[snap.key];
   }
   ln.lastAction = null; // só um nível de undo
+  // Remover apostaLog deste concurso
+  if (ln.apostaLog) delete ln.apostaLog[snap.key];
   // Subtrair do totalApostado do concurso
   const concU = curConc();
   if (concU.totalApostado) {
