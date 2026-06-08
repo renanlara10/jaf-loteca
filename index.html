@@ -835,6 +835,17 @@ onAuthStateChanged(auth, async (user) => {
   try {
     // Cada usuário tem seu próprio documento de dados
     DOC_REF = doc(db, "jaf-loteca", user.uid);
+
+    // MIGRAÇÃO: se o documento do usuário estiver vazio, copiar do estado antigo
+    const userDataSnap = await getDoc(DOC_REF);
+    if (!userDataSnap.exists() || !userDataSnap.data().concursos) {
+      const oldSnap = await getDoc(doc(db, "jaf-loteca", "estado"));
+      if (oldSnap.exists() && oldSnap.data().concursos) {
+        await setDoc(DOC_REF, oldSnap.data());
+        console.log("Migração concluída — dados copiados do estado antigo.");
+      }
+    }
+
     const userDoc = await getDoc(doc(db, "usuarios", user.uid));
     if (!userDoc.exists() || userDoc.data().status !== 'aprovado') {
       // Não aprovado
