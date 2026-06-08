@@ -618,7 +618,7 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db          = getFirestore(firebaseApp);
 const auth        = getAuth(firebaseApp);
-const DOC_REF     = doc(db, "jaf-loteca", "estado");
+let DOC_REF       = null;  // definido após login com uid do usuário
 const USUARIOS    = collection(db, "usuarios");
 
 // ← COLOQUE SEU E-MAIL AQUI (será o admin automático)
@@ -833,6 +833,8 @@ onAuthStateChanged(auth, async (user) => {
   loading.querySelector('p').textContent = 'Verificando acesso...';
 
   try {
+    // Cada usuário tem seu próprio documento de dados
+    DOC_REF = doc(db, "jaf-loteca", user.uid);
     const userDoc = await getDoc(doc(db, "usuarios", user.uid));
     if (!userDoc.exists() || userDoc.data().status !== 'aprovado') {
       // Não aprovado
