@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1318,21 +1319,22 @@ function renderHist() {
   // P&L acumulado real = soma dos pnlTotal de todas as linhas (igual ao painel)
   const pnlAcumTotal = r2(A.lines.reduce((s, ln) => s + (ln.pnlTotal || 0), 0));
 
-  // Construir pnlAcum por concurso somando pnlLog
-  // Para o concurso atual, forçar o valor real do painel
-  let pnlAcum = 0;
+  // P&L por rodada de cada concurso
+  const pnlRodPorConc = A.concursos.map(c =>
+    r2(A.lines.reduce((s, ln) => s + ((ln.pnlLog && ln.pnlLog[String(c.num)]) || 0), 0))
+  );
+
+  // Reconstruir pnlAcum de tras pra frente — ultimo = valor real do painel
+  const pnlAcumPorConc = new Array(A.concursos.length).fill(0);
+  pnlAcumPorConc[A.concursos.length - 1] = pnlAcumTotal;
+  for (let i = A.concursos.length - 2; i >= 0; i--) {
+    pnlAcumPorConc[i] = r2(pnlAcumPorConc[i + 1] - pnlRodPorConc[i + 1]);
+  }
 
   A.concursos.forEach((c, idx) => {
-    const num   = c.num;
-    const games = c.games || [];
-    const lines = A.lines;
-
-    // P&L desta rodada = soma dos pnlLog[num] de todas as linhas
-    const pnlRod = A.lines.reduce((s, ln) => s + ((ln.pnlLog && ln.pnlLog[String(num)]) || 0), 0);
-    pnlAcum = r2(pnlAcum + pnlRod);
-    // Para o último concurso, corrigir para o valor real do painel
-    const isLast = idx === A.concursos.length - 1;
-    if (isLast) pnlAcum = pnlAcumTotal;
+    const num     = c.num;
+    const pnlRod  = pnlRodPorConc[idx];
+    const pnlAcum = pnlAcumPorConc[idx];
 
     // Apostado = soma das apostas registradas nesta rodada
     // Estimativa: contar resultados marcados
