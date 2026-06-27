@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1252,20 +1251,39 @@ window._setAposta = function(i, val) {
   const ln  = A.lines[i];
   const key = String(curNum());
   if (!ln.apostaOverride) ln.apostaOverride = {};
-  const {aposta} = calcBet(ln);
-  // Se igual ao calculado, remove override
-  if (Math.abs(v - aposta) < 0.005) {
+  const {aposta: apostaCalc} = calcBet(ln);
+
+  if (Math.abs(v - apostaCalc) < 0.005) {
+    // Restaurar override e redistExtra original
     delete ln.apostaOverride[key];
+    if (ln._redistExtraOriginal != null) {
+      ln.redistExtra = ln._redistExtraOriginal;
+      delete ln._redistExtraOriginal;
+    }
   } else {
-    ln.apostaOverride[key] = Math.round(v * 100) / 100;
+    ln.apostaOverride[key] = r2(v);
+    // Recalcular lucro alvo baseado na nova aposta manual
+    const odd        = ln.odd >= 1.01 ? ln.odd : 3.0;
+    const lucroLiq   = r2(v * (odd - 1));
+    const targetBase = ln.stage >= 6 ? BASE_TARGET6 : BASE_TARGET;
+    // Guardar redistExtra original antes de sobrescrever
+    if (ln._redistExtraOriginal == null) ln._redistExtraOriginal = ln.redistExtra || 0;
+    if (ln.stage === 0) {
+      // Stage 0: novo lucro alvo = aposta * (odd-1), redistExtra ajusta a diferença
+      ln.redistExtra = r2(lucroLiq - targetBase);
+    } else {
+      // Stage N: profit = lucroLiq - lostAccum
+      const profit = r2(lucroLiq - (ln.lostAccum || 0));
+      ln.redistExtra = r2(profit - targetBase);
+    }
   }
-  // Atualiza visual do input
+
   const inputs = document.querySelectorAll('.aposta-input');
   if (inputs[i]) {
     const isModified = ln.apostaOverride && ln.apostaOverride[key] != null;
     inputs[i].classList.toggle('modified', isModified);
   }
-  save();
+  save(); render();
 };
 
 window._resetAposta = function(i, el) {
