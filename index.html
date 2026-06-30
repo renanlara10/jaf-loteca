@@ -279,6 +279,7 @@
     .btn-nav{padding:7px 10px;font-size:10px;}
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -557,6 +558,7 @@
   <div class="imp-grid" id="impGrid"></div>
   <div class="mbtns">
     <button onclick="closeM('mImport')">Cancelar</button>
+    <button onclick="exportExcelImport()" style="background:rgba(91,124,253,.15);color:var(--neutral);border:1px solid rgba(91,124,253,.35)">⬇ Excel</button>
     <button class="ok" onclick="confirmImport()">✓ Salvar Times</button>
   </div>
 </div></div>
@@ -646,7 +648,7 @@ function blankGames() {
 
 function blankLines() {
   return Array.from({length:N}, () => ({
-    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}, lastAction: null, pctX: {}, redistExtra: 0, apostado: {}, nulo: {}
+    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}, lucroOverride: {}, lastAction: null, pctX: {}, redistExtra: 0, apostado: {}, nulo: {}
   }));
 }
 
@@ -1016,15 +1018,17 @@ function render() {
 
   A.lines.forEach((ln, i) => {
     const g            = conc.games[i];
-    const {aposta: apostaCalc, lucro} = calcBet(ln);
+    const {aposta: apostaCalc, lucro: lucroCalc} = calcBet(ln);
     const key2   = String(curNum());
-    // Para concursos passados (lastAction neste concurso), usar o valor real salvo
     const jaM2   = ln.lastAction && ln.lastAction.key === key2;
     const aposta = (ln.apostaOverride && ln.apostaOverride[key2] != null)
       ? ln.apostaOverride[key2]
       : (jaM2 && ln.apostaLog && ln.apostaLog[key2] != null)
         ? ln.apostaLog[key2]
         : apostaCalc;
+    const lucro = (ln.lucroOverride && ln.lucroOverride[key2] != null)
+      ? ln.lucroOverride[key2]
+      : lucroCalc;
     const pN     = pnlNow(ln);
     const pT     = pnlTotal(ln);
 
@@ -1236,7 +1240,8 @@ window._undoResult = function(i) {
   }
   ln.lastAction = null; // só um nível de undo
   // Remover apostaLog deste concurso
-  if (ln.apostaLog) delete ln.apostaLog[snap.key];
+  if (ln.apostaLog)     delete ln.apostaLog[snap.key];
+  if (ln.lucroOverride) delete ln.lucroOverride[snap.key];
   // Subtrair do totalApostado do concurso
   const concU = curConc();
   if (concU.totalApostado) {
@@ -1253,28 +1258,18 @@ window._setAposta = function(i, val) {
   if (!ln.apostaOverride) ln.apostaOverride = {};
   const {aposta: apostaCalc} = calcBet(ln);
 
+  if (!ln.lucroOverride) ln.lucroOverride = {};
   if (Math.abs(v - apostaCalc) < 0.005) {
-    // Restaurar override e redistExtra original
     delete ln.apostaOverride[key];
-    if (ln._redistExtraOriginal != null) {
-      ln.redistExtra = ln._redistExtraOriginal;
-      delete ln._redistExtraOriginal;
-    }
+    delete ln.lucroOverride[key];
   } else {
     ln.apostaOverride[key] = r2(v);
-    // Recalcular lucro alvo baseado na nova aposta manual
-    const odd        = ln.odd >= 1.01 ? ln.odd : 3.0;
-    const lucroLiq   = r2(v * (odd - 1));
-    const targetBase = ln.stage >= 6 ? BASE_TARGET6 : BASE_TARGET;
-    // Guardar redistExtra original antes de sobrescrever
-    if (ln._redistExtraOriginal == null) ln._redistExtraOriginal = ln.redistExtra || 0;
+    const odd      = ln.odd >= 1.01 ? ln.odd : 3.0;
+    const lucroLiq = r2(v * (odd - 1));
     if (ln.stage === 0) {
-      // Stage 0: novo lucro alvo = aposta * (odd-1), redistExtra ajusta a diferença
-      ln.redistExtra = r2(lucroLiq - targetBase);
+      ln.lucroOverride[key] = lucroLiq;
     } else {
-      // Stage N: profit = lucroLiq - lostAccum
-      const profit = r2(lucroLiq - (ln.lostAccum || 0));
-      ln.redistExtra = r2(profit - targetBase);
+      ln.lucroOverride[key] = r2(lucroLiq - (ln.lostAccum || 0));
     }
   }
 
@@ -1292,10 +1287,11 @@ window._resetAposta = function(i, el) {
   const key = String(curNum());
   if (!ln.apostaOverride) ln.apostaOverride = {};
   delete ln.apostaOverride[key];
+  if (ln.lucroOverride) delete ln.lucroOverride[key];
   const {aposta} = calcBet(ln);
   el.value = aposta.toFixed(2);
   el.classList.remove('modified');
-  save();
+  save(); render();
 };
 
 let _redistIdx = null;
@@ -1653,6 +1649,56 @@ window.autoImport = async function() {
     btn.disabled = false;
     btn.textContent = '↺ TENTAR NOVAMENTE';
   }
+};
+
+window.exportExcelImport = function() {
+  const conc   = curConc();
+  const num    = conc.num;
+  const games  = conc.games || [];
+
+  // Montar dados da tabela
+  const rows = [['#', 'MANDANTE', 'VISITANTE', 'DIA', 'ODD EMPATE', 'STAGE', 'EM RISCO', 'APOSTA', 'LUCRO ALVO', 'P&L ACUM.']];
+
+  A.lines.forEach((ln, i) => {
+    const g = games[i] || {};
+    const {aposta, lucro} = calcBet(ln);
+    const key = String(num);
+    const apostaReal = (ln.apostaOverride && ln.apostaOverride[key] != null) ? ln.apostaOverride[key] : aposta;
+    const lucroReal  = (ln.lucroOverride  && ln.lucroOverride[key]  != null) ? ln.lucroOverride[key]  : lucro;
+    rows.push([
+      i + 1,
+      g.home || '',
+      g.away || '',
+      g.day  || '',
+      ln.odd || 3.0,
+      ln.stage || 0,
+      ln.lostAccum || 0,
+      apostaReal,
+      lucroReal,
+      ln.pnlTotal || 0,
+    ]);
+  });
+
+  // Totais
+  const totAposta = A.lines.reduce((s, ln, i) => {
+    const {aposta} = calcBet(ln);
+    const key = String(num);
+    return s + ((ln.apostaOverride && ln.apostaOverride[key] != null) ? ln.apostaOverride[key] : aposta);
+  }, 0);
+  const totPnl = A.lines.reduce((s, ln) => s + (ln.pnlTotal || 0), 0);
+  rows.push(['', 'TOTAIS', '', '', '', '', '', r2(totAposta), '', r2(totPnl)]);
+
+  // Criar workbook
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+
+  // Largura das colunas
+  ws['!cols'] = [
+    {wch:4},{wch:22},{wch:22},{wch:6},{wch:12},{wch:8},{wch:12},{wch:12},{wch:12},{wch:14}
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Concurso ' + num);
+  XLSX.writeFile(wb, 'JAF-Loteca-' + num + '.xlsx');
 };
 
 window.confirmImport = function() {
