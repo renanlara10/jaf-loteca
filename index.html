@@ -386,6 +386,16 @@
     <div class="summary-label">Lucro Alvo S6+</div>
     <div class="edit-hint">✎ EDITÁVEL</div>
   </div>
+  <div class="summary-item editable" title="% do saldo devedor a recuperar por rodada" onclick="document.getElementById('pctRecupInput').select()">
+    <div style="display:flex;align-items:center;justify-content:center;gap:2px">
+      <input type="number" id="pctRecupInput" class="lucro-alvo-input" min="1" max="100" step="1" value="10"
+        onchange="setPctRecup(this.value)" onblur="setPctRecup(this.value)"
+        onclick="event.stopPropagation();this.select()" style="width:48px">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text)">%</span>
+    </div>
+    <div class="summary-label">% Recuperação</div>
+    <div class="edit-hint">✎ EDITÁVEL</div>
+  </div>
   <div class="summary-item"><div class="summary-value" id="sTotal" style="color:var(--text)">—</div><div class="summary-label">A Apostar Agora</div></div>
   <div class="summary-item"><div class="summary-value" id="sPnl" style="color:var(--muted)">—</div><div class="summary-label">P&L Concurso</div></div>
   <div class="summary-item"><div class="summary-value" id="sPnlAcc" style="color:var(--muted)">—</div><div class="summary-label">P&L Acumulado</div></div>
@@ -631,6 +641,7 @@ const ADMIN_EMAIL = "renanlara@live.com";
 // ══════════════════════════════════════════════════════
 let BASE_TARGET  = 20;  // lucro alvo Stage 0–5
 let BASE_TARGET6 = 20;  // lucro alvo Stage 6+
+let BASE_PCT     = 10;  // % recuperação do lostAccum
 const N         = 14;
 
 // Filtro super favoritos — estado local (não salvo no Firebase)
@@ -657,6 +668,7 @@ function initState() {
     cur: 0,
     lucroAlvo: 20,
     lucroAlvo6: 20,
+    pctRecup: 10,
     concursos: [{
       num: 1239,
       filterOn: true,
@@ -881,8 +893,10 @@ async function initFirebase() {
       // Migração — garante campos
       if (!A.lucroAlvo)  A.lucroAlvo  = 20;
       if (!A.lucroAlvo6) A.lucroAlvo6 = 20;
+      if (!A.pctRecup)   A.pctRecup   = 10;
       BASE_TARGET  = A.lucroAlvo;
       BASE_TARGET6 = A.lucroAlvo6;
+      BASE_PCT     = A.pctRecup;
       // Garante filterOn e threshold em cada concurso
       A.concursos = A.concursos.map(c => ({
         filterOn: (c.filterOn !== undefined ? c.filterOn : true), threshold: 6.5, ...c
@@ -953,7 +967,7 @@ function calcBet(ln) {
     const lucro      = r2(aposta * (odd - 1));  // lucro real baseado na aposta efetiva
     return { aposta, lucro };
   }
-  const profit = Math.max(ln.lostAccum * 0.10, targetBase + extra);
+  const profit = Math.max(ln.lostAccum * (BASE_PCT / 100), targetBase + extra);
   return { aposta: r2((ln.lostAccum + profit) / (odd - 1)), lucro: r2(profit) };
 }
 
@@ -979,10 +993,13 @@ function render() {
   // Sincroniza lucro alvo com o estado salvo
   if (A.lucroAlvo  && A.lucroAlvo  !== BASE_TARGET)  BASE_TARGET  = A.lucroAlvo;
   if (A.lucroAlvo6 && A.lucroAlvo6 !== BASE_TARGET6) BASE_TARGET6 = A.lucroAlvo6;
+  if (A.pctRecup   && A.pctRecup   !== BASE_PCT)     BASE_PCT     = A.pctRecup;
   const inp = document.getElementById('lucroAlvoInput');
   if (inp && parseFloat(inp.value) !== BASE_TARGET) inp.value = BASE_TARGET;
   const inp6 = document.getElementById('lucroAlvoInput6');
   if (inp6 && parseFloat(inp6.value) !== BASE_TARGET6) inp6.value = BASE_TARGET6;
+  const inpPct = document.getElementById('pctRecupInput');
+  if (inpPct && parseFloat(inpPct.value) !== BASE_PCT) inpPct.value = BASE_PCT;
   const conc = curConc();
   document.getElementById('navNum').textContent = conc.num;
   const rulesEl = document.getElementById('rulesLucro');
@@ -1450,6 +1467,16 @@ window.confirmRedistrib = function() {
 
   _redistIdx = null;
   closeM('mRedistrib');
+  save(); render();
+};
+
+window.setPctRecup = function(val) {
+  const v = parseFloat(val);
+  if (!v || v < 1 || v > 100) return;
+  BASE_PCT   = Math.round(v * 10) / 10;
+  A.pctRecup = BASE_PCT;
+  const inpPct = document.getElementById('pctRecupInput');
+  if (inpPct) inpPct.value = BASE_PCT;
   save(); render();
 };
 
