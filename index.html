@@ -958,7 +958,7 @@ const r2      = v  => Math.round(v * 100) / 100;
 
 function calcBet(ln) {
   const odd   = ln.odd >= 1.01 ? ln.odd : 3.0;
-  const extra = r2(ln.redistExtra || 0);
+  const extra = r2(Math.max(0, ln.redistExtra || 0));  // redistExtra só aumenta lucro alvo, nunca diminui
   const targetBase = ln.stage >= 6 ? BASE_TARGET6 : BASE_TARGET;
   if (ln.stage === 0) {
     const lucroAlvo  = r2(targetBase + extra);
