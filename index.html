@@ -140,6 +140,31 @@
   .redist-val{font-weight:500;}
 
   tfoot tr{background:var(--surface);border-top:2px solid var(--border);}
+
+  .bonus-section{margin-top:28px;}
+  .bonus-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--accent3);margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+  .bonus-title::before{content:'';flex:1;height:1px;background:var(--border);}
+  .bonus-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
+  .bonus-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:14px;}
+  .bonus-card.win{border-color:rgba(0,229,160,.3);}
+  .bonus-card.loss{border-color:rgba(255,77,109,.25);}
+  .bonus-num{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--muted);letter-spacing:.06em;margin-bottom:8px;}
+  .bonus-input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:5px 8px;border-radius:2px;margin-bottom:6px;box-sizing:border-box;}
+  .bonus-input:focus{border-color:var(--accent3);outline:none;}
+  .bonus-row{display:flex;gap:6px;margin-bottom:6px;}
+  .bonus-row .bonus-input{margin-bottom:0;}
+  .bonus-btns{display:flex;gap:4px;margin-top:8px;}
+  .bonus-btn{flex:1;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.04em;padding:6px 4px;border-radius:2px;border:1px solid var(--border);background:transparent;cursor:pointer;transition:all .15s;}
+  .bonus-btn.empate{color:var(--win);border-color:rgba(0,229,160,.3);}
+  .bonus-btn.empate:hover{background:rgba(0,229,160,.1);}
+  .bonus-btn.nao{color:var(--loss);border-color:rgba(255,77,109,.3);}
+  .bonus-btn.nao:hover{background:rgba(255,77,109,.1);}
+  .bonus-btn.reset{color:var(--muted);font-size:12px;}
+  .bonus-result{font-family:'DM Mono',monospace;font-size:11px;margin-top:6px;text-align:center;}
+  .bonus-summary{display:flex;gap:12px;background:var(--surface);border:1px solid var(--border);padding:12px 16px;border-radius:4px;}
+  .bonus-sv{font-family:'Bebas Neue',sans-serif;font-size:20px;}
+  .bonus-sl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  @media(max-width:600px){.bonus-grid{grid-template-columns:1fr;}}
   /* HISTÓRICO */
   .hist-section{margin-top:28px;}
   .hist-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:10px;}
@@ -461,6 +486,12 @@
     </table>
   </div>
 
+  <!-- LINHAS BONUS -->
+  <div class="bonus-section">
+    <div class="bonus-title">LINHAS BONUS - 3 JOGOS AVULSOS</div>
+    <div id="bonusGrid" class="bonus-grid"></div>
+    <div id="bonusSummary" class="bonus-summary"></div>
+  </div>
   <!-- HISTÓRICO -->
   <div class="hist-section">
     <div class="hist-title">TODAS AS RODADAS — CLIQUE PARA SELECIONAR</div>
@@ -667,6 +698,7 @@ function initState() {
   return {
     cur: 0,
     lucroAlvo: 20,
+    bonusPnlTotal: 0,
     lucroAlvo6: 20,
     pctRecup: 10,
     concursos: [{
@@ -1159,6 +1191,7 @@ function render() {
 
 
   document.getElementById('fRisco').textContent  = totRisco > 0 ? '-' + fmtU(totRisco) : '—';
+  renderBonus();
   renderHist();
   // Média odd do concurso atual
   const mediaOddConc = cntOdd > 0 ? (totOdd / cntOdd).toFixed(2) : null;
@@ -1339,6 +1372,164 @@ window._openRedistrib = function(i) {
     + '<span class="redist-lbl">Extra no lucro alvo de cada</span>'
     + '<span class="redist-val" style="color:var(--neutral)">+' + fmtU(valorPorLinha) + '</span></div>';
   openM('mRedistrib');
+};
+
+
+function renderBonus() {
+  var grid = document.getElementById('bonusGrid');
+  var summ = document.getElementById('bonusSummary');
+  if (!grid || !summ) return;
+  if (!A.bonus) {
+    A.bonus = [
+      {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
+      {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
+      {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0}
+    ];
+  }
+  grid.innerHTML = '';
+  for (var bi = 0; bi < A.bonus.length; bi++) {
+    (function(i) {
+      var b = A.bonus[i];
+      var hasResult = b.result !== null;
+      var pnlColor = b.pnl > 0 ? 'var(--win)' : b.pnl < 0 ? 'var(--loss)' : 'var(--muted)';
+      var pnlStr = b.pnl !== 0 ? (b.pnl > 0 ? '+R$ ' : '-R$ ') + Math.abs(b.pnl).toFixed(2).replace('.',',') : '';
+
+      var card = document.createElement('div');
+      card.className = 'bonus-card' + (hasResult ? (b.result ? ' win' : ' loss') : '');
+
+      var num = document.createElement('div');
+      num.className = 'bonus-num';
+      num.textContent = 'BONUS ' + (i + 1);
+      card.appendChild(num);
+
+      var ih = document.createElement('input');
+      ih.className = 'bonus-input'; ih.placeholder = 'Mandante'; ih.value = b.home || '';
+      ih.oninput = function() { A.bonus[i].home = this.value; save(); };
+      card.appendChild(ih);
+
+      var ia = document.createElement('input');
+      ia.className = 'bonus-input'; ia.placeholder = 'Visitante'; ia.value = b.away || '';
+      ia.oninput = function() { A.bonus[i].away = this.value; save(); };
+      card.appendChild(ia);
+
+      var row = document.createElement('div');
+      row.className = 'bonus-row';
+
+      var io = document.createElement('input');
+      io.className = 'bonus-input'; io.type = 'number'; io.placeholder = 'Odd';
+      io.min = '1.01'; io.step = '0.01'; io.value = b.odd || 3.0; io.style.width = '80px';
+      io.oninput = function() { A.bonus[i].odd = parseFloat(this.value) || 3.0; save(); };
+      row.appendChild(io);
+
+      var iap = document.createElement('input');
+      iap.className = 'bonus-input'; iap.type = 'number'; iap.placeholder = 'R$';
+      iap.min = '1'; iap.step = '0.01'; iap.value = b.aposta || 10;
+      iap.oninput = function() { A.bonus[i].aposta = parseFloat(this.value) || 10; save(); };
+      row.appendChild(iap);
+      card.appendChild(row);
+
+      var btns = document.createElement('div');
+      btns.className = 'bonus-btns';
+      if (!hasResult) {
+        var bEmp = document.createElement('button');
+        bEmp.className = 'bonus-btn empate';
+        bEmp.textContent = 'EMPATE';
+        bEmp.onclick = function() { window._bonusResult(i, true); };
+        btns.appendChild(bEmp);
+        var bNao = document.createElement('button');
+        bNao.className = 'bonus-btn nao';
+        bNao.textContent = 'NAO';
+        bNao.onclick = function() { window._bonusResult(i, false); };
+        btns.appendChild(bNao);
+      } else {
+        var bRst = document.createElement('button');
+        bRst.className = 'bonus-btn reset';
+        bRst.textContent = 'Desfazer';
+        bRst.onclick = function() { window._bonusReset(i); };
+        btns.appendChild(bRst);
+      }
+      card.appendChild(btns);
+
+      if (hasResult && pnlStr) {
+        var pd = document.createElement('div');
+        pd.className = 'bonus-result'; pd.style.color = pnlColor; pd.textContent = pnlStr;
+        card.appendChild(pd);
+      }
+      grid.appendChild(card);
+    })(bi);
+  }
+
+  var bonusPnl   = r2(A.bonus.reduce(function(s,b){ return s + (b.pnl||0); }, 0));
+  var bonusTotal = A.bonusPnlTotal || 0;
+  var wins  = A.bonus.filter(function(b){ return b.result === true; }).length;
+  var loss  = A.bonus.filter(function(b){ return b.result === false; }).length;
+  var bpC = bonusPnl  >= 0 ? 'var(--win)' : 'var(--loss)';
+  var btC = bonusTotal >= 0 ? 'var(--win)' : 'var(--loss)';
+
+  summ.innerHTML = '';
+  var items = [
+    {val: wins,      color: 'var(--win)',  lbl: 'Greens'},
+    {val: loss,      color: 'var(--loss)', lbl: 'Vermelhos'},
+    {val: (bonusPnl  >= 0 ? '+' : '') + 'R$ ' + Math.abs(bonusPnl).toFixed(2).replace('.',','),  color: bpC, lbl: 'P&L Rodada'},
+    {val: (bonusTotal >= 0 ? '+' : '') + 'R$ ' + Math.abs(bonusTotal).toFixed(2).replace('.',','), color: btC, lbl: 'P&L Acum Bonus'}
+  ];
+  items.forEach(function(it) {
+    var d = document.createElement('div');
+    d.style.display = 'flex'; d.style.flexDirection = 'column'; d.style.gap = '2px';
+    var v = document.createElement('div');
+    v.className = 'bonus-sv'; v.style.color = it.color; v.textContent = it.val;
+    var l = document.createElement('div');
+    l.className = 'bonus-sl'; l.textContent = it.lbl;
+    d.appendChild(v); d.appendChild(l);
+    summ.appendChild(d);
+  });
+}
+
+window._bonusResult = function(i, won) {
+  if (!A.bonus || A.bonus[i].result !== null) return;
+  var b = A.bonus[i];
+  var odd    = b.odd    || 3.0;
+  var aposta = b.aposta || 10;
+  b.result = won;
+  if (won) {
+    b.pnl = r2(aposta * (odd - 1));
+    A.bonusPnlTotal = r2((A.bonusPnlTotal || 0) + b.pnl);
+  } else {
+    b.pnl = -aposta;
+    A.bonusPnlTotal = r2((A.bonusPnlTotal || 0) - aposta);
+    var frac = r2(aposta / A.lines.length);
+    A.lines.forEach(function(ln) {
+      ln.lostAccum = r2((ln.lostAccum || 0) + frac);
+      ln.pnlTotal  = r2((ln.pnlTotal  || 0) - frac);
+    });
+  }
+  save(); render();
+};
+
+window._bonusReset = function(i) {
+  if (!A.bonus || A.bonus[i].result === null) return;
+  var b = A.bonus[i];
+  var aposta = b.aposta || 10;
+  A.bonusPnlTotal = r2((A.bonusPnlTotal || 0) - b.pnl);
+  if (!b.result) {
+    var frac = r2(aposta / A.lines.length);
+    A.lines.forEach(function(ln) {
+      ln.lostAccum = r2(Math.max(0, (ln.lostAccum || 0) - frac));
+      ln.pnlTotal  = r2((ln.pnlTotal || 0) + frac);
+    });
+  }
+  b.result = null; b.pnl = 0;
+  save(); render();
+};
+
+window._bonusNovoConc = function() {
+  if (!confirm('Resetar as 3 linhas bonus para o proximo concurso?')) return;
+  A.bonus = [
+    {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
+    {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
+    {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0}
+  ];
+  save(); render();
 };
 
 // ── HISTÓRICO ──
