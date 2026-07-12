@@ -140,32 +140,6 @@
   .redist-val{font-weight:500;}
 
   tfoot tr{background:var(--surface);border-top:2px solid var(--border);}
-  /* BÔNUS */
-  .bonus-section{margin-top:28px;}
-  .bonus-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--accent3);margin-bottom:10px;display:flex;align-items:center;gap:10px;}
-  .bonus-title::before{content:'';flex:1;height:1px;background:var(--border);}
-  .bonus-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
-  .bonus-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:14px;}
-  .bonus-card.win{border-color:rgba(0,229,160,.3);background:rgba(0,229,160,.04);}
-  .bonus-card.loss{border-color:rgba(255,77,109,.25);background:rgba(255,77,109,.03);}
-  .bonus-num{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--muted);letter-spacing:.06em;margin-bottom:8px;}
-  .bonus-input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:5px 8px;border-radius:2px;margin-bottom:6px;box-sizing:border-box;}
-  .bonus-input:focus{border-color:var(--accent3);outline:none;}
-  .bonus-row{display:flex;gap:6px;margin-bottom:6px;}
-  .bonus-row .bonus-input{margin-bottom:0;}
-  .bonus-btns{display:flex;gap:4px;margin-top:8px;}
-  .bonus-btn{flex:1;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.04em;padding:6px 4px;border-radius:2px;border:1px solid var(--border);background:transparent;cursor:pointer;transition:all .15s;}
-  .bonus-btn.empate{color:var(--win);border-color:rgba(0,229,160,.3);}
-  .bonus-btn.empate:hover{background:rgba(0,229,160,.1);}
-  .bonus-btn.nao{color:var(--loss);border-color:rgba(255,77,109,.3);}
-  .bonus-btn.nao:hover{background:rgba(255,77,109,.1);}
-  .bonus-btn.reset{color:var(--muted);font-size:12px;}
-  .bonus-result{font-family:'DM Mono',monospace;font-size:11px;margin-top:6px;text-align:center;}
-  .bonus-summary{display:flex;gap:12px;background:var(--surface);border:1px solid var(--border);padding:12px 16px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;}
-  .bonus-summary-item{display:flex;flex-direction:column;gap:2px;}
-  .bonus-summary-val{font-family:'Bebas Neue',sans-serif;font-size:20px;}
-  .bonus-summary-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
-  @media(max-width:600px){.bonus-grid{grid-template-columns:1fr;}}
   /* HISTÓRICO */
   .hist-section{margin-top:28px;}
   .hist-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:10px;}
@@ -487,14 +461,6 @@
     </table>
   </div>
 
-  <!-- LINHAS BÔNUS -->
-  <div class="bonus-section">
-    <div class="bonus-title">LINHAS BÔNUS — 3 JOGOS AVULSOS</div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">Jogos avulsos do concurso atual — derrota redistribui nas 14 linhas</span><button onclick="window._bonusNovoConc()" style="font-family:'DM Mono',monospace;font-size:10px;padding:4px 10px;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:2px;cursor:pointer">↺ Novo concurso</button></div>
-    <div class="bonus-grid" id="bonusGrid"></div>
-    <div class="bonus-summary" id="bonusSummary"></div>
-  </div>
-
   <!-- HISTÓRICO -->
   <div class="hist-section">
     <div class="hist-title">TODAS AS RODADAS — CLIQUE PARA SELECIONAR</div>
@@ -644,7 +610,7 @@
 <!-- ══════════════════════════════════════════════════════
      FIREBASE SDK (módulos ES via CDN)
 ══════════════════════════════════════════════════════ -->
-<script type="module" onerror="document.getElementById('loading').innerHTML='<h2 style=color:red>ERRO MODULO</h2><p>'+event+'</p>'">
+<script type="module">
 import { initializeApp }                                                from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
@@ -703,7 +669,6 @@ function initState() {
     lucroAlvo: 20,
     lucroAlvo6: 20,
     pctRecup: 10,
-    bonusPnlTotal: 0,
     concursos: [{
       num: 1239,
       filterOn: true,
@@ -1194,7 +1159,6 @@ function render() {
 
 
   document.getElementById('fRisco').textContent  = totRisco > 0 ? '-' + fmtU(totRisco) : '—';
-  renderBonus();
   renderHist();
   // Média odd do concurso atual
   const mediaOddConc = cntOdd > 0 ? (totOdd / cntOdd).toFixed(2) : null;
@@ -1375,164 +1339,6 @@ window._openRedistrib = function(i) {
     + '<span class="redist-lbl">Extra no lucro alvo de cada</span>'
     + '<span class="redist-val" style="color:var(--neutral)">+' + fmtU(valorPorLinha) + '</span></div>';
   openM('mRedistrib');
-};
-
-// ── LINHAS BÔNUS ──
-function renderBonus() {
-  const grid = document.getElementById('bonusGrid');
-  const summ = document.getElementById('bonusSummary');
-  if (!grid || !summ) return;
-  if (!A.bonus) A.bonus = [
-    {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-    {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-    {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0}
-  ];
-
-  grid.innerHTML = '';
-  A.bonus.forEach(function(b, i) {
-    var hasResult = b.result !== null;
-    var cls = hasResult ? (b.result ? 'win' : 'loss') : '';
-    var pnlStr = b.pnl !== 0 ? (b.pnl > 0 ? '+R$ ' : '-R$ ') + Math.abs(b.pnl).toFixed(2).replace('.',',') : '';
-    var pnlColor = b.pnl > 0 ? 'var(--win)' : b.pnl < 0 ? 'var(--loss)' : 'var(--muted)';
-
-    var card = document.createElement('div');
-    card.className = 'bonus-card ' + cls;
-
-    var num = document.createElement('div');
-    num.className = 'bonus-num';
-    num.textContent = 'BONUS ' + (i+1);
-    card.appendChild(num);
-
-    var ih = document.createElement('input');
-    ih.className = 'bonus-input'; ih.placeholder = 'Mandante'; ih.value = b.home || '';
-    ih.addEventListener('input', (function(idx){ return function(){ window._setBonusField(idx,'home',this.value); }; })(i));
-    card.appendChild(ih);
-
-    var ia = document.createElement('input');
-    ia.className = 'bonus-input'; ia.placeholder = 'Visitante'; ia.value = b.away || '';
-    ia.addEventListener('input', (function(idx){ return function(){ window._setBonusField(idx,'away',this.value); }; })(i));
-    card.appendChild(ia);
-
-    var row = document.createElement('div');
-    row.className = 'bonus-row';
-
-    var io = document.createElement('input');
-    io.className = 'bonus-input'; io.placeholder = 'Odd'; io.type = 'number';
-    io.min = '1.01'; io.step = '0.01'; io.value = b.odd || 3.0; io.style.width = '80px';
-    io.addEventListener('input', (function(idx){ return function(){ window._setBonusField(idx,'odd',parseFloat(this.value)); }; })(i));
-    row.appendChild(io);
-
-    var iap = document.createElement('input');
-    iap.className = 'bonus-input'; iap.placeholder = 'Aposta R$'; iap.type = 'number';
-    iap.min = '1'; iap.step = '0.01'; iap.value = b.aposta || 10;
-    iap.addEventListener('input', (function(idx){ return function(){ window._setBonusField(idx,'aposta',parseFloat(this.value)); }; })(i));
-    row.appendChild(iap);
-    card.appendChild(row);
-
-    var btns = document.createElement('div');
-    btns.className = 'bonus-btns';
-    if (!hasResult) {
-      var bEmp = document.createElement('button');
-      bEmp.className = 'bonus-btn empate'; bEmp.textContent = '✓ EMPATE';
-      bEmp.addEventListener('click', (function(idx){ return function(){ window._bonusResult(idx,true); }; })(i));
-      btns.appendChild(bEmp);
-      var bNao = document.createElement('button');
-      bNao.className = 'bonus-btn nao'; bNao.textContent = '✗ NAO';
-      bNao.addEventListener('click', (function(idx){ return function(){ window._bonusResult(idx,false); }; })(i));
-      btns.appendChild(bNao);
-    } else {
-      var bRst = document.createElement('button');
-      bRst.className = 'bonus-btn reset'; bRst.textContent = '↩ Desfazer';
-      bRst.addEventListener('click', (function(idx){ return function(){ window._bonusReset(idx); }; })(i));
-      btns.appendChild(bRst);
-    }
-    card.appendChild(btns);
-
-    if (hasResult) {
-      var pnlEl = document.createElement('div');
-      pnlEl.className = 'bonus-result'; pnlEl.style.color = pnlColor; pnlEl.textContent = pnlStr;
-      card.appendChild(pnlEl);
-    }
-
-    grid.appendChild(card);
-  });
-
-  // Summary
-  const bonusPnl = r2(A.bonus.reduce((s, b) => s + (b.pnl||0), 0));
-  const bonusTotal = (A.bonusPnlTotal || 0);
-  const bonusWins  = A.bonus.filter(b => b.result === true).length;
-  const bonusLoss  = A.bonus.filter(b => b.result === false).length;
-  const bpC = bonusPnl >= 0 ? 'var(--win)' : 'var(--loss)';
-  const btC = bonusTotal >= 0 ? 'var(--win)' : 'var(--loss)';
-  summ.innerHTML = `
-    <div class="bonus-summary-item"><div class="bonus-summary-val" style="color:var(--win)">${bonusWins}</div><div class="bonus-summary-lbl">Greens</div></div>
-    <div class="bonus-summary-item"><div class="bonus-summary-val" style="color:var(--loss)">${bonusLoss}</div><div class="bonus-summary-lbl">Vermelhos</div></div>
-    <div class="bonus-summary-item"><div class="bonus-summary-val" style="color:${bpC}">${bonusPnl>=0?'+':''}R$ ${Math.abs(bonusPnl).toFixed(2).replace('.',',')}</div><div class="bonus-summary-lbl">P&L Rodada</div></div>
-    <div class="bonus-summary-item"><div class="bonus-summary-val" style="color:${btC}">${bonusTotal>=0?'+':''}R$ ${Math.abs(bonusTotal).toFixed(2).replace('.',',')}</div><div class="bonus-summary-lbl">P&L Acum. Bônus</div></div>
-  `;
-}
-
-window._bonusNovoConc = function() {
-  if (!confirm('Resetar as 3 linhas bônus para o próximo concurso?')) return;
-  A.bonus = [
-    {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-    {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-    {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-  ];
-  save(); render();
-};
-
-window._setBonusField = function(i, field, val) {
-  if (!A.bonus) return;
-  A.bonus[i][field] = val;
-  save();
-};
-
-window._bonusResult = function(i, won) {
-  const b = A.bonus[i];
-  if (!b || b.result !== null) return;
-  const odd    = b.odd    || 3.0;
-  const aposta = b.aposta || 10;
-  b.result = won;
-
-  if (won) {
-    // Green: lucro líquido soma no P&L geral bônus
-    b.pnl = r2(aposta * (odd - 1));
-    A.bonusPnlTotal = r2((A.bonusPnlTotal || 0) + b.pnl);
-  } else {
-    // Red: prejuízo dividido igualmente entre as 14 linhas (lostAccum)
-    b.pnl = -aposta;
-    A.bonusPnlTotal = r2((A.bonusPnlTotal || 0) - aposta);
-    const frac = r2(aposta / A.lines.length);
-    A.lines.forEach(ln => {
-      ln.lostAccum = r2((ln.lostAccum || 0) + frac);
-      ln.pnlTotal  = r2((ln.pnlTotal  || 0) - frac);
-    });
-  }
-  save(); render();
-};
-
-window._bonusReset = function(i) {
-  const b = A.bonus[i];
-  if (!b || b.result === null) return;
-  const odd    = b.odd    || 3.0;
-  const aposta = b.aposta || 10;
-
-  // Reverter P&L bônus
-  A.bonusPnlTotal = r2((A.bonusPnlTotal || 0) - b.pnl);
-
-  if (!b.result) {
-    // Era red — devolver fração do lostAccum das 14 linhas
-    const frac = r2(aposta / A.lines.length);
-    A.lines.forEach(ln => {
-      ln.lostAccum = r2(Math.max(0, (ln.lostAccum || 0) - frac));
-      ln.pnlTotal  = r2((ln.pnlTotal || 0) + frac);
-    });
-  }
-
-  b.result = null;
-  b.pnl    = 0;
-  save(); render();
 };
 
 // ── HISTÓRICO ──
@@ -1937,4 +1743,175 @@ window.confirmImport = function() {
 
 // ── RESET LINHA removido (substituído por Desfazer) ──
 
-// ─
+// ── RESET GERAL ──
+window.confirmResetAll = function() {
+  A = initState();
+  save();
+  closeM('mResetAll');
+  render();
+};
+
+// ── MODAL UTILS ──
+window.openM  = function(id) { document.getElementById(id).classList.add('open'); };
+window.closeM = function(id) { document.getElementById(id).classList.remove('open'); };
+document.querySelectorAll('.mo').forEach(el =>
+  el.addEventListener('click', e => { if (e.target === el) closeM(el.id); })
+);
+
+// ══════════════════════════════════════════════════════
+// CALCULADORA DE STAKE
+// ══════════════════════════════════════════════════════
+function binomCoef(n, k) {
+  if (k < 0 || k > n) return 0;
+  if (k === 0 || k === n) return 1;
+  let c = 1;
+  for (let i = 0; i < k; i++) c = c * (n - i) / (i + 1);
+  return c;
+}
+function binomProb(n, k, p) {
+  return binomCoef(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
+}
+
+window.calcUpdate = function() {
+  const lucroAlvo = parseFloat(document.getElementById('cLucro').value) || 1000;
+  const odd       = parseFloat(document.getElementById('cOdd').value)   || 3.0;
+  const pct       = parseFloat(document.getElementById('cPct').value)   || 30;
+  const jogos     = parseInt(document.getElementById('cJogos').value)   || 14;
+  const p         = pct / 100;
+
+  // Empates esperados
+  const empEsp = p * jogos;
+
+  // Lucro por linha = lucroAlvo / empEsp
+  const lucroLinha = lucroAlvo / empEsp;
+
+  // Aposta por linha = lucroLinha / (odd - 1)
+  const apostaPorLinha = lucroLinha / (odd - 1);
+
+  // Total apostado
+  const totalApostado = apostaPorLinha * jogos;
+
+  // Capital de reserva: suportar 3 rodadas sem nenhum empate
+  // Na pior: perde apostaPorLinha × jogos por rodada
+  const reserva = totalApostado * 3;
+
+  // Distribuição binomial
+  let rows = '';
+  let probLucro = 0;
+  let probPrejuizo = 0;
+
+  for (let k = 0; k <= jogos; k++) {
+    const prob    = binomProb(jogos, k, p);
+    const pnl     = k * lucroLinha - (jogos - k) * apostaPorLinha;
+    const isProft = pnl >= 0;
+    const isExp   = k === Math.round(empEsp);
+    const barW    = Math.round(prob * 100 * 4);
+    const barCol  = isProft ? 'var(--win)' : 'var(--loss)';
+    const pnlStr  = (pnl >= 0 ? '+' : '') + 'R$ ' + Math.abs(pnl).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    if (isProft) probLucro += prob;
+    else probPrejuizo += prob;
+
+    if (prob < 0.003 && k !== Math.round(empEsp)) continue; // omite linhas insignificantes
+
+    rows += `<tr class="${isProft ? 'profit' : 'loss-row'}${isExp ? ' expected' : ''}">
+      <td>${k} empate${k!==1?'s':''}</td>
+      <td>${(prob*100).toFixed(1)}%
+        <span class="prob-bar" style="width:${barW}px;background:${barCol};opacity:.6"></span>
+      </td>
+      <td style="font-weight:600">${pnlStr}</td>
+    </tr>`;
+  }
+
+  const fmtBRL = v => 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+
+  document.getElementById('calcResult').innerHTML = `
+    <div class="calc-result-grid">
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--accent)">${fmtBRL(apostaPorLinha)}</div>
+        <div class="calc-kpi-lbl">Aposta por linha</div>
+      </div>
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--accent3)">${fmtBRL(totalApostado)}</div>
+        <div class="calc-kpi-lbl">Total apostado</div>
+      </div>
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--neutral)">${empEsp.toFixed(1)}</div>
+        <div class="calc-kpi-lbl">Empates esperados</div>
+      </div>
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--win)">${(probLucro*100).toFixed(1)}%</div>
+        <div class="calc-kpi-lbl">Prob. lucro na rodada</div>
+      </div>
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--loss)">${(probPrejuizo*100).toFixed(1)}%</div>
+        <div class="calc-kpi-lbl">Prob. prejuízo na rodada</div>
+      </div>
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--accent2)">${fmtBRL(reserva)}</div>
+        <div class="calc-kpi-lbl">Reserva recomendada (3×)</div>
+      </div>
+    </div>
+    <table class="prob-table">
+      <thead><tr><th>Resultado</th><th>Probabilidade</th><th>P&L estimado</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="calc-note" style="margin-top:12px">
+      <strong>Como usar:</strong> Linha destacada = cenário mais provável.
+      Verde = rodada lucrativa · Vermelho = rodada de prejuízo (martingale recupera nas seguintes).
+      A <strong>reserva recomendada</strong> cobre 3 rodadas sem nenhum empate — o pior cenário razoável.
+      Com filtro de super favoritos ativo, aumente o % esperado para ~33%.
+    </div>`;
+};
+
+// Inicializa ao abrir o modal
+document.getElementById('mCalc').addEventListener('click', function(e) {
+  if (e.target === this) closeM('mCalc');
+});
+// Calcula ao abrir
+const _origOpenM = window.openM;
+window.openM = function(id) {
+  if (id === 'mDelConc') {
+    const c = curConc();
+    document.getElementById('mDelConcMsg').innerHTML =
+      'Excluir o concurso <strong>' + c.num + '</strong>?<br>'
+      + '<span style="font-family:monospace;font-size:11px;color:var(--muted)">'
+      + 'Os times e resultados deste concurso ser\u00e3o removidos.<br>'
+      + 'O martingale das linhas <strong style="color:var(--accent3)">n\u00e3o \u00e9 afetado</strong>.</span>';
+  }
+  _origOpenM(id);
+  if (id === 'mCalc') calcUpdate();
+};
+
+
+// Busca de odds removida
+
+// ══════════════════════════════════════════════════════
+// EXCLUIR CONCURSO
+// ══════════════════════════════════════════════════════
+window.confirmDelConc = function() {
+  if (A.concursos.length <= 1) { closeM('mDelConc'); return; }
+
+  // Salva odds do concurso atual antes de remover
+  saveOddsToConc();
+
+  // Remove o concurso atual
+  A.concursos.splice(A.cur, 1);
+
+  // Ajusta cur: se era o último, volta um
+  if (A.cur >= A.concursos.length) A.cur = A.concursos.length - 1;
+
+  // Carrega odds do novo concurso atual
+  loadOddsFromConc();
+
+  closeM('mDelConc');
+  save(); render();
+};
+
+// ══════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════
+initFirebase();
+</script>
+</body>
+</html>
