@@ -1396,23 +1396,23 @@ function renderBonus() {
     const pnlStr = b.pnl !== 0 ? (b.pnl > 0 ? '+R$ ' : '-R$ ') + Math.abs(b.pnl).toFixed(2).replace('.',',') : '';
     const pnlColor = b.pnl > 0 ? 'var(--win)' : b.pnl < 0 ? 'var(--loss)' : 'var(--muted)';
 
-    grid.innerHTML += `<div class="bonus-card ${cls}">
-      <div class="bonus-num">BÔNUS ${i+1}</div>
-      <input class="bonus-input" placeholder="Mandante" value="${esc(b.home||'')}" oninput="window._setBonusField(${i},'home',this.value)">
-      <input class="bonus-input" placeholder="Visitante" value="${esc(b.away||'')}" oninput="window._setBonusField(${i},'away',this.value)">
-      <div class="bonus-row">
-        <input class="bonus-input" placeholder="Odd" type="number" min="1.01" step="0.01" value="${b.odd||3.0}" oninput="window._setBonusField(${i},'odd',parseFloat(this.value))" style="width:80px">
-        <input class="bonus-input" placeholder="Aposta R$" type="number" min="1" step="0.01" value="${b.aposta||10}" oninput="window._setBonusField(${i},'aposta',parseFloat(this.value))">
-      </div>
-      <div class="bonus-btns">
-        ${!hasResult
-          ? `<button class="bonus-btn empate" onclick="window._bonusResult(${i},true)">✓ EMPATE</button>
-             <button class="bonus-btn nao" onclick="window._bonusResult(${i},false)">✗ NÃO</button>`
-          : `<button class="bonus-btn reset" onclick="window._bonusReset(${i})">↩ Desfazer</button>`
-        }
-      </div>
-      ${hasResult ? `<div class="bonus-result" style="color:${pnlColor}">${pnlStr}</div>` : ''}
-    </div>`;
+    const btnAcao = !hasResult
+      ? '<button class="bonus-btn empate" onclick="window._bonusResult(' + i + ',true)">\u2713 EMPATE</button>'
+        + '<button class="bonus-btn nao" onclick="window._bonusResult(' + i + ',false)">\u2717 N\u00c3O</button>'
+      : '<button class="bonus-btn reset" onclick="window._bonusReset(' + i + ')">\u21a9 Desfazer</button>';
+    const pnlDiv = hasResult ? '<div class="bonus-result" style="color:' + pnlColor + '">' + pnlStr + '</div>' : '';
+
+    grid.innerHTML += '<div class="bonus-card ' + cls + '">'
+      + '<div class="bonus-num">B\u00d4NUS ' + (i+1) + '</div>'
+      + '<input class="bonus-input" placeholder="Mandante" value="' + esc(b.home||'') + '" oninput="window._setBonusField(' + i + ','home',this.value)">'
+      + '<input class="bonus-input" placeholder="Visitante" value="' + esc(b.away||'') + '" oninput="window._setBonusField(' + i + ','away',this.value)">'
+      + '<div class="bonus-row">'
+      + '<input class="bonus-input" placeholder="Odd" type="number" min="1.01" step="0.01" value="' + (b.odd||3.0) + '" oninput="window._setBonusField(' + i + ','odd',parseFloat(this.value))" style="width:80px">'
+      + '<input class="bonus-input" placeholder="Aposta R$" type="number" min="1" step="0.01" value="' + (b.aposta||10) + '" oninput="window._setBonusField(' + i + ','aposta',parseFloat(this.value))">'
+      + '</div>'
+      + '<div class="bonus-btns">' + btnAcao + '</div>'
+      + pnlDiv
+      + '</div>';
   });
 
   // Summary
@@ -1929,12 +1929,4 @@ window.calcUpdate = function() {
   const odd       = parseFloat(document.getElementById('cOdd').value)   || 3.0;
   const pct       = parseFloat(document.getElementById('cPct').value)   || 30;
   const jogos     = parseInt(document.getElementById('cJogos').value)   || 14;
-  const p         = pct / 100;
-
-  // Empates esperados
-  const empEsp = p * jogos;
-
-  // Lucro por linha = lucroAlvo / empEsp
-  const lucroLinha = lucroAlvo / empEsp;
-
-  // Aposta por l
+  const p         
