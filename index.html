@@ -644,18 +644,7 @@
 <!-- ══════════════════════════════════════════════════════
      FIREBASE SDK (módulos ES via CDN)
 ══════════════════════════════════════════════════════ -->
-<script>
-window.onerror = function(msg, src, line, col, err) {
-  document.body.innerHTML = '<div style="color:red;padding:20px;font-family:monospace">'
-    + '<h2>ERRO JS</h2>'
-    + '<p>' + msg + '</p>'
-    + '<p>Linha: ' + line + ', Col: ' + col + '</p>'
-    + '<p>' + (err ? err.stack : '') + '</p>'
-    + '</div>';
-  return true;
-};
-</script>
-<script type="module">
+<script type="module" onerror="document.getElementById('loading').innerHTML='<h2 style=color:red>ERRO MODULO</h2><p>'+event+'</p>'">
 import { initializeApp }                                                from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
@@ -714,11 +703,6 @@ function initState() {
     lucroAlvo: 20,
     lucroAlvo6: 20,
     pctRecup: 10,
-    bonus: [
-      {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-      {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-      {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-    ],
     bonusPnlTotal: 0,
     concursos: [{
       num: 1239,
@@ -1938,4 +1922,19 @@ window.exportExcelImport = function() {
   XLSX.writeFile(wb, 'JAF-Loteca-' + num + '.xlsx');
 };
 
-window.confirmImport = func
+window.confirmImport = function() {
+  const games = curConc().games;
+  games.forEach((gm, i) => {
+    const h = document.getElementById(`ih${i}`).value.trim();
+    const a = document.getElementById(`ia${i}`).value.trim();
+    const d = document.getElementById(`id${i}`).value.trim();
+    if (h) gm.home = h;
+    if (a) gm.away = a;
+    if (d) gm.day  = d;
+  });
+  save(); closeM('mImport'); render();
+};
+
+// ── RESET LINHA removido (substituído por Desfazer) ──
+
+// ─
