@@ -1387,32 +1387,79 @@ function renderBonus() {
   const grid = document.getElementById('bonusGrid');
   const summ = document.getElementById('bonusSummary');
   if (!grid || !summ) return;
-  if (!A.bonus) A.bonus = [{home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},{home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},{home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0}];
+  if (!A.bonus) A.bonus = [
+    {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
+    {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
+    {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0}
+  ];
 
   grid.innerHTML = '';
-  A.bonus.forEach((b, i) => {
-    const hasResult = b.result !== null;
-    const cls = hasResult ? (b.result ? 'win' : 'loss') : '';
-    const pnlStr = b.pnl !== 0 ? (b.pnl > 0 ? '+R$ ' : '-R$ ') + Math.abs(b.pnl).toFixed(2).replace('.',',') : '';
-    const pnlColor = b.pnl > 0 ? 'var(--win)' : b.pnl < 0 ? 'var(--loss)' : 'var(--muted)';
+  A.bonus.forEach(function(b, i) {
+    var hasResult = b.result !== null;
+    var cls = hasResult ? (b.result ? 'win' : 'loss') : '';
+    var pnlStr = b.pnl !== 0 ? (b.pnl > 0 ? '+R$ ' : '-R$ ') + Math.abs(b.pnl).toFixed(2).replace('.',',') : '';
+    var pnlColor = b.pnl > 0 ? 'var(--win)' : b.pnl < 0 ? 'var(--loss)' : 'var(--muted)';
 
-    const btnAcao = !hasResult
-      ? '<button class="bonus-btn empate" onclick="window._bonusResult(' + i + ',true)">\u2713 EMPATE</button>'
-        + '<button class="bonus-btn nao" onclick="window._bonusResult(' + i + ',false)">\u2717 N\u00c3O</button>'
-      : '<button class="bonus-btn reset" onclick="window._bonusReset(' + i + ')">\u21a9 Desfazer</button>';
-    const pnlDiv = hasResult ? '<div class="bonus-result" style="color:' + pnlColor + '">' + pnlStr + '</div>' : '';
+    var card = document.createElement('div');
+    card.className = 'bonus-card ' + cls;
 
-    grid.innerHTML += '<div class="bonus-card ' + cls + '">'
-      + '<div class="bonus-num">B\u00d4NUS ' + (i+1) + '</div>'
-      + '<input class="bonus-input" placeholder="Mandante" value="' + esc(b.home||'') + '" oninput="window._setBonusField(' + i + ','home',this.value)">'
-      + '<input class="bonus-input" placeholder="Visitante" value="' + esc(b.away||'') + '" oninput="window._setBonusField(' + i + ','away',this.value)">'
-      + '<div class="bonus-row">'
-      + '<input class="bonus-input" placeholder="Odd" type="number" min="1.01" step="0.01" value="' + (b.odd||3.0) + '" oninput="window._setBonusField(' + i + ','odd',parseFloat(this.value))" style="width:80px">'
-      + '<input class="bonus-input" placeholder="Aposta R$" type="number" min="1" step="0.01" value="' + (b.aposta||10) + '" oninput="window._setBonusField(' + i + ','aposta',parseFloat(this.value))">'
-      + '</div>'
-      + '<div class="bonus-btns">' + btnAcao + '</div>'
-      + pnlDiv
-      + '</div>';
+    var num = document.createElement('div');
+    num.className = 'bonus-num';
+    num.textContent = 'BONUS ' + (i+1);
+    card.appendChild(num);
+
+    var ih = document.createElement('input');
+    ih.className = 'bonus-input'; ih.placeholder = 'Mandante'; ih.value = b.home || '';
+    ih.addEventListener('input', (function(idx){ return function(){ window._setBonusField(idx,'home',this.value); }; })(i));
+    card.appendChild(ih);
+
+    var ia = document.createElement('input');
+    ia.className = 'bonus-input'; ia.placeholder = 'Visitante'; ia.value = b.away || '';
+    ia.addEventListener('input', (function(idx){ return function(){ window._setBonusField(idx,'away',this.value); }; })(i));
+    card.appendChild(ia);
+
+    var row = document.createElement('div');
+    row.className = 'bonus-row';
+
+    var io = document.createElement('input');
+    io.className = 'bonus-input'; io.placeholder = 'Odd'; io.type = 'number';
+    io.min = '1.01'; io.step = '0.01'; io.value = b.odd || 3.0; io.style.width = '80px';
+    io.addEventListener('input', (function(idx){ return function(){ window._setBonusField(idx,'odd',parseFloat(this.value)); }; })(i));
+    row.appendChild(io);
+
+    var iap = document.createElement('input');
+    iap.className = 'bonus-input'; iap.placeholder = 'Aposta R$'; iap.type = 'number';
+    iap.min = '1'; iap.step = '0.01'; iap.value = b.aposta || 10;
+    iap.addEventListener('input', (function(idx){ return function(){ window._setBonusField(idx,'aposta',parseFloat(this.value)); }; })(i));
+    row.appendChild(iap);
+    card.appendChild(row);
+
+    var btns = document.createElement('div');
+    btns.className = 'bonus-btns';
+    if (!hasResult) {
+      var bEmp = document.createElement('button');
+      bEmp.className = 'bonus-btn empate'; bEmp.textContent = '✓ EMPATE';
+      bEmp.addEventListener('click', (function(idx){ return function(){ window._bonusResult(idx,true); }; })(i));
+      btns.appendChild(bEmp);
+      var bNao = document.createElement('button');
+      bNao.className = 'bonus-btn nao'; bNao.textContent = '✗ NAO';
+      bNao.addEventListener('click', (function(idx){ return function(){ window._bonusResult(idx,false); }; })(i));
+      btns.appendChild(bNao);
+    } else {
+      var bRst = document.createElement('button');
+      bRst.className = 'bonus-btn reset'; bRst.textContent = '↩ Desfazer';
+      bRst.addEventListener('click', (function(idx){ return function(){ window._bonusReset(idx); }; })(i));
+      btns.appendChild(bRst);
+    }
+    card.appendChild(btns);
+
+    if (hasResult) {
+      var pnlEl = document.createElement('div');
+      pnlEl.className = 'bonus-result'; pnlEl.style.color = pnlColor; pnlEl.textContent = pnlStr;
+      card.appendChild(pnlEl);
+    }
+
+    grid.appendChild(card);
   });
 
   // Summary
@@ -1887,46 +1934,4 @@ window.confirmImport = function() {
     const a = document.getElementById(`ia${i}`).value.trim();
     const d = document.getElementById(`id${i}`).value.trim();
     if (h) gm.home = h;
-    if (a) gm.away = a;
-    if (d) gm.day  = d;
-  });
-  save(); closeM('mImport'); render();
-};
-
-// ── RESET LINHA removido (substituído por Desfazer) ──
-
-// ── RESET GERAL ──
-window.confirmResetAll = function() {
-  A = initState();
-  save();
-  closeM('mResetAll');
-  render();
-};
-
-// ── MODAL UTILS ──
-window.openM  = function(id) { document.getElementById(id).classList.add('open'); };
-window.closeM = function(id) { document.getElementById(id).classList.remove('open'); };
-document.querySelectorAll('.mo').forEach(el =>
-  el.addEventListener('click', e => { if (e.target === el) closeM(el.id); })
-);
-
-// ══════════════════════════════════════════════════════
-// CALCULADORA DE STAKE
-// ══════════════════════════════════════════════════════
-function binomCoef(n, k) {
-  if (k < 0 || k > n) return 0;
-  if (k === 0 || k === n) return 1;
-  let c = 1;
-  for (let i = 0; i < k; i++) c = c * (n - i) / (i + 1);
-  return c;
-}
-function binomProb(n, k, p) {
-  return binomCoef(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
-}
-
-window.calcUpdate = function() {
-  const lucroAlvo = parseFloat(document.getElementById('cLucro').value) || 1000;
-  const odd       = parseFloat(document.getElementById('cOdd').value)   || 3.0;
-  const pct       = parseFloat(document.getElementById('cPct').value)   || 30;
-  const jogos     = parseInt(document.getElementById('cJogos').value)   || 14;
-  const p         
+    if (a) gm
