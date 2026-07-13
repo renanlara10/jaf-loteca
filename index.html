@@ -434,6 +434,7 @@
   <div class="summary-item"><div class="summary-value" id="sRecup" style="color:var(--accent3)">0</div><div class="summary-label">Em Recuperação</div></div>
   <div class="summary-item"><div class="summary-value" id="sRisco" style="color:var(--loss)">—</div><div class="summary-label">Haver</div></div>
   <div class="summary-item" title="Média histórica das odds de empate em todos os concursos"><div class="summary-value" id="sMediaOddHist" style="color:var(--accent3)">—</div><div class="summary-label">Odd Média Histórica</div></div>
+  <div class="summary-item" title="P&L acumulado de todas as linhas HT"><div class="summary-value" id="sPnlHT" style="color:var(--muted)">—</div><div class="summary-label">P&L Acum. HT</div></div>
 </div>
 
 <!-- MAIN -->
@@ -1249,6 +1250,15 @@ function render() {
 
 
   document.getElementById('fRisco').textContent  = totRisco > 0 ? '-' + fmtU(totRisco) : '—';
+  // P&L acumulado HT
+  const pnlHTtotal = A.linesHT
+    ? r2(A.linesHT.reduce(function(s, ln){ return s + (ln.pnlTotal || 0); }, 0))
+    : 0;
+  const sPnlHTel = document.getElementById('sPnlHT');
+  if (sPnlHTel) {
+    sPnlHTel.textContent = pnlHTtotal === 0 ? '—' : fmtS(pnlHTtotal);
+    sPnlHTel.style.color = pnlHTtotal > 0 ? 'var(--win)' : pnlHTtotal < 0 ? 'var(--loss)' : 'var(--muted)';
+  }
   // Acumular totais HT e renderizar linhas HT
   if (A.linesHT) {
     var htLines = A.linesHT;
