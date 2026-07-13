@@ -614,6 +614,7 @@
   <div class="redist-preview" id="redistPreview"></div>
   <div class="mbtns">
     <button onclick="closeM('mRedistrib')">Cancelar</button>
+    <button onclick="undoRedistrib();closeM('mRedistrib');" style="background:rgba(255,77,109,.1);color:var(--loss);border:1px solid rgba(255,77,109,.3)">↩ Desfazer Ultima</button>
     <button class="ok" onclick="confirmRedistrib()">↔ Confirmar</button>
   </div>
 </div></div>
@@ -699,6 +700,7 @@ function initState() {
     cur: 0,
     lucroAlvo: 20,
     bonusPnlTotal: 0,
+    redistLog: [],
     lucroAlvo6: 20,
     pctRecup: 10,
     concursos: [{
@@ -1643,21 +1645,51 @@ window.confirmRedistrib = function() {
   if (_redistIdx === null) return;
   const i      = _redistIdx;
   const ln     = A.lines[i];
-  const debito = ln.lostAccum || 0;  // EM RISCO, não pnlTotal
+  const debito = ln.lostAccum || 0;
   const metade = r2(debito * 0.5);
   const outras = A.lines.filter((_,j) => j !== i);
   const valorPorLinha = r2(metade / outras.length);
 
-  // Receptoras: aumenta lucro alvo via redistExtra (pnlTotal delas não muda)
+  // Salvar snapshot para desfazer
+  if (!A.redistLog) A.redistLog = [];
+  A.redistLog.push({
+    origem: i,
+    lostAccumAntes: ln.lostAccum,
+    valorPorLinha: valorPorLinha,
+    receptoras: outras.map((_,j) => j >= i ? j+1 : j)
+  });
+
+  // Receptoras: aumenta redistExtra
   outras.forEach(l => {
     l.redistExtra = r2((l.redistExtra||0) + valorPorLinha);
   });
 
-  // Linha de origem: lostAccum reduzido à metade (pnlTotal não muda)
+  // Linha de origem: lostAccum reduzido à metade
   ln.lostAccum = r2(metade);
 
   _redistIdx = null;
   closeM('mRedistrib');
+  save(); render();
+};
+
+window.undoRedistrib = function() {
+  if (!A.redistLog || A.redistLog.length === 0) {
+    alert('Nenhuma redistribuicao para desfazer.');
+    return;
+  }
+  const snap = A.redistLog.pop();
+  const ln   = A.lines[snap.origem];
+
+  // Restaurar lostAccum da linha de origem
+  ln.lostAccum = snap.lostAccumAntes;
+
+  // Reverter redistExtra das receptoras
+  A.lines.forEach(function(l, j) {
+    if (j !== snap.origem) {
+      l.redistExtra = r2((l.redistExtra||0) - snap.valorPorLinha);
+    }
+  });
+
   save(); render();
 };
 
