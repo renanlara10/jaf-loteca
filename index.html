@@ -980,6 +980,15 @@ async function initFirebase() {
             stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{},
             ...ln
           }));
+          // Garantir linesHT no snapshot remoto
+          if (!A.linesHT || A.linesHT.length !== N) {
+            A.linesHT = blankLinesHT();
+          } else {
+            A.linesHT = A.linesHT.map(ln => ({
+              home:'', away:'', stage:0, lostAccum:0, odd:2.0, pnlTotal:0, pnlLog:{}, apostaOverride:{}, lucroOverride:{}, lastAction:null, pctX:{}, redistExtra:0, apostado:{}, nulo:{},
+              ...ln
+            }));
+          }
           loadOddsFromConc();  // restaura odds do concurso atual
           render();
           syncUI('synced', 'Sincronizado ↓');
