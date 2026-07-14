@@ -1522,7 +1522,8 @@ function renderHT() {
     var pNC      = pN > 0 ? 'pos' : pN < 0 ? 'neg' : 'zero';
     var pTC      = pT > 0 ? 'pos' : pT < 0 ? 'neg' : 'zero';
     var lostStr  = (ln.lostAccum||0) > 0 ? '-R$' + (ln.lostAccum||0).toFixed(2).replace('.',',') : '—';
-    var jogoHT   = (ln.home || ln.away) ? esc(ln.home||'') + ' x ' + esc(ln.away||'') : '— clique —';
+    var jogoHT   = (ln.home || ln.away) ? esc(ln.home||'') + ' x ' + esc(ln.away||'') : (jaM ? '—' : '<em style="color:var(--muted);font-size:10px">clique para editar</em>');
+    var podeEditar = !jaM && !isNulo;
 
     if (!isNulo) {
       totAp += aposta; totLu += lucro;
@@ -1547,7 +1548,7 @@ function renderHT() {
     var tr = document.createElement('tr');
     if (isNulo) tr.classList.add('nulo');
     tr.innerHTML = '<td class="game-num">' + (i+1) + '</td>'
-      + '<td style="font-size:12px;color:' + (ln.home||ln.away ? 'var(--text)':'var(--muted)') + ';cursor:pointer" onclick="window._editHTJogo(' + i + ')" title="Clique para editar"><span class="ht-badge">HT</span> ' + jogoHT + '</td>'
+      + '<td style="font-size:12px;color:' + (ln.home||ln.away ? 'var(--text)':'var(--muted)') + ';' + (podeEditar?'cursor:pointer':'') + '" ' + (podeEditar?'onclick="window._editHTJogo(' + i + ')" title="Clique para editar"':'') + '><span class="ht-badge">HT</span> ' + jogoHT + '</td>'
       + '<td><span class="stage ' + stCls + '">' + stLbl + '</span></td>'
       + '<td class="risco-cell' + ((ln.lostAccum||0)===0?' zero':'') + '">' + lostStr + '</td>'
       + '<td><input type="number" min="1.01" max="99" step="0.01" class="odd-input" value="' + (ln.odd||2.0).toFixed(2) + '" onchange="window._setOddHT(' + i + ',this.value)"></td>'
@@ -1582,6 +1583,27 @@ function renderHT() {
   var ftL = document.getElementById('ftLucro');  if (ftL) ftL.textContent = fmtU(totLu);
   var ftP = document.getElementById('ftPnl');    if (ftP) { ftP.textContent = totPn===0?'—':fmtS(totPn); ftP.style.color = totPn>0?'var(--win)':totPn<0?'var(--loss)':'var(--muted)'; }
   var ftC = document.getElementById('ftAccum');  if (ftC) { ftC.textContent = totAc===0?'—':fmtS(totAc); ftC.style.color = totAc>0?'var(--win)':totAc<0?'var(--loss)':'var(--muted)'; }
+
+  // Badge ciclo completo
+  var keyBadge = String(curNum());
+  var todasJogadasRender = A.linesHT.every(function(l) {
+    return l.lastAction && l.lastAction.key === keyBadge;
+  });
+  var htTitle = document.querySelector('.ht-section-title');
+  if (htTitle) {
+    var badge = htTitle.querySelector('.ht-ciclo-badge');
+    if (todasJogadasRender) {
+      if (!badge) {
+        var b = document.createElement('span');
+        b.className = 'ht-ciclo-badge';
+        b.textContent = 'CICLO COMPLETO — RESETANDO...';
+        b.style.cssText = 'font-family:"DM Mono",monospace;font-size:10px;color:var(--accent);background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);padding:2px 8px;border-radius:2px;margin-left:8px;';
+        htTitle.appendChild(b);
+      }
+    } else {
+      if (badge) badge.remove();
+    }
+  }
 }
 
 function renderBonus() {
@@ -1862,18 +1884,24 @@ window._doResultHT = function(i, won) {
     ln.lostAccum   = r2((ln.lostAccum||0) + aposta);
     ln.stage++;
   }
-  // Após registrar, limpar jogo para receber próximo
-  // Mantém martingale (stage, lostAccum, pnlTotal)
-  setTimeout(function() {
-    if (!A.linesHT) return;
-    var lnAfter = A.linesHT[i];
-    lnAfter.home = '';
-    lnAfter.away = '';
-    lnAfter.lastAction = null;
-    save(); render();
-  }, 1500); // pequeno delay para mostrar o resultado antes de limpar
-
   save(); render();
+
+  // Verificar se todas 14 linhas foram jogadas neste ciclo
+  var keyCheck = String(curNum());
+  var todasJogadas = A.linesHT.every(function(l) {
+    return l.lastAction && l.lastAction.key === keyCheck;
+  });
+  if (todasJogadas) {
+    // Aguarda 2s para mostrar resultado, depois reseta jogos para novo ciclo
+    setTimeout(function() {
+      A.linesHT.forEach(function(l) {
+        l.home = '';
+        l.away = '';
+        l.lastAction = null;
+      });
+      save(); render();
+    }, 2000);
+  }
 };
 
 window._undoResultHT = function(i) {
