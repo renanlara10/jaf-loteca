@@ -140,10 +140,19 @@
   .redist-val{font-weight:500;}
 
   tfoot tr{background:var(--surface);border-top:2px solid var(--border);}
-  tr.ht-row{background:rgba(91,124,253,.03);}
-  tr.ht-row td{padding-top:4px;padding-bottom:4px;font-size:12px;}
-  .ht-badge{font-family:'DM Mono',monospace;font-size:9px;padding:1px 5px;border-radius:2px;background:rgba(91,124,253,.15);color:var(--neutral);border:1px solid rgba(91,124,253,.3);letter-spacing:.04em;margin-right:4px;}
 
+
+  /* ── SEÇÃO HT ── */
+  .ht-section{margin-top:28px;}
+  .ht-section-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--neutral);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+  .ht-section-title::before{content:'';flex:1;height:1px;background:var(--border);}
+  .ht-summary-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:16px;}
+  .ht-summary-item{background:var(--surface);padding:14px 16px;text-align:center;}
+  .ht-summary-value{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;line-height:1;}
+  .ht-summary-item.editable{cursor:pointer;position:relative;}
+  .ht-summary-item.editable:hover{background:rgba(91,124,253,.04);}
+  .ht-lucro-input{background:transparent;border:none;border-bottom:1px solid rgba(91,124,253,.4);color:var(--neutral);font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;width:90px;text-align:center;outline:none;padding:0;}
+  .ht-badge{font-family:'DM Mono',monospace;font-size:9px;padding:1px 6px;border-radius:2px;background:rgba(91,124,253,.15);color:var(--neutral);border:1px solid rgba(91,124,253,.3);letter-spacing:.04em;}
   .bonus-section{margin-top:28px;}
   .bonus-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--accent3);margin-bottom:10px;display:flex;align-items:center;gap:10px;}
   .bonus-title::before{content:'';flex:1;height:1px;background:var(--border);}
@@ -434,14 +443,6 @@
   <div class="summary-item"><div class="summary-value" id="sRecup" style="color:var(--accent3)">0</div><div class="summary-label">Em Recuperação</div></div>
   <div class="summary-item"><div class="summary-value" id="sRisco" style="color:var(--loss)">—</div><div class="summary-label">Haver</div></div>
   <div class="summary-item" title="Média histórica das odds de empate em todos os concursos"><div class="summary-value" id="sMediaOddHist" style="color:var(--accent3)">—</div><div class="summary-label">Odd Média Histórica</div></div>
-  <div class="summary-item" title="P&L acumulado de todas as linhas HT"><div class="summary-value" id="sPnlHT" style="color:var(--muted)">—</div><div class="summary-label">P&L Acum. HT</div></div>
-  <div class="summary-item editable" title="Lucro alvo das linhas HT" onclick="document.getElementById('lucroAlvoHTInput').select()">
-    <input type="number" id="lucroAlvoHTInput" class="lucro-alvo-input" min="1" step="1" value="20"
-      onchange="setLucroAlvoHT(this.value)" onblur="setLucroAlvoHT(this.value)"
-      onclick="event.stopPropagation();this.select()">
-    <div class="summary-label">Lucro Alvo HT</div>
-    <div class="edit-hint">✎ EDITÁVEL</div>
-  </div>
 </div>
 
 <!-- MAIN -->
@@ -495,6 +496,60 @@
         </tr>
       </tfoot>
     </table>
+  </div>
+
+  <!-- SEÇÃO HT -->
+  <div class="ht-section">
+    <div class="ht-section-title">EMPATE NO INTERVALO (HT) — 14 LINHAS INDEPENDENTES</div>
+    <!-- Cards HT -->
+    <div class="ht-summary-bar" id="htSummaryBar">
+      <div class="ht-summary-item editable" title="Lucro alvo HT" onclick="document.getElementById('htLucroInput').select()">
+        <input type="number" id="htLucroInput" class="ht-lucro-input" min="1" step="1" value="20"
+          onchange="setLucroAlvoHT(this.value)" onblur="setLucroAlvoHT(this.value)"
+          onclick="event.stopPropagation();this.select()">
+        <div class="summary-label">Lucro Alvo HT</div>
+        <div class="edit-hint">✎ EDITÁVEL</div>
+      </div>
+      <div class="ht-summary-item editable" title="Lucro alvo HT Stage 6+" onclick="document.getElementById('htLucroInput6').select()">
+        <input type="number" id="htLucroInput6" class="ht-lucro-input" min="1" step="1" value="20"
+          onchange="setLucroAlvoHT6(this.value)" onblur="setLucroAlvoHT6(this.value)"
+          onclick="event.stopPropagation();this.select()">
+        <div class="summary-label">Lucro Alvo HT S6+</div>
+        <div class="edit-hint">✎ EDITÁVEL</div>
+      </div>
+      <div class="ht-summary-item"><div class="ht-summary-value" id="htTotal" style="color:var(--text)">—</div><div class="summary-label">A Apostar HT</div></div>
+      <div class="ht-summary-item"><div class="ht-summary-value" id="htPnlConc" style="color:var(--muted)">—</div><div class="summary-label">P&L Concurso HT</div></div>
+      <div class="ht-summary-item"><div class="ht-summary-value" id="htPnlAcc" style="color:var(--muted)">—</div><div class="summary-label">P&L Acumulado HT</div></div>
+      <div class="ht-summary-item"><div class="ht-summary-value" id="htWins" style="color:var(--win)">0</div><div class="summary-label">Empates HT ✓</div></div>
+      <div class="ht-summary-item"><div class="ht-summary-value" id="htLoss" style="color:var(--loss)">0</div><div class="summary-label">Não Empates HT ✗</div></div>
+      <div class="ht-summary-item"><div class="ht-summary-value" id="htRecup" style="color:var(--accent3)">0</div><div class="summary-label">Em Recuperação HT</div></div>
+      <div class="ht-summary-item"><div class="ht-summary-value" id="htHaver" style="color:var(--loss)">—</div><div class="summary-label">Haver HT</div></div>
+    </div>
+    <!-- Tabela HT -->
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>JOGO HT</th><th>STAGE</th><th>EM RISCO</th>
+            <th>ODD HT</th><th>APOSTA</th><th>LUCRO ALVO</th>
+            <th>P&amp;L CONC.</th><th>P&amp;L ACUM.</th><th>RESULTADO</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyHT"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;">TOTAIS HT</td>
+            <td id="ftHaver" style="color:var(--loss);font-family:'DM Mono',monospace;font-size:12px;">—</td>
+            <td></td>
+            <td id="ftAposta" style="color:var(--accent);font-family:'DM Mono',monospace;font-size:12px;">—</td>
+            <td id="ftLucro"  style="color:var(--neutral);font-family:'DM Mono',monospace;font-size:12px;">—</td>
+            <td id="ftPnl"    style="color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;">—</td>
+            <td id="ftAccum"  style="color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;">—</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
   </div>
 
   <!-- LINHAS BONUS -->
@@ -683,7 +738,8 @@ const ADMIN_EMAIL = "renanlara@live.com";
 // CONSTANTS
 // ══════════════════════════════════════════════════════
 let BASE_TARGET  = 20;  // lucro alvo Stage 0–5
-let BASE_TARGET_HT = 20; // lucro alvo linhas HT
+let BASE_TARGET_HT  = 20; // lucro alvo HT S0-S5
+let BASE_TARGET_HT6 = 20; // lucro alvo HT S6+
 let BASE_TARGET6 = 20;  // lucro alvo Stage 6+
 let BASE_PCT     = 10;  // % recuperação do lostAccum
 const N         = 14;
@@ -718,6 +774,7 @@ function initState() {
     cur: 0,
     lucroAlvo: 20,
     lucroAlvoHT: 20,
+    lucroAlvoHT6: 20,
     bonusPnlTotal: 0,
     redistLog: [],
     lucroAlvo6: 20,
@@ -948,10 +1005,12 @@ async function initFirebase() {
       if (!A.lucroAlvo)    A.lucroAlvo    = 20;
       if (!A.lucroAlvo6)   A.lucroAlvo6   = 20;
       if (!A.lucroAlvoHT)  A.lucroAlvoHT  = 20;
+      if (!A.lucroAlvoHT6) A.lucroAlvoHT6 = 20;
       if (!A.pctRecup)   A.pctRecup   = 10;
       BASE_TARGET    = A.lucroAlvo;
       BASE_TARGET6   = A.lucroAlvo6;
-      BASE_TARGET_HT = A.lucroAlvoHT || 20;
+      BASE_TARGET_HT  = A.lucroAlvoHT  || 20;
+      BASE_TARGET_HT6 = A.lucroAlvoHT6 || 20;
       BASE_PCT     = A.pctRecup;
       // Garante filterOn e threshold em cada concurso
       A.concursos = A.concursos.map(c => ({
@@ -1032,7 +1091,7 @@ const r2      = v  => Math.round(v * 100) / 100;
 function calcBetHT(ln) {
   var odd        = (ln.odd >= 1.01) ? ln.odd : 2.0;
   var extra      = r2(Math.max(0, ln.redistExtra || 0));
-  var targetBase = (ln.stage >= 6) ? BASE_TARGET6 : BASE_TARGET_HT;
+  var targetBase = (ln.stage >= 6) ? BASE_TARGET_HT6 : BASE_TARGET_HT;
   if (ln.stage === 0) {
     var lucroAlvo  = r2(targetBase + extra);
     var apostaCalc = r2(lucroAlvo / (odd - 1));
@@ -1239,20 +1298,7 @@ function render() {
   }
   document.getElementById('sLoss').textContent  = loss;
   document.getElementById('sRecup').textContent = recup;
-  // Somar totais HT ao painel
-  if (A.linesHT) {
-    A.linesHT.forEach(function(lnHT) {
-      var keyHT = String(curNum());
-      var isNuloHT = !!(lnHT.nulo && lnHT.nulo[keyHT]);
-      var isBlockedHT = !isNuloHT && (_filterOn && (lnHT.odd || 2.0) >= threshold);
-      if (lnHT.stage > 0) recup++;
-      if (!isBlockedHT && !isNuloHT) {
-        var pNHT = (lnHT.pnlLog && lnHT.pnlLog[keyHT]) || 0;
-        if (pNHT > 0) wins++;
-        if (pNHT < 0) loss++;
-      }
-    });
-  }
+
   const riscoEl = document.getElementById('sRisco');
   if (totRisco > 0) {
     riscoEl.textContent = '-' + fmtU(totRisco);
@@ -1264,81 +1310,9 @@ function render() {
 
 
   document.getElementById('fRisco').textContent  = totRisco > 0 ? '-' + fmtU(totRisco) : '—';
-  // P&L acumulado HT
-  const pnlHTtotal = A.linesHT
-    ? r2(A.linesHT.reduce(function(s, ln){ return s + (ln.pnlTotal || 0); }, 0))
-    : 0;
-  const sPnlHTel = document.getElementById('sPnlHT');
-  if (sPnlHTel) {
-    sPnlHTel.textContent = pnlHTtotal === 0 ? '—' : fmtS(pnlHTtotal);
-    sPnlHTel.style.color = pnlHTtotal > 0 ? 'var(--win)' : pnlHTtotal < 0 ? 'var(--loss)' : 'var(--muted)';
-  }
-  // Acumular totais HT e renderizar linhas HT
-  if (A.linesHT) {
-    var htLines = A.linesHT;
-    var htNodes = document.querySelectorAll('tr.ht-row');
-    htNodes.forEach(function(n){ n.remove(); });
-    var tbodyEl = document.getElementById('tbody');
-    var allRows = tbodyEl.querySelectorAll('tr');
-    for (var hi = 0; hi < N; hi++) {
-      var lnHT  = htLines[hi];
-      var gHT   = conc.games[hi];
-      var keyHT = String(curNum());
-      var isNuloHT   = !!(lnHT.nulo && lnHT.nulo[keyHT]);
-      var isBlockedHT = !isNuloHT && (_filterOn && (lnHT.odd || 2.0) >= threshold);
-      var jaMHT  = lnHT.lastAction && lnHT.lastAction.key === keyHT;
-      var betHT  = calcBetHT(lnHT);
-      var apostaHT = (lnHT.apostaOverride && lnHT.apostaOverride[keyHT] != null) ? lnHT.apostaOverride[keyHT]
-        : (jaMHT && lnHT.apostaLog && lnHT.apostaLog[keyHT] != null) ? lnHT.apostaLog[keyHT]
-        : betHT.aposta;
-      var lucroHT = (lnHT.lucroOverride && lnHT.lucroOverride[keyHT] != null) ? lnHT.lucroOverride[keyHT] : betHT.lucro;
-      if (!isBlockedHT && !isNuloHT) { totAposta += apostaHT; totLucro += lucroHT; totRisco += (lnHT.lostAccum||0); }
-      var pTHT = r2(lnHT.pnlTotal || 0);
-      var pNHT = (lnHT.pnlLog && lnHT.pnlLog[keyHT]) || 0;
-      totAcc += pTHT;
-      var stHTn   = lnHT.stage || 0;
-      var stHTlbl = stHTn === 0 ? 'INICIAL' : 'RECUP #' + stHTn;
-      var stHTcls = stHTn === 0 ? 's0' : stHTn <= 3 ? 's1' : 's2';
-      var lostHTstr = (lnHT.lostAccum||0) > 0 ? '-R$' + (lnHT.lostAccum||0).toFixed(2).replace('.',',') : '—';
-      var pNCHT = pNHT > 0 ? 'pos' : pNHT < 0 ? 'neg' : 'zero';
-      var pTCHT = pTHT > 0 ? 'pos' : pTHT < 0 ? 'neg' : 'zero';
-      var htBtns = '';
-      if (jaMHT) {
-        htBtns = '<button class="btn-r ' + (lnHT.lastAction.won ? 'marcado-win' : 'marcado-loss') + '" disabled>'
-          + (lnHT.lastAction.won ? '✓ EMPATE HT' : '✗ NAO HT') + '</button>'
-          + '<button class="btn-r undo" onclick="window._undoResultHT(' + hi + ')">↩</button>';
-      } else if (!isBlockedHT && !isNuloHT) {
-        htBtns = '<button class="btn-r" onclick="window._doResultHT(' + hi + ',true)">✓ HT</button>'
-          + '<button class="btn-r" onclick="window._doResultHT(' + hi + ',false)">✗ HT</button>';
-      }
-      var trHT = document.createElement('tr');
-      trHT.className = 'ht-row' + (isNuloHT ? ' nulo' : '') + (isBlockedHT ? ' blocked' : '');
-      var htHomeVal = esc(lnHT.home || '');
-      var htAwayVal = esc(lnHT.away || '');
-      var htJogo = (lnHT.home || lnHT.away)
-        ? '<span style="font-size:11px;color:var(--text)">' + htHomeVal + ' x ' + htAwayVal + '</span>'
-        : '<span style="font-size:10px;color:var(--muted);font-style:italic">clique para editar</span>';
-      var htIdx = hi;
-      trHT.innerHTML = '<td></td>'
-        + '<td style="cursor:pointer" onclick="window._editHTJogo(' + htIdx + ')" title="Clique para editar o jogo HT"><span class="ht-badge">HT</span>' + htJogo + '</td>'
-        + '<td></td>'
-        + '<td><span class="stage ' + stHTcls + '">' + stHTlbl + '</span></td>'
-        + '<td class="risco-cell' + ((lnHT.lostAccum||0)===0?' zero':'') + '">' + lostHTstr + '</td>'
-        + '<td><input type="number" min="1.01" max="99" step="0.01" class="odd-input' + (isBlockedHT?' odd-blocked':'') + '" value="' + (lnHT.odd||2.0).toFixed(2) + '" onchange="window._setOddHT(' + hi + ',this.value)"></td>'
-        + '<td><input type="number" min="0.01" step="0.01" class="aposta-input" value="' + apostaHT.toFixed(2) + '" onchange="window._setApostaHT(' + hi + ',this.value)"></td>'
-        + '<td class="lucro-t">' + fmtU(lucroHT) + '</td>'
-        + '<td class="pnl ' + pNCHT + '">' + (pNHT===0?'—':fmtS(pNHT)) + '</td>'
-        + '<td class="accum-cell ' + pTCHT + '">' + (pTHT===0?'—':fmtS(pTHT)) + '</td>'
-        + '<td><div class="result-btns">' + htBtns
-        + '<span class="btn-spacer"></span>'
-        + '<button class="btn-nulo' + (isNuloHT?' sim':'') + '" onclick="window._toggleNuloHT(' + hi + ')" title="Nulo">⛔</button>'
-        + '</div></td>';
-      // Inserir após a linha FT correspondente
-      if (allRows[hi]) allRows[hi].after(trHT);
-      else tbodyEl.appendChild(trHT);
-    }
-  }
 
+
+  renderHT();
   renderBonus();
   renderHist();
   // Média odd do concurso atual
@@ -1522,6 +1496,93 @@ window._openRedistrib = function(i) {
   openM('mRedistrib');
 };
 
+
+function renderHT() {
+  if (!A.linesHT) return;
+  var tbody  = document.getElementById('tbodyHT');
+  if (!tbody) return;
+  var conc   = curConc();
+  var key    = String(curNum());
+  tbody.innerHTML = '';
+  var totAp=0, totLu=0, totPn=0, totAc=0, totRi=0, wins=0, loss=0, recup=0;
+
+  A.linesHT.forEach(function(ln, i) {
+    var isNulo   = !!(ln.nulo && ln.nulo[key]);
+    var jaM      = ln.lastAction && ln.lastAction.key === key;
+    var bet      = calcBetHT(ln);
+    var aposta   = (ln.apostaOverride && ln.apostaOverride[key] != null) ? ln.apostaOverride[key]
+                 : (jaM && ln.apostaLog && ln.apostaLog[key] != null) ? ln.apostaLog[key]
+                 : bet.aposta;
+    var lucro    = (ln.lucroOverride && ln.lucroOverride[key] != null) ? ln.lucroOverride[key] : bet.lucro;
+    var pN       = (ln.pnlLog && ln.pnlLog[key]) || 0;
+    var pT       = ln.pnlTotal || 0;
+    var stN      = ln.stage || 0;
+    var stLbl    = stN === 0 ? 'INICIAL' : 'RECUP #' + stN;
+    var stCls    = stN === 0 ? 's0' : stN <= 3 ? 's1' : 's2';
+    var pNC      = pN > 0 ? 'pos' : pN < 0 ? 'neg' : 'zero';
+    var pTC      = pT > 0 ? 'pos' : pT < 0 ? 'neg' : 'zero';
+    var lostStr  = (ln.lostAccum||0) > 0 ? '-R$' + (ln.lostAccum||0).toFixed(2).replace('.',',') : '—';
+    var jogoHT   = (ln.home || ln.away) ? esc(ln.home||'') + ' x ' + esc(ln.away||'') : '— clique —';
+
+    if (!isNulo) {
+      totAp += aposta; totLu += lucro;
+      totPn += pN; totAc += pT;
+      totRi += (ln.lostAccum||0);
+      if (pN > 0) wins++;
+      if (pN < 0) loss++;
+      if (stN > 0) recup++;
+    }
+
+    var btns = '';
+    if (jaM) {
+      btns = '<button class="btn-r ' + (ln.lastAction.won ? 'marcado-win' : 'marcado-loss') + '" disabled>'
+           + (ln.lastAction.won ? '✓ EMPATE' : '✗ NÃO') + '</button>'
+           + '<button class="btn-r undo" onclick="window._undoResultHT(' + i + ')">↩</button>';
+    } else if (!isNulo) {
+      btns = '<button class="btn-r" onclick="window._doResultHT(' + i + ',true)">✓ EMPATE</button>'
+           + '<button class="btn-r" onclick="window._doResultHT(' + i + ',false)">✗ NÃO</button>';
+    }
+    var btnNulo = '<button class="btn-nulo' + (isNulo?' sim':'') + '" onclick="window._toggleNuloHT(' + i + ')" title="Nulo">⛔</button>';
+
+    var tr = document.createElement('tr');
+    if (isNulo) tr.classList.add('nulo');
+    tr.innerHTML = '<td class="game-num">' + (i+1) + '</td>'
+      + '<td style="font-size:12px;color:' + (ln.home||ln.away ? 'var(--text)':'var(--muted)') + ';cursor:pointer" onclick="window._editHTJogo(' + i + ')" title="Clique para editar"><span class="ht-badge">HT</span> ' + jogoHT + '</td>'
+      + '<td><span class="stage ' + stCls + '">' + stLbl + '</span></td>'
+      + '<td class="risco-cell' + ((ln.lostAccum||0)===0?' zero':'') + '">' + lostStr + '</td>'
+      + '<td><input type="number" min="1.01" max="99" step="0.01" class="odd-input" value="' + (ln.odd||2.0).toFixed(2) + '" onchange="window._setOddHT(' + i + ',this.value)"></td>'
+      + '<td><input type="number" min="0.01" step="0.01" class="aposta-input" value="' + aposta.toFixed(2) + '" onchange="window._setApostaHT(' + i + ',this.value)"></td>'
+      + '<td class="lucro-t">' + fmtU(lucro) + '</td>'
+      + '<td class="pnl ' + pNC + '">' + (pN===0?'—':fmtS(pN)) + '</td>'
+      + '<td class="accum-cell ' + pTC + '">' + (pT===0?'—':fmtS(pT)) + '</td>'
+      + '<td><div class="result-btns">' + btns + '<span class="btn-spacer"></span>' + btnNulo + '</div></td>';
+    tbody.appendChild(tr);
+  });
+
+  // Atualizar cards HT
+  var htT = document.getElementById('htTotal');
+  if (htT) htT.textContent = fmtU(totAp);
+  var htPC = document.getElementById('htPnlConc');
+  if (htPC) { htPC.textContent = totPn===0?'—':fmtS(totPn); htPC.style.color = totPn>0?'var(--win)':totPn<0?'var(--loss)':'var(--muted)'; }
+  var htPA = document.getElementById('htPnlAcc');
+  if (htPA) { htPA.textContent = totAc===0?'—':fmtS(totAc); htPA.style.color = totAc>0?'var(--win)':totAc<0?'var(--loss)':'var(--muted)'; }
+  var htW = document.getElementById('htWins'); if (htW) htW.textContent = wins;
+  var htL = document.getElementById('htLoss'); if (htL) htL.textContent = loss;
+  var htR = document.getElementById('htRecup'); if (htR) htR.textContent = recup;
+  var htH = document.getElementById('htHaver');
+  if (htH) { htH.textContent = totRi>0?'-'+fmtU(totRi):'—'; htH.style.color = totRi>0?'var(--loss)':'var(--muted)'; }
+  // Sync inputs lucro HT
+  var inpHT = document.getElementById('htLucroInput');
+  if (inpHT && parseFloat(inpHT.value) !== BASE_TARGET_HT) inpHT.value = BASE_TARGET_HT;
+  var inpHT6 = document.getElementById('htLucroInput6');
+  if (inpHT6 && parseFloat(inpHT6.value) !== BASE_TARGET_HT6) inpHT6.value = BASE_TARGET_HT6;
+  // Tfoot
+  var ftH = document.getElementById('ftHaver'); if (ftH) ftH.textContent = totRi>0?'-'+fmtU(totRi):'—';
+  var ftA = document.getElementById('ftAposta'); if (ftA) ftA.textContent = fmtU(totAp);
+  var ftL = document.getElementById('ftLucro');  if (ftL) ftL.textContent = fmtU(totLu);
+  var ftP = document.getElementById('ftPnl');    if (ftP) { ftP.textContent = totPn===0?'—':fmtS(totPn); ftP.style.color = totPn>0?'var(--win)':totPn<0?'var(--loss)':'var(--muted)'; }
+  var ftC = document.getElementById('ftAccum');  if (ftC) { ftC.textContent = totAc===0?'—':fmtS(totAc); ftC.style.color = totAc>0?'var(--win)':totAc<0?'var(--loss)':'var(--muted)'; }
+}
 
 function renderBonus() {
   var grid = document.getElementById('bonusGrid');
@@ -1853,4 +1914,565 @@ window._setApostaHT = function(i, val) {
   if (!ln.apostaOverride) ln.apostaOverride = {};
   if (!ln.lucroOverride)  ln.lucroOverride  = {};
   var bet = calcBetHT(ln);
-  
+  if (Math.abs(v - bet.aposta) < 0.005) {
+    delete ln.apostaOverride[key];
+    delete ln.lucroOverride[key];
+  } else {
+    ln.apostaOverride[key] = r2(v);
+    var odd    = (ln.odd >= 1.01) ? ln.odd : 2.0;
+    var lucroLiq = r2(v * (odd - 1));
+    ln.lucroOverride[key] = (ln.stage === 0) ? lucroLiq : r2(lucroLiq - (ln.lostAccum || 0));
+  }
+  save(); render();
+};
+
+window._setOddHT = function(i, val) {
+  if (!A.linesHT) return;
+  var v = parseFloat(val);
+  if (!isNaN(v) && v >= 1.01) {
+    A.linesHT[i].odd = Math.round(v * 100) / 100;
+    save(); render();
+  }
+};
+
+window._toggleNuloHT = function(i) {
+  if (!A.linesHT) return;
+  var ln  = A.linesHT[i];
+  var key = String(curNum());
+  if (!ln.nulo) ln.nulo = {};
+  ln.nulo[key] = !ln.nulo[key];
+  save(); render();
+};
+
+window._toggleNulo = function(i) {
+  const ln  = A.lines[i];
+  const key = String(curNum());
+  if (!ln.nulo) ln.nulo = {};
+  ln.nulo[key] = !ln.nulo[key];
+  save(); render();
+};
+
+window._toggleApostado = function(i) {
+  const ln  = A.lines[i];
+  const key = String(curNum());
+  if (!ln.apostado) ln.apostado = {};
+  ln.apostado[key] = !ln.apostado[key];
+  save(); render();
+};
+
+window.confirmRedistrib = function() {
+  if (_redistIdx === null) return;
+  const i      = _redistIdx;
+  const ln     = A.lines[i];
+  const debito = ln.lostAccum || 0;
+  const metade = r2(debito * 0.5);
+  const outras = A.lines.filter((_,j) => j !== i);
+  const valorPorLinha = r2(metade / outras.length);
+
+  // Salvar snapshot para desfazer
+  if (!A.redistLog) A.redistLog = [];
+  A.redistLog.push({
+    origem: i,
+    lostAccumAntes: ln.lostAccum,
+    valorPorLinha: valorPorLinha,
+    receptoras: outras.map((_,j) => j >= i ? j+1 : j)
+  });
+
+  // Receptoras: aumenta redistExtra
+  outras.forEach(l => {
+    l.redistExtra = r2((l.redistExtra||0) + valorPorLinha);
+  });
+
+  // Linha de origem: lostAccum reduzido à metade
+  ln.lostAccum = r2(metade);
+
+  _redistIdx = null;
+  closeM('mRedistrib');
+  save(); render();
+};
+
+window.undoRedistrib = function() {
+  if (!A.redistLog || A.redistLog.length === 0) {
+    alert('Nenhuma redistribuicao para desfazer.');
+    return;
+  }
+  const snap = A.redistLog.pop();
+  const ln   = A.lines[snap.origem];
+
+  // Restaurar lostAccum da linha de origem
+  ln.lostAccum = snap.lostAccumAntes;
+
+  // Reverter redistExtra das receptoras
+  A.lines.forEach(function(l, j) {
+    if (j !== snap.origem) {
+      l.redistExtra = r2((l.redistExtra||0) - snap.valorPorLinha);
+    }
+  });
+
+  save(); render();
+};
+
+window.setPctRecup = function(val) {
+  const v = parseFloat(val);
+  if (!v || v < 1 || v > 100) return;
+  BASE_PCT   = Math.round(v * 10) / 10;
+  A.pctRecup = BASE_PCT;
+  const inpPct = document.getElementById('pctRecupInput');
+  if (inpPct) inpPct.value = BASE_PCT;
+  save(); render();
+};
+
+window.setLucroAlvoHT6 = function(val) {
+  var v = parseFloat(val);
+  if (!v || v < 1) return;
+  BASE_TARGET_HT6 = Math.round(v * 100) / 100;
+  A.lucroAlvoHT6  = BASE_TARGET_HT6;
+  var inpHT6 = document.getElementById('htLucroInput6');
+  if (inpHT6) inpHT6.value = BASE_TARGET_HT6;
+  save(); render();
+};
+
+window.setLucroAlvoHT = function(val) {
+  const v = parseFloat(val);
+  if (!v || v < 1) return;
+  BASE_TARGET_HT = Math.round(v * 100) / 100;
+  A.lucroAlvoHT  = BASE_TARGET_HT;
+  const inpHT = document.getElementById('lucroAlvoHTInput');
+  if (inpHT) inpHT.value = BASE_TARGET_HT;
+  save(); render();
+};
+
+window.setLucroAlvo6 = function(val) {
+  const v = parseFloat(val);
+  if (!v || v < 1) return;
+  BASE_TARGET6 = Math.round(v * 100) / 100;
+  A.lucroAlvo6 = BASE_TARGET6;
+  const inp6 = document.getElementById('lucroAlvoInput6');
+  if (inp6) inp6.value = BASE_TARGET6;
+  save(); render();
+};
+
+window.setLucroAlvo = function(val) {
+  const v = parseFloat(val);
+  if (isNaN(v) || v < 1) return;
+  BASE_TARGET    = Math.round(v * 100) / 100;
+  A.lucroAlvo    = BASE_TARGET;
+  // Sincroniza o input visualmente
+  const inp = document.getElementById('lucroAlvoInput');
+  if (inp) inp.value = BASE_TARGET;
+  save(); render();
+};
+
+window.setThreshold = function(val) {
+  const v = parseFloat(val);
+  if (isNaN(v) || v < 1.5) return;
+  curConc().threshold = Math.round(v * 10) / 10;
+  save(); render();
+};
+
+window.toggleFilter = function() {
+  const c  = curConc();
+  c.filterOn = !(c.filterOn || false);
+  save(); render();
+};
+
+// _setPct removido — filtro usa odd de aposta diretamente
+
+window._setOdd = function(i, val) {
+  const v = parseFloat(val);
+  if (!isNaN(v) && v >= 1.01) {
+    A.lines[i].odd = Math.round(v * 100) / 100;
+    // Persiste também no objeto concurso
+    if (!curConc().odds) curConc().odds = Array(N).fill(3.0);
+    curConc().odds[i] = A.lines[i].odd;
+    save(); render();
+  }
+};
+
+// ── NAVIGATION ──
+function saveOddsToConc() {
+  // Salva as odds atuais dentro do objeto concurso
+  curConc().odds = A.lines.map(ln => ln.odd || 3.0);
+}
+
+function loadOddsFromConc() {
+  // Carrega as odds do concurso para as lines
+  const odds = curConc().odds;
+  if (odds && odds.length === N) {
+    A.lines.forEach((ln, i) => { ln.odd = odds[i]; });
+  } else {
+    // Sem odds salvas → 3.0 padrão
+    A.lines.forEach(ln => { ln.odd = 3.0; });
+  }
+}
+
+window.goPrev = function() {
+  if (A.cur > 0) {
+    saveOddsToConc();  // salva odds do concurso atual
+    A.cur--;
+    loadOddsFromConc(); // carrega odds do concurso anterior
+    save(); render();
+  }
+};
+
+window.openNext = function() {
+  document.getElementById('nextNumIn').value = curNum() + 1;
+  openM('mNext');
+};
+
+window.confirmNext = function() {
+  const raw = document.getElementById('nextNumIn').value.trim();
+  const num = raw ? parseInt(raw) : curNum() + 1;
+  if (isNaN(num) || num < 1) return;
+  if (A.cur < A.concursos.length - 1) {
+    saveOddsToConc();   // salva odds do concurso atual
+    A.cur++;
+    loadOddsFromConc(); // carrega odds do próximo
+  } else {
+    saveOddsToConc();   // salva odds do concurso atual
+    const prev = curConc();
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2,'0');
+    const mm = String(today.getMonth()+1).padStart(2,'0');
+    const yy = String(today.getFullYear()).slice(-2);
+    A.concursos.push({
+      num,
+      games:     blankGames(),
+      filterOn:  prev.filterOn  !== undefined ? prev.filterOn : true,
+      threshold: prev.threshold || 6.5,
+      odds:      Array(N).fill(3.0),
+      date:      dd + '/' + mm + '/' + yy,
+      year:      today.getFullYear(),
+    });
+    A.cur = A.concursos.length - 1;
+    loadOddsFromConc(); // carrega 3.0 do novo concurso
+  }
+  closeM('mNext'); save(); render();
+};
+
+// ── IMPORT ──
+window.openImport = function() {
+  document.getElementById('impNum').textContent = curNum();
+  // Atualizar links com número do concurso
+  const num2 = curNum();
+  const lj = document.getElementById('linkJornalheiros');
+  if (lj) lj.href = 'https://jornalheiros.blogspot.com/search?q=loteca+programacao+concurso+' + num2;
+  const lv = document.getElementById('linkVovoteca');
+  if (lv) lv.href = 'https://vovoteca.com/?s=loteca+' + num2;
+  const grid  = document.getElementById('impGrid');
+  grid.innerHTML = '';
+  const games = curConc().games;
+  games.forEach((g, i) => {
+    const ph = g.home.startsWith('Casa ') || g.away.startsWith('Visitante ');
+    const rn = document.createElement('div');
+    rn.className = 'rn'; rn.textContent = i + 1; grid.appendChild(rn);
+
+    const hi = document.createElement('input');
+    hi.type='text'; hi.id=`ih${i}`; hi.placeholder=`Time da Casa ${i+1}`;
+    hi.value = ph ? '' : g.home; grid.appendChild(hi);
+
+    const vs = document.createElement('div');
+    vs.className='vss'; vs.textContent='x'; grid.appendChild(vs);
+
+    const ai = document.createElement('input');
+    ai.type='text'; ai.id=`ia${i}`; ai.placeholder=`Visitante ${i+1}`;
+    ai.value = ph ? '' : g.away; grid.appendChild(ai);
+
+    const di = document.createElement('input');
+    di.type='text'; di.id=`id${i}`; di.placeholder='Sáb'; di.maxLength=3;
+    di.value = g.day || 'Sáb';
+    di.style.cssText='width:50px;text-align:center;font-family:monospace;font-size:12px;padding:7px 4px;';
+    grid.appendChild(di);
+  });
+  openM('mImport');
+};
+
+window.autoImport = async function() {
+  // autoImport desativado — use os links do modal
+  return;
+  const num = curNum();
+
+  try {
+    const resp = await fetch('https://jaf-loteca-proxy.renanlara.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ concurso: num })
+    });
+
+    const data = await resp.json();
+
+    // Tratar rate limit (429) com mensagem amigável
+    if (!resp.ok) {
+      if (resp.status === 429 || (data.error && data.error.includes('429'))) {
+        throw new Error('rate_limit');
+      }
+      throw new Error('Erro HTTP ' + resp.status);
+    }
+
+    const jogos = data.jogos || [];
+    if (jogos.length === 0) {
+      const detalhe = data.error ? data.error : (data.debug ? data.debug.slice(0,100) : 'sem jogos');
+      throw new Error('not_found:' + detalhe);
+    }
+
+    // Preencher os campos do grid
+    jogos.forEach((j, i) => {
+      const ih = document.getElementById('ih' + i);
+      const ia = document.getElementById('ia' + i);
+      const id = document.getElementById('id' + i);
+      if (ih && j.home) ih.value = j.home;
+      if (ia && j.away) ia.value = j.away;
+      if (id && j.day)  id.value = j.day;
+    });
+
+    status.textContent = '✓ ' + jogos.length + ' jogos encontrados! Verifique e salve.';
+    status.style.color = 'var(--win)';
+    btn.textContent = '✓ BUSCADO';
+
+  } catch (e) {
+    const msg = e.message === 'rate_limit' ? 'Muitas tentativas. Aguarde 1 minuto e tente novamente.' :
+               e.message.startsWith('not_found') ? 'Grade não encontrada: ' + e.message.slice(9) :
+               'Erro: ' + e.message + '. Preencha manualmente.';
+    status.textContent = '✗ ' + msg;
+    status.style.color = 'var(--loss)';
+    btn.disabled = false;
+    btn.textContent = '↺ TENTAR NOVAMENTE';
+  }
+};
+
+window.exportExcelImport = function() {
+  const conc   = curConc();
+  const num    = conc.num;
+  const games  = conc.games || [];
+
+  // Montar dados da tabela
+  const rows = [['#', 'MANDANTE', 'VISITANTE', 'DIA', 'ODD EMPATE', 'STAGE', 'EM RISCO', 'APOSTA', 'LUCRO ALVO', 'P&L ACUM.']];
+
+  A.lines.forEach((ln, i) => {
+    const g = games[i] || {};
+    const {aposta, lucro} = calcBet(ln);
+    const key = String(num);
+    const apostaReal = (ln.apostaOverride && ln.apostaOverride[key] != null) ? ln.apostaOverride[key] : aposta;
+    const lucroReal  = (ln.lucroOverride  && ln.lucroOverride[key]  != null) ? ln.lucroOverride[key]  : lucro;
+    rows.push([
+      i + 1,
+      g.home || '',
+      g.away || '',
+      g.day  || '',
+      ln.odd || 3.0,
+      ln.stage || 0,
+      ln.lostAccum || 0,
+      apostaReal,
+      lucroReal,
+      ln.pnlTotal || 0,
+    ]);
+  });
+
+  // Totais
+  const totAposta = A.lines.reduce((s, ln, i) => {
+    const {aposta} = calcBet(ln);
+    const key = String(num);
+    return s + ((ln.apostaOverride && ln.apostaOverride[key] != null) ? ln.apostaOverride[key] : aposta);
+  }, 0);
+  const totPnl = A.lines.reduce((s, ln) => s + (ln.pnlTotal || 0), 0);
+  rows.push(['', 'TOTAIS', '', '', '', '', '', r2(totAposta), '', r2(totPnl)]);
+
+  // Criar workbook
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+
+  // Largura das colunas
+  ws['!cols'] = [
+    {wch:4},{wch:22},{wch:22},{wch:6},{wch:12},{wch:8},{wch:12},{wch:12},{wch:12},{wch:14}
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Concurso ' + num);
+  XLSX.writeFile(wb, 'JAF-Loteca-' + num + '.xlsx');
+};
+
+window.confirmImport = function() {
+  const games = curConc().games;
+  games.forEach((gm, i) => {
+    const h = document.getElementById(`ih${i}`).value.trim();
+    const a = document.getElementById(`ia${i}`).value.trim();
+    const d = document.getElementById(`id${i}`).value.trim();
+    if (h) gm.home = h;
+    if (a) gm.away = a;
+    if (d) gm.day  = d;
+  });
+  save(); closeM('mImport'); render();
+};
+
+// ── RESET LINHA removido (substituído por Desfazer) ──
+
+// ── RESET GERAL ──
+window.confirmResetAll = function() {
+  A = initState();
+  save();
+  closeM('mResetAll');
+  render();
+};
+
+// ── MODAL UTILS ──
+window.openM  = function(id) { document.getElementById(id).classList.add('open'); };
+window.closeM = function(id) { document.getElementById(id).classList.remove('open'); };
+document.querySelectorAll('.mo').forEach(el =>
+  el.addEventListener('click', e => { if (e.target === el) closeM(el.id); })
+);
+
+// ══════════════════════════════════════════════════════
+// CALCULADORA DE STAKE
+// ══════════════════════════════════════════════════════
+function binomCoef(n, k) {
+  if (k < 0 || k > n) return 0;
+  if (k === 0 || k === n) return 1;
+  let c = 1;
+  for (let i = 0; i < k; i++) c = c * (n - i) / (i + 1);
+  return c;
+}
+function binomProb(n, k, p) {
+  return binomCoef(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
+}
+
+window.calcUpdate = function() {
+  const lucroAlvo = parseFloat(document.getElementById('cLucro').value) || 1000;
+  const odd       = parseFloat(document.getElementById('cOdd').value)   || 3.0;
+  const pct       = parseFloat(document.getElementById('cPct').value)   || 30;
+  const jogos     = parseInt(document.getElementById('cJogos').value)   || 14;
+  const p         = pct / 100;
+
+  // Empates esperados
+  const empEsp = p * jogos;
+
+  // Lucro por linha = lucroAlvo / empEsp
+  const lucroLinha = lucroAlvo / empEsp;
+
+  // Aposta por linha = lucroLinha / (odd - 1)
+  const apostaPorLinha = lucroLinha / (odd - 1);
+
+  // Total apostado
+  const totalApostado = apostaPorLinha * jogos;
+
+  // Capital de reserva: suportar 3 rodadas sem nenhum empate
+  // Na pior: perde apostaPorLinha × jogos por rodada
+  const reserva = totalApostado * 3;
+
+  // Distribuição binomial
+  let rows = '';
+  let probLucro = 0;
+  let probPrejuizo = 0;
+
+  for (let k = 0; k <= jogos; k++) {
+    const prob    = binomProb(jogos, k, p);
+    const pnl     = k * lucroLinha - (jogos - k) * apostaPorLinha;
+    const isProft = pnl >= 0;
+    const isExp   = k === Math.round(empEsp);
+    const barW    = Math.round(prob * 100 * 4);
+    const barCol  = isProft ? 'var(--win)' : 'var(--loss)';
+    const pnlStr  = (pnl >= 0 ? '+' : '') + 'R$ ' + Math.abs(pnl).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    if (isProft) probLucro += prob;
+    else probPrejuizo += prob;
+
+    if (prob < 0.003 && k !== Math.round(empEsp)) continue; // omite linhas insignificantes
+
+    rows += `<tr class="${isProft ? 'profit' : 'loss-row'}${isExp ? ' expected' : ''}">
+      <td>${k} empate${k!==1?'s':''}</td>
+      <td>${(prob*100).toFixed(1)}%
+        <span class="prob-bar" style="width:${barW}px;background:${barCol};opacity:.6"></span>
+      </td>
+      <td style="font-weight:600">${pnlStr}</td>
+    </tr>`;
+  }
+
+  const fmtBRL = v => 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+
+  document.getElementById('calcResult').innerHTML = `
+    <div class="calc-result-grid">
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--accent)">${fmtBRL(apostaPorLinha)}</div>
+        <div class="calc-kpi-lbl">Aposta por linha</div>
+      </div>
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--accent3)">${fmtBRL(totalApostado)}</div>
+        <div class="calc-kpi-lbl">Total apostado</div>
+      </div>
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--neutral)">${empEsp.toFixed(1)}</div>
+        <div class="calc-kpi-lbl">Empates esperados</div>
+      </div>
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--win)">${(probLucro*100).toFixed(1)}%</div>
+        <div class="calc-kpi-lbl">Prob. lucro na rodada</div>
+      </div>
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--loss)">${(probPrejuizo*100).toFixed(1)}%</div>
+        <div class="calc-kpi-lbl">Prob. prejuízo na rodada</div>
+      </div>
+      <div class="calc-kpi">
+        <div class="calc-kpi-val" style="color:var(--accent2)">${fmtBRL(reserva)}</div>
+        <div class="calc-kpi-lbl">Reserva recomendada (3×)</div>
+      </div>
+    </div>
+    <table class="prob-table">
+      <thead><tr><th>Resultado</th><th>Probabilidade</th><th>P&L estimado</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="calc-note" style="margin-top:12px">
+      <strong>Como usar:</strong> Linha destacada = cenário mais provável.
+      Verde = rodada lucrativa · Vermelho = rodada de prejuízo (martingale recupera nas seguintes).
+      A <strong>reserva recomendada</strong> cobre 3 rodadas sem nenhum empate — o pior cenário razoável.
+      Com filtro de super favoritos ativo, aumente o % esperado para ~33%.
+    </div>`;
+};
+
+// Inicializa ao abrir o modal
+document.getElementById('mCalc').addEventListener('click', function(e) {
+  if (e.target === this) closeM('mCalc');
+});
+// Calcula ao abrir
+const _origOpenM = window.openM;
+window.openM = function(id) {
+  if (id === 'mDelConc') {
+    const c = curConc();
+    document.getElementById('mDelConcMsg').innerHTML =
+      'Excluir o concurso <strong>' + c.num + '</strong>?<br>'
+      + '<span style="font-family:monospace;font-size:11px;color:var(--muted)">'
+      + 'Os times e resultados deste concurso ser\u00e3o removidos.<br>'
+      + 'O martingale das linhas <strong style="color:var(--accent3)">n\u00e3o \u00e9 afetado</strong>.</span>';
+  }
+  _origOpenM(id);
+  if (id === 'mCalc') calcUpdate();
+};
+
+
+// Busca de odds removida
+
+// ══════════════════════════════════════════════════════
+// EXCLUIR CONCURSO
+// ══════════════════════════════════════════════════════
+window.confirmDelConc = function() {
+  if (A.concursos.length <= 1) { closeM('mDelConc'); return; }
+
+  // Salva odds do concurso atual antes de remover
+  saveOddsToConc();
+
+  // Remove o concurso atual
+  A.concursos.splice(A.cur, 1);
+
+  // Ajusta cur: se era o último, volta um
+  if (A.cur >= A.concursos.length) A.cur = A.concursos.length - 1;
+
+  // Carrega odds do novo concurso atual
+  loadOddsFromConc();
+
+  closeM('mDelConc');
+  save(); render();
+};
+
+// ══════════════════════════════════════════════════════
+// BOOT — iniciado via onAuthStateChanged
+// ══════════════════════════════════════════════════════
+</script>
+</body>
+</html>
