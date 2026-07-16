@@ -1587,7 +1587,9 @@ function renderHT() {
   // Badge ciclo completo
   var keyBadge = String(curNum());
   var todasJogadasRender = A.linesHT.every(function(l) {
-    return l.lastAction && l.lastAction.key === keyBadge;
+    var jogada = l.lastAction && l.lastAction.key === keyBadge;
+    var nula   = !!(l.nulo && l.nulo[keyBadge]);
+    return jogada || nula;
   });
   var htTitle = document.querySelector('.ht-section-title');
   if (htTitle) {
@@ -1886,10 +1888,12 @@ window._doResultHT = function(i, won) {
   }
   save(); render();
 
-  // Verificar se todas 14 linhas foram jogadas neste ciclo
+  // Verificar se todas 14 linhas foram jogadas OU anuladas neste ciclo
   var keyCheck = String(curNum());
   var todasJogadas = A.linesHT.every(function(l) {
-    return l.lastAction && l.lastAction.key === keyCheck;
+    var jogada = l.lastAction && l.lastAction.key === keyCheck;
+    var nula   = !!(l.nulo && l.nulo[keyCheck]);
+    return jogada || nula;
   });
   if (todasJogadas) {
     // Aguarda 2s para mostrar resultado, depois reseta jogos para novo ciclo
