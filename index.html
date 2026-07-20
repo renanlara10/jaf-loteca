@@ -5,322 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JAF Loteca</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-<style>
-  :root{--bg:#0a0d12;--surface:#111520;--card:#161c2a;--border:#1e2a3a;--accent:#00e5a0;--accent2:#ff4d6d;--accent3:#f5a623;--text:#d4dff0;--muted:#4a5a70;--win:#00e5a0;--loss:#ff4d6d;--neutral:#5b7cfd;}
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;width:100%;}
-  body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4;}
-
-  /* ── SYNC STATUS ── */
-  #syncBar{position:fixed;top:0;left:0;right:0;z-index:999;padding:6px 16px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-align:center;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:8px;}
-  #syncBar.syncing{background:rgba(245,166,35,.15);color:var(--accent3);border-bottom:1px solid rgba(245,166,35,.25);}
-  #syncBar.synced {background:rgba(0,229,160,.1); color:var(--accent);  border-bottom:1px solid rgba(0,229,160,.2);}
-  #syncBar.error  {background:rgba(255,77,109,.15);color:var(--accent2); border-bottom:1px solid rgba(255,77,109,.25);}
-  #syncBar.hidden {display:none;}
-  .sync-dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.2s infinite;}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-  #syncBar.synced .sync-dot,#syncBar.error .sync-dot{animation:none;}
-
-  /* ── HEADER ── */
-  .header{position:relative;padding:52px 24px 20px;text-align:center;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(0,229,160,.04) 0%,transparent 100%);}
-  .header-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--accent);background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.2);padding:4px 14px;border-radius:2px;margin-bottom:10px;}
-  h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,7vw,64px);letter-spacing:.04em;line-height:1;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-  .subtitle{margin-top:6px;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;}
-
-  /* ── NAV ── */
-  .concurso-nav{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);}
-  .concurso-info{display:flex;align-items:center;gap:8px;background:rgba(91,124,253,.1);border:1px solid rgba(91,124,253,.25);padding:7px 16px;border-radius:2px;font-family:'DM Mono',monospace;font-size:12px;color:var(--neutral);}
-  .concurso-info .num{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.06em;color:#fff;}
-  .btn-nav{display:inline-flex;align-items:center;gap:6px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:2px;transition:all .15s;}
-  .btn-nav:hover{filter:brightness(1.25);transform:translateY(-1px);}
-  .btn-nav:disabled{opacity:.3;cursor:not-allowed;transform:none;}
-  .btn-prev{background:rgba(74,90,112,.25);color:var(--muted);border:1px solid var(--border);}
-  .btn-next{background:rgba(0,229,160,.12);color:var(--accent);border:1px solid rgba(0,229,160,.25);}
-  .btn-import{background:rgba(91,124,253,.12);color:var(--neutral);border:1px solid rgba(91,124,253,.28);}
-  .btn-del{background:rgba(255,77,109,.08);color:var(--accent2);border:1px solid rgba(255,77,109,.22);}
-  .btn-del:disabled{opacity:.2;cursor:not-allowed;transform:none;}
-  .btn-resetall{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.28);}
-  .btn-filter-off{background:rgba(74,90,112,.2);color:var(--muted);border:1px solid var(--border);}
-  .btn-filter-on{background:rgba(245,166,35,.18);color:var(--accent3);border:1px solid rgba(245,166,35,.45);}
-  tr.blocked{opacity:.35;}
-  tr.blocked td{pointer-events:none;}
-  tr.nulo td{opacity:.3;text-decoration:line-through;}
-  .btn-nulo{font-size:11px;padding:4px 8px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s;}
-  .btn-nulo:hover{border-color:var(--accent2);color:var(--accent2);}
-  .btn-nulo.sim{background:rgba(255,77,109,.1);color:var(--loss);border-color:rgba(255,77,109,.4);font-weight:600;}
-  .blocked-badge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;border-radius:2px;background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.3);letter-spacing:.06em;}
-
-  .filter-bar{display:none;align-items:center;gap:10px;padding:10px 16px;background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.2);border-radius:2px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);flex-wrap:wrap;}
-  .filter-bar strong{color:var(--accent3);}
-  .filter-bar.active{display:flex;}
-  .threshold-input{background:var(--surface);border:1px solid rgba(245,166,35,.4);color:var(--accent3);font-family:'DM Mono',monospace;font-size:14px;font-weight:600;width:46px;text-align:center;padding:4px;border-radius:2px;outline:none;}
-  .threshold-input:focus{border-color:var(--accent3);}
-
-  /* ── SUMMARY ── */
-  .summary-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--border);border-bottom:1px solid var(--border);}
-  .summary-item{background:var(--surface);padding:14px 16px;text-align:center;}
-  .summary-value{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.04em;line-height:1;}
-  .summary-item.editable{cursor:pointer;position:relative;}
-  .summary-item.editable:hover{background:rgba(0,229,160,.04);}
-  .lucro-alvo-input{background:transparent;border:none;border-bottom:1px solid rgba(0,229,160,.4);color:var(--accent);font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.04em;line-height:1;width:100px;text-align:center;outline:none;padding:0;}
-  .lucro-alvo-input:focus{border-bottom-color:var(--accent);}
-  .edit-hint{font-size:8px;letter-spacing:.08em;color:rgba(0,229,160,.4);font-family:'DM Mono',monospace;margin-top:2px;}
-  .summary-label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px;font-family:'DM Mono',monospace;}
-
-  /* ── CONTAINER ── */
-  .container{max-width:1400px;margin:0 auto;padding:20px 12px 48px;position:relative;z-index:1;}
-  .rules-card{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent3);padding:13px 18px;margin-bottom:18px;font-size:12px;color:var(--muted);line-height:1.7;font-family:'DM Mono',monospace;}
-  .rules-card strong{color:var(--accent3);}
-  .info-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px;}
-  .pill{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:2px;padding:5px 11px;font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);}
-  .pill .dot-icon{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-
-  /* ── TABLE ── */
-  .table-wrapper{overflow-x:auto;border-radius:4px;border:1px solid var(--border);}
-  table{width:100%;border-collapse:collapse;font-size:13px;}
-  thead tr{background:var(--surface);border-bottom:2px solid var(--border);}
-  thead th{padding:9px 6px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
-  thead th:first-child{padding-left:8px;}
-  tbody tr{background:var(--card);border-bottom:1px solid var(--border);transition:background .15s;}
-  tbody tr:hover{background:rgba(22,28,42,.85);}
-  td{padding:8px 6px;vertical-align:middle;white-space:nowrap;}
-  td:first-child{padding-left:8px;}
-
-  .game-num{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--muted);width:22px;text-align:center;}
-  .teams{font-weight:600;font-size:12px;color:var(--text);min-width:140px;max-width:200px;white-space:normal;line-height:1.3;}
-  .teams span.vs{color:var(--muted);font-weight:300;font-size:11px;margin:0 4px;}
-  .teams.ph{color:var(--muted);font-style:italic;font-weight:400;}
-  .day-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:2px;background:rgba(74,90,112,.3);color:var(--muted);}
-
-  .stage{display:inline-flex;align-items:center;font-family:'DM Mono',monospace;font-size:11px;padding:3px 8px;border-radius:2px;}
-  .s0{background:rgba(0,229,160,.08);color:var(--accent);border:1px solid rgba(0,229,160,.2);}
-  .s1{background:rgba(245,166,35,.1);color:var(--accent3);border:1px solid rgba(245,166,35,.25);}
-  .s2{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25);}
-  .s3{background:rgba(255,77,109,.18);color:#ff6b85;border:1px solid rgba(255,77,109,.35);}
-
-  .aposta-input{background:var(--surface);border:1px solid rgba(0,229,160,.3);color:var(--accent);font-family:'DM Mono',monospace;font-size:13px;font-weight:500;width:74px;text-align:center;padding:4px 3px;border-radius:2px;outline:none;transition:border-color .15s;}
-  .aposta-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,229,160,.12);}
-  .aposta-input.modified{border-color:rgba(245,166,35,.6);color:var(--accent3);}
-  .odd-input{background:var(--surface);border:1px solid var(--border);color:var(--accent3);font-family:'DM Mono',monospace;font-size:13px;font-weight:500;width:54px;text-align:center;padding:4px 3px;border-radius:2px;outline:none;transition:border-color .15s;}
-  .odd-input:focus{border-color:var(--accent3);box-shadow:0 0 0 2px rgba(245,166,35,.12);}
-  .odd-input.odd-blocked{border-color:rgba(245,166,35,.6);background:rgba(245,166,35,.06);}
-  .aposta-r{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--accent);}
-  .lucro-t{font-family:'DM Mono',monospace;font-size:13px;color:var(--neutral);}
-  .pnl{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;}
-  .pos{color:var(--win);}.neg{color:var(--loss);}.zero{color:var(--muted);}
-  .accum-cell{font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;}
-  .risco-cell{font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;color:var(--loss);}
-  .risco-cell.zero{color:var(--muted);}
-  .accum-cell.pos{color:rgba(0,229,160,.7);}.accum-cell.neg{color:rgba(255,77,109,.7);}.accum-cell.zero{color:var(--muted);}
-
-  .result-btns{display:flex;gap:3px;flex-wrap:nowrap;align-items:center;}
-  .btn-spacer{display:inline-block;width:28px;}  /* espaçador para alinhar quando não há botão */
-  .btn-r{border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.04em;padding:4px 8px;border-radius:2px;transition:all .15s;background:var(--surface);color:var(--muted);border:1px solid var(--border);}
-  .btn-r:hover{filter:brightness(1.35);transform:translateY(-1px);}
-  .btn-r:disabled{opacity:.35;cursor:not-allowed;transform:none;}
-  .btn-r.rst{background:rgba(74,90,112,.2);}
-  .btn-r.rst:hover{background:rgba(74,90,112,.4);color:var(--text);}
-  .btn-r.undo{background:rgba(91,124,253,.12);color:var(--neutral);border-color:rgba(91,124,253,.25);}
-  .btn-r.undo:hover{background:rgba(91,124,253,.25);color:#fff;}
-  .btn-r.undo:disabled{opacity:.2;}
-  .btn-r.marcado-win{background:rgba(0,229,160,.15);color:var(--win);border-color:rgba(0,229,160,.4);font-weight:600;cursor:default;}
-  .btn-r.marcado-loss{background:rgba(255,77,109,.12);color:var(--loss);border-color:rgba(255,77,109,.35);font-weight:600;cursor:default;}
-  .btn-apostado{font-size:11px;padding:4px 8px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s;}
-  .btn-apostado:hover{border-color:var(--accent3);color:var(--accent3);}
-  .btn-apostado.sim{background:rgba(245,166,35,.12);color:var(--accent3);border-color:rgba(245,166,35,.4);font-weight:600;}
-  tr.apostado-sim td{background:rgba(245,166,35,.04);}
-  .btn-r.redistrib{background:rgba(91,124,253,.12);color:var(--neutral);border-color:rgba(91,124,253,.3);font-size:11px;padding:4px 9px;}
-  .btn-r.redistrib:hover{background:rgba(91,124,253,.25);color:#fff;}
-  .redistrib-badge{font-family:'DM Mono',monospace;font-size:9px;padding:1px 5px;border-radius:2px;background:rgba(91,124,253,.12);color:var(--neutral);border:1px solid rgba(91,124,253,.25);margin-left:4px;vertical-align:middle;}
-  #mRedistrib .mc{max-width:480px;text-align:left;}
-  .redist-preview{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:12px 14px;margin:14px 0;}
-  .redist-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(30,42,58,.5);font-family:'DM Mono',monospace;font-size:12px;}
-  .redist-row:last-child{border-bottom:none;}
-  .redist-lbl{color:var(--muted);}
-  .redist-val{font-weight:500;}
-
-  tfoot tr{background:var(--surface);border-top:2px solid var(--border);}
-
-
-  /* ── SEÇÃO HT ── */
-  .ht-section{margin-top:28px;}
-  .ht-section-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--neutral);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
-  .ht-section-title::before{content:'';flex:1;height:1px;background:var(--border);}
-  .ht-summary-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:16px;}
-  .ht-summary-item{background:var(--surface);padding:14px 16px;text-align:center;}
-  .ht-summary-value{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;line-height:1;}
-  .ht-summary-item.editable{cursor:pointer;position:relative;}
-  .ht-summary-item.editable:hover{background:rgba(91,124,253,.04);}
-  .ht-lucro-input{background:transparent;border:none;border-bottom:1px solid rgba(91,124,253,.4);color:var(--neutral);font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;width:90px;text-align:center;outline:none;padding:0;}
-  .ht-badge{font-family:'DM Mono',monospace;font-size:9px;padding:1px 6px;border-radius:2px;background:rgba(91,124,253,.15);color:var(--neutral);border:1px solid rgba(91,124,253,.3);letter-spacing:.04em;}
-  .bonus-section{margin-top:28px;}
-  .bonus-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--accent3);margin-bottom:10px;display:flex;align-items:center;gap:10px;}
-  .bonus-title::before{content:'';flex:1;height:1px;background:var(--border);}
-  .bonus-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
-  .bonus-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:14px;}
-  .bonus-card.win{border-color:rgba(0,229,160,.3);}
-  .bonus-card.loss{border-color:rgba(255,77,109,.25);}
-  .bonus-num{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--muted);letter-spacing:.06em;margin-bottom:8px;}
-  .bonus-input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:5px 8px;border-radius:2px;margin-bottom:6px;box-sizing:border-box;}
-  .bonus-input:focus{border-color:var(--accent3);outline:none;}
-  .bonus-row{display:flex;gap:6px;margin-bottom:6px;}
-  .bonus-row .bonus-input{margin-bottom:0;}
-  .bonus-btns{display:flex;gap:4px;margin-top:8px;}
-  .bonus-btn{flex:1;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.04em;padding:6px 4px;border-radius:2px;border:1px solid var(--border);background:transparent;cursor:pointer;transition:all .15s;}
-  .bonus-btn.empate{color:var(--win);border-color:rgba(0,229,160,.3);}
-  .bonus-btn.empate:hover{background:rgba(0,229,160,.1);}
-  .bonus-btn.nao{color:var(--loss);border-color:rgba(255,77,109,.3);}
-  .bonus-btn.nao:hover{background:rgba(255,77,109,.1);}
-  .bonus-btn.reset{color:var(--muted);font-size:12px;}
-  .bonus-result{font-family:'DM Mono',monospace;font-size:11px;margin-top:6px;text-align:center;}
-  .bonus-summary{display:flex;gap:12px;background:var(--surface);border:1px solid var(--border);padding:12px 16px;border-radius:4px;}
-  .bonus-sv{font-family:'Bebas Neue',sans-serif;font-size:20px;}
-  .bonus-sl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
-  @media(max-width:600px){.bonus-grid{grid-template-columns:1fr;}}
-  /* HISTÓRICO */
-  .hist-section{margin-top:28px;}
-  .hist-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:10px;}
-  .hist-title::before{content:'';flex:1;height:1px;background:var(--border);}
-  .hist-table{width:100%;border-collapse:collapse;font-size:11px;}
-  .hist-table th{background:var(--surface);padding:7px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;}
-  .hist-table th:hover{color:var(--text);}
-  .hist-table td{padding:7px 10px;font-family:'DM Mono',monospace;border-bottom:1px solid rgba(30,42,58,.5);white-space:nowrap;}
-  .hist-table tr:hover td{background:rgba(255,255,255,.02);}
-  .hist-table tr.cur-row td{background:rgba(0,229,160,.05);border-left:2px solid var(--accent);}
-  .hist-table tr{cursor:pointer;}
-  .hist-pos{color:var(--win);}
-  .hist-neg{color:var(--loss);}
-  .hist-zero{color:var(--muted);}
-  .hist-num{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--accent);}
-  .hist-year{font-size:9px;padding:1px 5px;border-radius:2px;font-family:'DM Mono',monospace;}
-  tfoot td{padding:12px 10px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.03em;}
-  tfoot td:first-child{padding-left:14px;}
-
-  /* ── MODALS ── */
-  .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:300;backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
-  .mo.open{display:flex;}
-  .mc{background:var(--card);border:1px solid var(--border);padding:20px;width:100%;text-align:center;max-height:94vh;overflow-y:auto;}
-  .mc h2{font-family:'Bebas Neue',sans-serif;font-size:26px;margin-bottom:8px;}
-  .mc p{color:var(--muted);font-size:12px;margin-bottom:16px;font-family:'DM Mono',monospace;line-height:1.65;}
-  .mc p strong{color:var(--accent);}
-  .mbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-  .mbtns button{padding:9px 20px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:17px;cursor:pointer;border-radius:2px;transition:all .15s;}
-  .mbtns button:hover{filter:brightness(1.3);}
-  .mbtns .ok{background:rgba(0,229,160,.15);color:var(--accent);border-color:rgba(0,229,160,.35);}
-  .mbtns .danger{background:rgba(255,77,109,.15);color:var(--accent2);border-color:rgba(255,77,109,.35);}
-
-  .next-num{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;width:220px;text-align:center;padding:8px;border-radius:2px;outline:none;display:block;margin:0 auto 6px;}
-  .next-num:focus{border-color:var(--accent);}
-
-  #mImport .mc{max-width:540px;text-align:left;}
-  #mImport .mc h2,#mImport .mc p{text-align:center;}
-  .imp-hint{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:14px;background:rgba(91,124,253,.07);border:1px solid rgba(91,124,253,.18);padding:10px 12px;border-radius:2px;line-height:1.65;}
-  .imp-hint strong{color:var(--neutral);}
-  .imp-grid{display:grid;grid-template-columns:22px 1fr auto 1fr 50px;gap:5px 7px;align-items:center;margin-bottom:16px;max-height:58vh;overflow-y:auto;padding-right:4px;}
-  .imp-grid .rn{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--muted);text-align:center;}
-  .imp-grid input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 9px;border-radius:2px;outline:none;width:100%;transition:border-color .15s;}
-  .imp-grid input:focus{border-color:var(--accent);}
-  .imp-grid .vss{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center;}
-
-  /* ── AUTH SCREEN ── */
-  #authScreen{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;}
-  .auth-box{background:var(--card);border:1px solid var(--border);padding:36px 32px;width:100%;max-width:380px;}
-  .auth-box h2{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.04em;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
-  .auth-box .auth-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:24px;}
-  .auth-tabs{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--border);border-radius:2px;overflow:hidden;}
-  .auth-tab{flex:1;padding:9px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:var(--surface);color:var(--muted);border:none;transition:all .15s;}
-  .auth-tab.active{background:rgba(0,229,160,.12);color:var(--accent);}
-  .auth-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
-  .auth-field label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
-  .auth-field input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 12px;border-radius:2px;outline:none;transition:border-color .15s;}
-  .auth-field input:focus{border-color:var(--accent);}
-  .auth-btn{width:100%;padding:12px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.06em;border:none;cursor:pointer;border-radius:2px;transition:all .15s;margin-top:4px;}
-  .auth-btn.primary{background:rgba(0,229,160,.15);color:var(--accent);border:1px solid rgba(0,229,160,.35);}
-  .auth-btn.primary:hover{background:rgba(0,229,160,.25);}
-  .auth-btn:disabled{opacity:.4;cursor:not-allowed;}
-  .auth-msg{font-family:'DM Mono',monospace;font-size:11px;padding:8px 12px;border-radius:2px;margin-top:12px;text-align:center;}
-  .auth-msg.error{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25);}
-  .auth-msg.success{background:rgba(0,229,160,.08);color:var(--accent);border:1px solid rgba(0,229,160,.2);}
-  .auth-msg.pending{background:rgba(245,166,35,.08);color:var(--accent3);border:1px solid rgba(245,166,35,.2);}
-  /* Badge usuário no header */
-  .user-bar{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:6px 20px;background:var(--surface);border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
-  .user-bar .user-email{color:var(--neutral);}
-  .user-bar .admin-badge{background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.25);padding:2px 8px;border-radius:2px;font-size:10px;letter-spacing:.08em;}
-  .btn-logout{background:none;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);padding:3px 8px;border-radius:2px;transition:all .15s;}
-  .btn-logout:hover{color:var(--accent2);}
-  /* Painel admin */
-  #adminPanel{background:var(--card);border:1px solid rgba(245,166,35,.25);border-left:3px solid var(--accent3);padding:16px 18px;margin-bottom:18px;}
-  #adminPanel h3{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent3);margin-bottom:12px;}
-  .admin-user-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:12px;}
-  .admin-user-row:last-child{border-bottom:none;}
-  .admin-user-email{flex:1;color:var(--text);}
-  .admin-user-status{font-size:10px;padding:2px 8px;border-radius:2px;}
-  .status-pendente{background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.2);}
-  .status-aprovado{background:rgba(0,229,160,.08);color:var(--accent);border:1px solid rgba(0,229,160,.2);}
-  .status-rejeitado{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.2);}
-  .admin-btn{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.06em;padding:3px 10px;border-radius:2px;border:none;cursor:pointer;transition:all .15s;}
-  .admin-btn.aprovar{background:rgba(0,229,160,.15);color:var(--accent);border:1px solid rgba(0,229,160,.3);}
-  .admin-btn.aprovar:hover{background:rgba(0,229,160,.28);}
-  .admin-btn.rejeitar{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25);}
-  .admin-btn.rejeitar:hover{background:rgba(255,77,109,.22);}
-  /* ── LOADING SCREEN ── */
-  #loading{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
-  #loading h2{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.06em;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-  .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  #loading p{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);}
-
-  /* ── CALCULADORA ── */
-  #mCalc .mc{max-width:700px;text-align:left;max-height:92vh;display:flex;flex-direction:column;}
-  #mCalc .mc h2{text-align:center;}
-  .calc-scroll{overflow-y:auto;flex:1;padding-right:4px;}
-  .calc-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
-  .calc-field{display:flex;flex-direction:column;gap:3px;}
-  .calc-field label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
-  .calc-field input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;padding:7px 8px;border-radius:2px;outline:none;width:100%;transition:border-color .15s;}
-  .calc-field input:focus{border-color:var(--accent);}
-  .calc-field span{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);line-height:1.3;}
-  .calc-result{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:10px;}
-  .calc-result-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);margin-bottom:10px;}
-  .calc-kpi{background:var(--card);padding:8px 6px;text-align:center;}
-  .calc-kpi-val{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:.04em;line-height:1;}
-  .calc-kpi-lbl{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;}
-  .prob-table{width:100%;border-collapse:collapse;font-size:11px;}
-  .prob-table th{padding:5px 6px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}
-  .prob-table td{padding:4px 6px;font-family:'DM Mono',monospace;border-bottom:1px solid rgba(30,42,58,.5);}
-  .prob-table tr.profit td{color:var(--win);}
-  .prob-table tr.loss-row td{color:rgba(255,77,109,.7);}
-  .prob-table tr.expected td{background:rgba(91,124,253,.08);}
-  .prob-bar{display:inline-block;height:6px;border-radius:2px;margin-left:4px;vertical-align:middle;}
-  .calc-note{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);line-height:1.5;padding:8px 10px;background:rgba(91,124,253,.06);border:1px solid rgba(91,124,253,.15);border-radius:2px;}
-  .calc-note strong{color:var(--neutral);}
-  @media(max-width:600px){.calc-grid{grid-template-columns:1fr 1fr;}.calc-result-grid{grid-template-columns:repeat(3,1fr);}}
-
-  @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-  tbody tr{animation:fadeIn .22s ease both;}
-  tbody tr:nth-child(1){animation-delay:.02s}tbody tr:nth-child(2){animation-delay:.04s}
-  tbody tr:nth-child(3){animation-delay:.06s}tbody tr:nth-child(4){animation-delay:.08s}
-  tbody tr:nth-child(5){animation-delay:.10s}tbody tr:nth-child(6){animation-delay:.12s}
-  tbody tr:nth-child(7){animation-delay:.14s}tbody tr:nth-child(8){animation-delay:.16s}
-  tbody tr:nth-child(9){animation-delay:.18s}tbody tr:nth-child(10){animation-delay:.20s}
-  tbody tr:nth-child(11){animation-delay:.22s}tbody tr:nth-child(12){animation-delay:.24s}
-  tbody tr:nth-child(13){animation-delay:.26s}tbody tr:nth-child(14){animation-delay:.28s}50%{opacity:.5}}50%{opacity:.5}}50%{opacity:.5}}50%{opacity:.4}} 50%{opacity:.4;}} 50%{opacity:.4} } 50%{opacity:.4;} }50%{opacity:.4}100%{opacity:1}}
-
-  /* modal odds resultado */
-
-  
-  @media(max-width:700px){
-    .teams{min-width:130px;font-size:12px;}
-    td{padding:8px 6px;}
-    .btn-r{padding:5px 8px;font-size:13px;}
-    .btn-nav{padding:7px 10px;font-size:10px;}
-  }
-</style>
+<style>:root{--bg:#0a0d12;--surface:#111520;--card:#161c2a;--border:#1e2a3a;--accent:#00e5a0;--accent2:#ff4d6d;--accent3:#f5a623;--text:#d4dff0;--muted:#4a5a70;--win:#00e5a0;--loss:#ff4d6d;--neutral:#5b7cfd}*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;width:100%}body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4}#syncBar{position:fixed;top:0;left:0;right:0;z-index:999;padding:6px 16px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-align:center;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:8px}#syncBar.syncing{background:rgba(245,166,35,.15);color:var(--accent3);border-bottom:1px solid rgba(245,166,35,.25)}#syncBar.synced{background:rgba(0,229,160,.1);color:var(--accent);border-bottom:1px solid rgba(0,229,160,.2)}#syncBar.error{background:rgba(255,77,109,.15);color:var(--accent2);border-bottom:1px solid rgba(255,77,109,.25)}#syncBar.hidden{display:none}.sync-dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.2s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}#syncBar.synced .sync-dot,#syncBar.error .sync-dot{animation:none}.header{position:relative;padding:52px 24px 20px;text-align:center;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(0,229,160,.04) 0%,transparent 100%)}.header-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--accent);background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.2);padding:4px 14px;border-radius:2px;margin-bottom:10px}h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,7vw,64px);letter-spacing:.04em;line-height:1;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.subtitle{margin-top:6px;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace}.concurso-nav{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface)}.concurso-info{display:flex;align-items:center;gap:8px;background:rgba(91,124,253,.1);border:1px solid rgba(91,124,253,.25);padding:7px 16px;border-radius:2px;font-family:'DM Mono',monospace;font-size:12px;color:var(--neutral)}.concurso-info .num{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.06em;color:#fff}.btn-nav{display:inline-flex;align-items:center;gap:6px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:2px;transition:all .15s}.btn-nav:hover{filter:brightness(1.25);transform:translateY(-1px)}.btn-nav:disabled{opacity:.3;cursor:not-allowed;transform:none}.btn-prev{background:rgba(74,90,112,.25);color:var(--muted);border:1px solid var(--border)}.btn-next{background:rgba(0,229,160,.12);color:var(--accent);border:1px solid rgba(0,229,160,.25)}.btn-import{background:rgba(91,124,253,.12);color:var(--neutral);border:1px solid rgba(91,124,253,.28)}.btn-del{background:rgba(255,77,109,.08);color:var(--accent2);border:1px solid rgba(255,77,109,.22)}.btn-del:disabled{opacity:.2;cursor:not-allowed;transform:none}.btn-resetall{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.28)}.btn-filter-off{background:rgba(74,90,112,.2);color:var(--muted);border:1px solid var(--border)}.btn-filter-on{background:rgba(245,166,35,.18);color:var(--accent3);border:1px solid rgba(245,166,35,.45)}tr.blocked{opacity:.35}tr.blocked td{pointer-events:none}tr.nulo td{opacity:.3;text-decoration:line-through}.btn-nulo{font-size:11px;padding:4px 8px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s}.btn-nulo:hover{border-color:var(--accent2);color:var(--accent2)}.btn-nulo.sim{background:rgba(255,77,109,.1);color:var(--loss);border-color:rgba(255,77,109,.4);font-weight:600}.blocked-badge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;border-radius:2px;background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.3);letter-spacing:.06em}.filter-bar{display:none;align-items:center;gap:10px;padding:10px 16px;background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.2);border-radius:2px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);flex-wrap:wrap}.filter-bar strong{color:var(--accent3)}.filter-bar.active{display:flex}.threshold-input{background:var(--surface);border:1px solid rgba(245,166,35,.4);color:var(--accent3);font-family:'DM Mono',monospace;font-size:14px;font-weight:600;width:46px;text-align:center;padding:4px;border-radius:2px;outline:none}.threshold-input:focus{border-color:var(--accent3)}.summary-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--border);border-bottom:1px solid var(--border)}.summary-item{background:var(--surface);padding:14px 16px;text-align:center}.summary-value{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.04em;line-height:1}.summary-item.editable{cursor:pointer;position:relative}.summary-item.editable:hover{background:rgba(0,229,160,.04)}.lucro-alvo-input{background:transparent;border:none;border-bottom:1px solid rgba(0,229,160,.4);color:var(--accent);font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.04em;line-height:1;width:100px;text-align:center;outline:none;padding:0}.lucro-alvo-input:focus{border-bottom-color:var(--accent)}.edit-hint{font-size:8px;letter-spacing:.08em;color:rgba(0,229,160,.4);font-family:'DM Mono',monospace;margin-top:2px}.summary-label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px;font-family:'DM Mono',monospace}.container{max-width:1400px;margin:0 auto;padding:20px 12px 48px;position:relative;z-index:1}.rules-card{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent3);padding:13px 18px;margin-bottom:18px;font-size:12px;color:var(--muted);line-height:1.7;font-family:'DM Mono',monospace}.rules-card strong{color:var(--accent3)}.info-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}.pill{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:2px;padding:5px 11px;font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)}.pill .dot-icon{width:7px;height:7px;border-radius:50%;flex-shrink:0}.table-wrapper{overflow-x:auto;border-radius:4px;border:1px solid var(--border)}table{width:100%;border-collapse:collapse;font-size:13px}thead tr{background:var(--surface);border-bottom:2px solid var(--border)}thead th{padding:9px 6px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}thead th:first-child{padding-left:8px}tbody tr{background:var(--card);border-bottom:1px solid var(--border);transition:background .15s}tbody tr:hover{background:rgba(22,28,42,.85)}td{padding:8px 6px;vertical-align:middle;white-space:nowrap}td:first-child{padding-left:8px}.game-num{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--muted);width:22px;text-align:center}.teams{font-weight:600;font-size:12px;color:var(--text);min-width:140px;max-width:200px;white-space:normal;line-height:1.3}.teams span.vs{color:var(--muted);font-weight:300;font-size:11px;margin:0 4px}.teams.ph{color:var(--muted);font-style:italic;font-weight:400}.day-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:2px;background:rgba(74,90,112,.3);color:var(--muted)}.stage{display:inline-flex;align-items:center;font-family:'DM Mono',monospace;font-size:11px;padding:3px 8px;border-radius:2px}.s0{background:rgba(0,229,160,.08);color:var(--accent);border:1px solid rgba(0,229,160,.2)}.s1{background:rgba(245,166,35,.1);color:var(--accent3);border:1px solid rgba(245,166,35,.25)}.s2{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25)}.s3{background:rgba(255,77,109,.18);color:#ff6b85;border:1px solid rgba(255,77,109,.35)}.aposta-input{background:var(--surface);border:1px solid rgba(0,229,160,.3);color:var(--accent);font-family:'DM Mono',monospace;font-size:13px;font-weight:500;width:74px;text-align:center;padding:4px 3px;border-radius:2px;outline:none;transition:border-color .15s}.aposta-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,229,160,.12)}.aposta-input.modified{border-color:rgba(245,166,35,.6);color:var(--accent3)}.odd-input{background:var(--surface);border:1px solid var(--border);color:var(--accent3);font-family:'DM Mono',monospace;font-size:13px;font-weight:500;width:54px;text-align:center;padding:4px 3px;border-radius:2px;outline:none;transition:border-color .15s}.odd-input:focus{border-color:var(--accent3);box-shadow:0 0 0 2px rgba(245,166,35,.12)}.odd-input.odd-blocked{border-color:rgba(245,166,35,.6);background:rgba(245,166,35,.06)}.aposta-r{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--accent)}.lucro-t{font-family:'DM Mono',monospace;font-size:13px;color:var(--neutral)}.pnl{font-family:'DM Mono',monospace;font-size:12px;font-weight:500}.pos{color:var(--win)}.neg{color:var(--loss)}.zero{color:var(--muted)}.accum-cell{font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap}.risco-cell{font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;color:var(--loss)}.risco-cell.zero{color:var(--muted)}.accum-cell.pos{color:rgba(0,229,160,.7)}.accum-cell.neg{color:rgba(255,77,109,.7)}.accum-cell.zero{color:var(--muted)}.result-btns{display:flex;gap:3px;flex-wrap:nowrap;align-items:center}.btn-spacer{display:inline-block;width:28px}.btn-r{border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.04em;padding:4px 8px;border-radius:2px;transition:all .15s;background:var(--surface);color:var(--muted);border:1px solid var(--border)}.btn-r:hover{filter:brightness(1.35);transform:translateY(-1px)}.btn-r:disabled{opacity:.35;cursor:not-allowed;transform:none}.btn-r.rst{background:rgba(74,90,112,.2)}.btn-r.rst:hover{background:rgba(74,90,112,.4);color:var(--text)}.btn-r.undo{background:rgba(91,124,253,.12);color:var(--neutral);border-color:rgba(91,124,253,.25)}.btn-r.undo:hover{background:rgba(91,124,253,.25);color:#fff}.btn-r.undo:disabled{opacity:.2}.btn-r.marcado-win{background:rgba(0,229,160,.15);color:var(--win);border-color:rgba(0,229,160,.4);font-weight:600;cursor:default}.btn-r.marcado-loss{background:rgba(255,77,109,.12);color:var(--loss);border-color:rgba(255,77,109,.35);font-weight:600;cursor:default}.btn-apostado{font-size:11px;padding:4px 8px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s}.btn-apostado:hover{border-color:var(--accent3);color:var(--accent3)}.btn-apostado.sim{background:rgba(245,166,35,.12);color:var(--accent3);border-color:rgba(245,166,35,.4);font-weight:600}tr.apostado-sim td{background:rgba(245,166,35,.04)}.btn-r.redistrib{background:rgba(91,124,253,.12);color:var(--neutral);border-color:rgba(91,124,253,.3);font-size:11px;padding:4px 9px}.btn-r.redistrib:hover{background:rgba(91,124,253,.25);color:#fff}.redistrib-badge{font-family:'DM Mono',monospace;font-size:9px;padding:1px 5px;border-radius:2px;background:rgba(91,124,253,.12);color:var(--neutral);border:1px solid rgba(91,124,253,.25);margin-left:4px;vertical-align:middle}#mRedistrib .mc{max-width:480px;text-align:left}.redist-preview{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:12px 14px;margin:14px 0}.redist-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(30,42,58,.5);font-family:'DM Mono',monospace;font-size:12px}.redist-row:last-child{border-bottom:none}.redist-lbl{color:var(--muted)}.redist-val{font-weight:500}tfoot tr{background:var(--surface);border-top:2px solid var(--border)}.ht-section{margin-top:28px}.ht-section-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--neutral);margin-bottom:12px;display:flex;align-items:center;gap:10px}.ht-section-title::before{content:'';flex:1;height:1px;background:var(--border)}.ht-summary-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:16px}.ht-summary-item{background:var(--surface);padding:14px 16px;text-align:center}.ht-summary-value{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;line-height:1}.ht-summary-item.editable{cursor:pointer;position:relative}.ht-summary-item.editable:hover{background:rgba(91,124,253,.04)}.ht-lucro-input{background:transparent;border:none;border-bottom:1px solid rgba(91,124,253,.4);color:var(--neutral);font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;width:90px;text-align:center;outline:none;padding:0}.ht-badge{font-family:'DM Mono',monospace;font-size:9px;padding:1px 6px;border-radius:2px;background:rgba(91,124,253,.15);color:var(--neutral);border:1px solid rgba(91,124,253,.3);letter-spacing:.04em}.bonus-section{margin-top:28px}.bonus-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--accent3);margin-bottom:10px;display:flex;align-items:center;gap:10px}.bonus-title::before{content:'';flex:1;height:1px;background:var(--border)}.bonus-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}.bonus-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:14px}.bonus-card.win{border-color:rgba(0,229,160,.3)}.bonus-card.loss{border-color:rgba(255,77,109,.25)}.bonus-num{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--muted);letter-spacing:.06em;margin-bottom:8px}.bonus-input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:5px 8px;border-radius:2px;margin-bottom:6px;box-sizing:border-box}.bonus-input:focus{border-color:var(--accent3);outline:none}.bonus-row{display:flex;gap:6px;margin-bottom:6px}.bonus-row .bonus-input{margin-bottom:0}.bonus-btns{display:flex;gap:4px;margin-top:8px}.bonus-btn{flex:1;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.04em;padding:6px 4px;border-radius:2px;border:1px solid var(--border);background:transparent;cursor:pointer;transition:all .15s}.bonus-btn.empate{color:var(--win);border-color:rgba(0,229,160,.3)}.bonus-btn.empate:hover{background:rgba(0,229,160,.1)}.bonus-btn.nao{color:var(--loss);border-color:rgba(255,77,109,.3)}.bonus-btn.nao:hover{background:rgba(255,77,109,.1)}.bonus-btn.reset{color:var(--muted);font-size:12px}.bonus-result{font-family:'DM Mono',monospace;font-size:11px;margin-top:6px;text-align:center}.bonus-summary{display:flex;gap:12px;background:var(--surface);border:1px solid var(--border);padding:12px 16px;border-radius:4px}.bonus-sv{font-family:'Bebas Neue',sans-serif;font-size:20px}.bonus-sl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}@media(max-width:600px){.bonus-grid{grid-template-columns:1fr}}.hist-section{margin-top:28px}.hist-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:10px}.hist-title::before{content:'';flex:1;height:1px;background:var(--border)}.hist-table{width:100%;border-collapse:collapse;font-size:11px}.hist-table th{background:var(--surface);padding:7px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}.hist-table th:hover{color:var(--text)}.hist-table td{padding:7px 10px;font-family:'DM Mono',monospace;border-bottom:1px solid rgba(30,42,58,.5);white-space:nowrap}.hist-table tr:hover td{background:rgba(255,255,255,.02)}.hist-table tr.cur-row td{background:rgba(0,229,160,.05);border-left:2px solid var(--accent)}.hist-table tr{cursor:pointer}.hist-pos{color:var(--win)}.hist-neg{color:var(--loss)}.hist-zero{color:var(--muted)}.hist-num{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--accent)}.hist-year{font-size:9px;padding:1px 5px;border-radius:2px;font-family:'DM Mono',monospace}tfoot td{padding:12px 10px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.03em}tfoot td:first-child{padding-left:14px}.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:300;backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:16px;overflow-y:auto}.mo.open{display:flex}.mc{background:var(--card);border:1px solid var(--border);padding:20px;width:100%;text-align:center;max-height:94vh;overflow-y:auto}.mc h2{font-family:'Bebas Neue',sans-serif;font-size:26px;margin-bottom:8px}.mc p{color:var(--muted);font-size:12px;margin-bottom:16px;font-family:'DM Mono',monospace;line-height:1.65}.mc p strong{color:var(--accent)}.mbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.mbtns button{padding:9px 20px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:17px;cursor:pointer;border-radius:2px;transition:all .15s}.mbtns button:hover{filter:brightness(1.3)}.mbtns .ok{background:rgba(0,229,160,.15);color:var(--accent);border-color:rgba(0,229,160,.35)}.mbtns .danger{background:rgba(255,77,109,.15);color:var(--accent2);border-color:rgba(255,77,109,.35)}.next-num{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;width:220px;text-align:center;padding:8px;border-radius:2px;outline:none;display:block;margin:0 auto 6px}.next-num:focus{border-color:var(--accent)}#mImport .mc{max-width:540px;text-align:left}#mImport .mc h2,#mImport .mc p{text-align:center}.imp-hint{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:14px;background:rgba(91,124,253,.07);border:1px solid rgba(91,124,253,.18);padding:10px 12px;border-radius:2px;line-height:1.65}.imp-hint strong{color:var(--neutral)}.imp-grid{display:grid;grid-template-columns:22px 1fr auto 1fr 50px;gap:5px 7px;align-items:center;margin-bottom:16px;max-height:58vh;overflow-y:auto;padding-right:4px}.imp-grid .rn{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--muted);text-align:center}.imp-grid input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 9px;border-radius:2px;outline:none;width:100%;transition:border-color .15s}.imp-grid input:focus{border-color:var(--accent)}.imp-grid .vss{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center}#authScreen{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px}.auth-box{background:var(--card);border:1px solid var(--border);padding:36px 32px;width:100%;max-width:380px}.auth-box h2{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.04em;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}.auth-box .auth-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:24px}.auth-tabs{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--border);border-radius:2px;overflow:hidden}.auth-tab{flex:1;padding:9px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:var(--surface);color:var(--muted);border:none;transition:all .15s}.auth-tab.active{background:rgba(0,229,160,.12);color:var(--accent)}.auth-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}.auth-field label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.auth-field input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 12px;border-radius:2px;outline:none;transition:border-color .15s}.auth-field input:focus{border-color:var(--accent)}.auth-btn{width:100%;padding:12px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.06em;border:none;cursor:pointer;border-radius:2px;transition:all .15s;margin-top:4px}.auth-btn.primary{background:rgba(0,229,160,.15);color:var(--accent);border:1px solid rgba(0,229,160,.35)}.auth-btn.primary:hover{background:rgba(0,229,160,.25)}.auth-btn:disabled{opacity:.4;cursor:not-allowed}.auth-msg{font-family:'DM Mono',monospace;font-size:11px;padding:8px 12px;border-radius:2px;margin-top:12px;text-align:center}.auth-msg.error{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25)}.auth-msg.success{background:rgba(0,229,160,.08);color:var(--accent);border:1px solid rgba(0,229,160,.2)}.auth-msg.pending{background:rgba(245,166,35,.08);color:var(--accent3);border:1px solid rgba(245,166,35,.2)}.user-bar{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:6px 20px;background:var(--surface);border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}.user-bar .user-email{color:var(--neutral)}.user-bar .admin-badge{background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.25);padding:2px 8px;border-radius:2px;font-size:10px;letter-spacing:.08em}.btn-logout{background:none;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);padding:3px 8px;border-radius:2px;transition:all .15s}.btn-logout:hover{color:var(--accent2)}#adminPanel{background:var(--card);border:1px solid rgba(245,166,35,.25);border-left:3px solid var(--accent3);padding:16px 18px;margin-bottom:18px}#adminPanel h3{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent3);margin-bottom:12px}.admin-user-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:12px}.admin-user-row:last-child{border-bottom:none}.admin-user-email{flex:1;color:var(--text)}.admin-user-status{font-size:10px;padding:2px 8px;border-radius:2px}.status-pendente{background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.2)}.status-aprovado{background:rgba(0,229,160,.08);color:var(--accent);border:1px solid rgba(0,229,160,.2)}.status-rejeitado{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.2)}.admin-btn{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.06em;padding:3px 10px;border-radius:2px;border:none;cursor:pointer;transition:all .15s}.admin-btn.aprovar{background:rgba(0,229,160,.15);color:var(--accent);border:1px solid rgba(0,229,160,.3)}.admin-btn.aprovar:hover{background:rgba(0,229,160,.28)}.admin-btn.rejeitar{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25)}.admin-btn.rejeitar:hover{background:rgba(255,77,109,.22)}#loading{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}#loading h2{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.06em;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}#loading p{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)}#mCalc .mc{max-width:700px;text-align:left;max-height:92vh;display:flex;flex-direction:column}#mCalc .mc h2{text-align:center}.calc-scroll{overflow-y:auto;flex:1;padding-right:4px}.calc-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:12px}.calc-field{display:flex;flex-direction:column;gap:3px}.calc-field label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.calc-field input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;padding:7px 8px;border-radius:2px;outline:none;width:100%;transition:border-color .15s}.calc-field input:focus{border-color:var(--accent)}.calc-field span{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);line-height:1.3}.calc-result{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:10px}.calc-result-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);margin-bottom:10px}.calc-kpi{background:var(--card);padding:8px 6px;text-align:center}.calc-kpi-val{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:.04em;line-height:1}.calc-kpi-lbl{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace}.prob-table{width:100%;border-collapse:collapse;font-size:11px}.prob-table th{padding:5px 6px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)}.prob-table td{padding:4px 6px;font-family:'DM Mono',monospace;border-bottom:1px solid rgba(30,42,58,.5)}.prob-table tr.profit td{color:var(--win)}.prob-table tr.loss-row td{color:rgba(255,77,109,.7)}.prob-table tr.expected td{background:rgba(91,124,253,.08)}.prob-bar{display:inline-block;height:6px;border-radius:2px;margin-left:4px;vertical-align:middle}.calc-note{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);line-height:1.5;padding:8px 10px;background:rgba(91,124,253,.06);border:1px solid rgba(91,124,253,.15);border-radius:2px}.calc-note strong{color:var(--neutral)}@media(max-width:600px){.calc-grid{grid-template-columns:1fr 1fr}.calc-result-grid{grid-template-columns:repeat(3,1fr)}}@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}tbody tr{animation:fadeIn .22s ease both}tbody tr:nth-child(1){animation-delay:.02s}tbody tr:nth-child(2){animation-delay:.04s}tbody tr:nth-child(3){animation-delay:.06s}tbody tr:nth-child(4){animation-delay:.08s}tbody tr:nth-child(5){animation-delay:.10s}tbody tr:nth-child(6){animation-delay:.12s}tbody tr:nth-child(7){animation-delay:.14s}tbody tr:nth-child(8){animation-delay:.16s}tbody tr:nth-child(9){animation-delay:.18s}tbody tr:nth-child(10){animation-delay:.20s}tbody tr:nth-child(11){animation-delay:.22s}tbody tr:nth-child(12){animation-delay:.24s}tbody tr:nth-child(13){animation-delay:.26s}tbody tr:nth-child(14){animation-delay:.28s}50%{opacity:.5}}50%{opacity:.5}}50%{opacity:.5}}50%{opacity:.4}}50%{opacity:.4}}50%{opacity:.4}}50%{opacity:.4}}50%{opacity:.4}100%{opacity:1}}@media(max-width:700px){.teams{min-width:130px;font-size:12px}td{padding:8px 6px}.btn-r{padding:5px 8px;font-size:13px}.btn-nav{padding:7px 10px;font-size:10px}}</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
-<!-- AUTH SCREEN -->
 <div id="authScreen" style="display:none">
   <div class="auth-box">
     <h2>JAF Loteca</h2>
@@ -329,13 +18,13 @@
       <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">ENTRAR</button>
       <button class="auth-tab" id="tabCadastro" onclick="switchTab('cadastro')">CADASTRAR</button>
     </div>
-    <!-- LOGIN -->
+
     <div id="formLogin">
       <div class="auth-field"><label>E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com"></div>
       <div class="auth-field"><label>Senha</label><input type="password" id="loginSenha" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <button class="auth-btn primary" onclick="doLogin()">ENTRAR</button>
     </div>
-    <!-- CADASTRO -->
+
     <div id="formCadastro" style="display:none">
       <div class="auth-field"><label>Nome</label><input type="text" id="cadNome" placeholder="Seu nome"></div>
       <div class="auth-field"><label>E-mail</label><input type="email" id="cadEmail" placeholder="seu@email.com"></div>
@@ -347,31 +36,26 @@
   </div>
 </div>
 
-<!-- USER BAR -->
 <div class="user-bar" id="userBar" style="display:none">
   <span class="user-email" id="userEmail"></span>
   <span class="admin-badge" id="adminBadge" style="display:none">ADMIN</span>
   <button class="btn-logout" onclick="doLogout()">Sair</button>
 </div>
 
-<!-- LOADING -->
 <div id="loading">
   <h2>JAF Loteca</h2>
   <div class="spinner"></div>
   <p>Conectando ao banco de dados...</p>
 </div>
 
-<!-- SYNC BAR -->
 <div id="syncBar" class="hidden"></div>
 
-<!-- HEADER -->
 <div class="header">
   <div class="header-badge">SISTEMA MARTINGALE EM EMPATE — JAF</div>
   <h1>JAF Loteca</h1>
   <div class="subtitle">controle por linha · recuperação total + lucro · sincronizado em tempo real</div>
 </div>
 
-<!-- CONCURSO NAV -->
 <div class="concurso-nav">
   <button class="btn-nav btn-prev" id="btnPrev" onclick="goPrev()">
     <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7.5 1.5L3.5 5.5L7.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -407,7 +91,6 @@
   </button>
 </div>
 
-<!-- SUMMARY -->
 <div class="summary-bar">
   <div class="summary-item editable" title="Lucro alvo Stage 0 a 5" onclick="document.getElementById('lucroAlvoInput').select()">
     <input type="number" id="lucroAlvoInput" class="lucro-alvo-input" min="1" step="1" value="20"
@@ -445,9 +128,8 @@
   <div class="summary-item" title="Média histórica das odds de empate em todos os concursos"><div class="summary-value" id="sMediaOddHist" style="color:var(--accent3)">—</div><div class="summary-label">Odd Média Histórica</div></div>
 </div>
 
-<!-- MAIN -->
 <div class="container">
-  <!-- PAINEL ADMIN -->
+
   <div id="adminPanel" style="display:none">
     <h3>⚙ Painel Admin — Usuários</h3>
     <div id="adminUserList"><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">Carregando...</span></div>
@@ -498,10 +180,9 @@
     </table>
   </div>
 
-  <!-- SEÇÃO HT -->
   <div class="ht-section">
     <div class="ht-section-title">EMPATE NO INTERVALO (HT) — 14 LINHAS INDEPENDENTES</div>
-    <!-- Cards HT -->
+
     <div class="ht-summary-bar" id="htSummaryBar">
       <div class="ht-summary-item editable" title="Lucro alvo HT" onclick="document.getElementById('htLucroInput').select()">
         <input type="number" id="htLucroInput" class="ht-lucro-input" min="1" step="1" value="20"
@@ -525,7 +206,7 @@
       <div class="ht-summary-item"><div class="ht-summary-value" id="htRecup" style="color:var(--accent3)">0</div><div class="summary-label">Em Recuperação HT</div></div>
       <div class="ht-summary-item"><div class="ht-summary-value" id="htHaver" style="color:var(--loss)">—</div><div class="summary-label">Haver HT</div></div>
     </div>
-    <!-- Tabela HT -->
+
     <div class="table-wrapper">
       <table>
         <thead>
@@ -552,13 +233,12 @@
     </div>
   </div>
 
-  <!-- LINHAS BONUS -->
   <div class="bonus-section">
     <div class="bonus-title">LINHAS BONUS - 3 JOGOS AVULSOS</div>
     <div id="bonusGrid" class="bonus-grid"></div>
     <div id="bonusSummary" class="bonus-summary"></div>
   </div>
-  <!-- HISTÓRICO -->
+
   <div class="hist-section">
     <div class="hist-title">TODAS AS RODADAS — CLIQUE PARA SELECIONAR</div>
     <div class="table-wrapper">
@@ -584,9 +264,6 @@
   </div>
 </div>
 
-<!-- Modal reset linha removido -->
-
-<!-- MODAL: CALCULADORA DE STAKE -->
 <div class="mo" id="mCalc"><div class="mc" style="max-width:700px;text-align:left">
   <h2 style="text-align:center;margin-bottom:4px">Calculadora de Stake</h2>
   <p style="text-align:center;margin-bottom:10px">Defina o lucro alvo e veja quanto apostar por linha.</p>
@@ -616,7 +293,7 @@
 
   <div class="calc-scroll">
     <div class="calc-result" id="calcResult">
-      <!-- preenchido pelo JS -->
+
     </div>
   </div>
 
@@ -625,11 +302,6 @@
   </div>
 </div></div>
 
-
-<!-- Busca de odds removida -->
-
-
-<!-- MODAL: PRÓXIMO CONCURSO -->
 <div class="mo" id="mNext"><div class="mc" style="max-width:400px">
   <h2>Próximo Concurso</h2>
   <p>O <strong>martingale de cada linha será mantido</strong>.<br>Os jogos serão preenchidos com placeholders genéricos.<br>Use <strong>Importar Times</strong> quando a grade sair.</p>
@@ -642,7 +314,6 @@
   </div>
 </div></div>
 
-<!-- MODAL: IMPORTAR TIMES -->
 <div class="mo" id="mImport"><div class="mc" style="max-width:540px;text-align:left">
   <h2 style="text-align:center">Importar Times — Concurso <span id="impNum">—</span></h2>
   <div class="imp-hint" style="margin-bottom:14px">
@@ -670,7 +341,6 @@
   </div>
 </div></div>
 
-<!-- MODAL: REDISTRIBUIR SALDO -->
 <div class="mo" id="mRedistrib"><div class="mc" style="max-width:480px;text-align:left">
   <h2 style="text-align:center">↔ Redistribuir Saldo</h2>
   <p style="text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">
@@ -685,7 +355,6 @@
   </div>
 </div></div>
 
-<!-- MODAL: EXCLUIR CONCURSO -->
 <div class="mo" id="mDelConc"><div class="mc" style="max-width:400px">
   <h2 style="color:var(--accent2)">🗑 Excluir Concurso</h2>
   <p id="mDelConcMsg">Confirmar exclusão?</p>
@@ -695,7 +364,6 @@
   </div>
 </div></div>
 
-<!-- MODAL: RESET GERAL -->
 <div class="mo" id="mResetAll"><div class="mc" style="max-width:400px">
   <h2 style="color:var(--accent2)">⚠ Reset Geral</h2>
   <p>Isso vai <strong style="color:var(--accent2)">apagar TODO o histórico</strong> — concursos, resultados, martingale e P&L acumulado na nuvem.<br>Esta ação <strong style="color:var(--accent2)">não pode ser desfeita</strong>.</p>
@@ -705,37 +373,26 @@
   </div>
 </div></div>
 
-<!-- ══════════════════════════════════════════════════════
-     FIREBASE SDK (módulos ES via CDN)
-══════════════════════════════════════════════════════ -->
-<script type="module">
-import { initializeApp }                                                from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+<script type="module">import { initializeApp }                                                from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-
 // ══════════════════════════════════════════════════════
-// CONFIG FIREBASE
 // ══════════════════════════════════════════════════════
 const firebaseConfig = {
-  apiKey:            "AIzaSyDJ7B3Ki7z24guMaLFh17tSzgZlYFoqEZ8",
-  authDomain:        "jaf-loteca.firebaseapp.com",
-  projectId:         "jaf-loteca",
-  storageBucket:     "jaf-loteca.firebasestorage.app",
-  messagingSenderId: "1096329329521",
-  appId:             "1:1096329329521:web:0ead94588a27d2e7eb94d0"
+apiKey:            "AIzaSyDJ7B3Ki7z24guMaLFh17tSzgZlYFoqEZ8",
+authDomain:        "jaf-loteca.firebaseapp.com",
+projectId:         "jaf-loteca",
+storageBucket:     "jaf-loteca.firebasestorage.app",
+messagingSenderId: "1096329329521",
+appId:             "1:1096329329521:web:0ead94588a27d2e7eb94d0"
 };
-
 const firebaseApp = initializeApp(firebaseConfig);
 const db          = getFirestore(firebaseApp);
 const auth        = getAuth(firebaseApp);
 let DOC_REF       = null;  // definido após login com uid do usuário
 const USUARIOS    = collection(db, "usuarios");
-
-// ← COLOQUE SEU E-MAIL AQUI (será o admin automático)
 const ADMIN_EMAIL = "renanlara@live.com";
-
 // ══════════════════════════════════════════════════════
-// CONSTANTS
 // ══════════════════════════════════════════════════════
 let BASE_TARGET  = 20;  // lucro alvo Stage 0–5
 let BASE_TARGET_HT  = 20; // lucro alvo HT S0-S5
@@ -743,1058 +400,1185 @@ let BASE_TARGET_HT6 = 20; // lucro alvo HT S6+
 let BASE_TARGET6 = 20;  // lucro alvo Stage 6+
 let BASE_PCT     = 10;  // % recuperação do lostAccum
 const N         = 14;
-
-// Filtro super favoritos — estado local (não salvo no Firebase)
-// _filterOn agora é salvo por concurso em A.concursos[A.cur].filterOn
-
 // ══════════════════════════════════════════════════════
-// DEFAULTS
 // ══════════════════════════════════════════════════════
 function blankGames() {
-  return Array.from({length:N}, (_,i) => ({
-    home: `Casa ${i+1}`, away: `Visitante ${i+1}`,
-    day:  i % 2 === 0 ? 'Sáb' : 'Dom'
-  }));
+return Array.from({length:N}, (_,i) => ({
+home: `Casa ${i+1}`, away: `Visitante ${i+1}`,
+day:  i % 2 === 0 ? 'Sáb' : 'Dom'
+}));
 }
-
 function blankLines() {
-  return Array.from({length:N}, () => ({
-    stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}, lucroOverride: {}, lastAction: null, pctX: {}, redistExtra: 0, apostado: {}, nulo: {}
-  }));
+return Array.from({length:N}, () => ({
+stage: 0, lostAccum: 0, odd: 3.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}, lucroOverride: {}, lastAction: null, pctX: {}, redistExtra: 0, apostado: {}, nulo: {}
+}));
 }
 function blankLinesHT() {
-  return Array.from({length:N}, () => ({
-    home: '', away: '',
-    stage: 0, lostAccum: 0, odd: 2.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}, lucroOverride: {}, lastAction: null, pctX: {}, redistExtra: 0, apostado: {}, nulo: {}
-  }));
+return Array.from({length:N}, () => ({
+home: '', away: '',
+stage: 0, lostAccum: 0, odd: 2.0, pnlTotal: 0, pnlLog: {}, apostaOverride: {}, lucroOverride: {}, lastAction: null, pctX: {}, redistExtra: 0, apostado: {}, nulo: {}
+}));
 }
-
 function initState() {
-  return {
-    cur: 0,
-    lucroAlvo: 20,
-    lucroAlvoHT: 20,
-    lucroAlvoHT6: 20,
-    bonusPnlTotal: 0,
-    redistLog: [],
-    lucroAlvo6: 20,
-    pctRecup: 10,
-    concursos: [{
-      num: 1239,
-      filterOn: true,
-      threshold: 6.5,
-      games: [
-        {home:'Colômbia',          away:'França',         day:'Dom'},
-        {home:'CRB',               away:'Vitória',        day:'Sáb'},
-        {home:'Maranhão',          away:'Ferroviário CE', day:'Sáb'},
-        {home:'Retro Brasil PE',   away:'Ceará',          day:'Sáb'},
-        {home:'Fortaleza',         away:'Imperatriz MA',  day:'Sáb'},
-        {home:'México',            away:'Portugal',       day:'Sáb'},
-        {home:'EUA',               away:'Bélgica',        day:'Sáb'},
-        {home:'Lituânia',          away:'Geórgia',        day:'Dom'},
-        {home:'Juazeirense BA',    away:'Itabaiana SE',   day:'Dom'},
-        {home:'ABC',               away:'Sport',          day:'Dom'},
-        {home:'Confiança SE',      away:'Fluminense PI',  day:'Dom'},
-        {home:'Piauí Esp Clube PI',away:'Sousa PB',       day:'Dom'},
-        {home:'Athletico PR',      away:'Botafogo RJ',    day:'Dom'},
-        {home:'Botafogo PB',       away:'ASA AL',         day:'Dom'},
-      ]
-    }],
-    lines: blankLines(),
-    linesHT: blankLinesHT()
-  };
+return {
+cur: 0,
+lucroAlvo: 20,
+lucroAlvoHT: 20,
+lucroAlvoHT6: 20,
+bonusPnlTotal: 0,
+redistLog: [],
+lucroAlvo6: 20,
+pctRecup: 10,
+concursos: [{
+num: 1239,
+filterOn: true,
+threshold: 6.5,
+games: [
+{home:'Colômbia',          away:'França',         day:'Dom'},
+{home:'CRB',               away:'Vitória',        day:'Sáb'},
+{home:'Maranhão',          away:'Ferroviário CE', day:'Sáb'},
+{home:'Retro Brasil PE',   away:'Ceará',          day:'Sáb'},
+{home:'Fortaleza',         away:'Imperatriz MA',  day:'Sáb'},
+{home:'México',            away:'Portugal',       day:'Sáb'},
+{home:'EUA',               away:'Bélgica',        day:'Sáb'},
+{home:'Lituânia',          away:'Geórgia',        day:'Dom'},
+{home:'Juazeirense BA',    away:'Itabaiana SE',   day:'Dom'},
+{home:'ABC',               away:'Sport',          day:'Dom'},
+{home:'Confiança SE',      away:'Fluminense PI',  day:'Dom'},
+{home:'Piauí Esp Clube PI',away:'Sousa PB',       day:'Dom'},
+{home:'Athletico PR',      away:'Botafogo RJ',    day:'Dom'},
+{home:'Botafogo PB',       away:'ASA AL',         day:'Dom'},
+]
+}],
+lines: blankLines(),
+linesHT: blankLinesHT()
+};
 }
-
 // ══════════════════════════════════════════════════════
-// APP STATE
 // ══════════════════════════════════════════════════════
 let A            = null;   // estado atual
 let _saving      = false;  // flag para ignorar o próprio snapshot ao salvar
 let _unsubscribe = null;   // listener do Firestore
-
 // ══════════════════════════════════════════════════════
-// SYNC STATUS UI
 // ══════════════════════════════════════════════════════
 function syncUI(state, msg) {
-  const bar = document.getElementById('syncBar');
-  bar.className = state === 'hidden' ? 'hidden' : state;
-  if (state !== 'hidden') {
-    bar.innerHTML = `<span class="sync-dot"></span>${msg}`;
-    if (state === 'synced') setTimeout(() => bar.className = 'hidden', 2500);
-  }
+const bar = document.getElementById('syncBar');
+bar.className = state === 'hidden' ? 'hidden' : state;
+if (state !== 'hidden') {
+bar.innerHTML = `<span class="sync-dot"></span>${msg}`;
+if (state === 'synced') setTimeout(() => bar.className = 'hidden', 2500);
 }
-
+}
 // ══════════════════════════════════════════════════════
 // SAVE → FIRESTORE
 // ══════════════════════════════════════════════════════
 let _saveTimer = null;
 async function save() {
-  // debounce: espera 600ms de inatividade antes de salvar
-  clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(async () => {
-    try {
-      syncUI('syncing', 'Salvando...');
-      _saving = true;
-      await setDoc(DOC_REF, JSON.parse(JSON.stringify(A)));
-      syncUI('synced', 'Salvo ✓');
-    } catch(e) {
-      console.error('Erro ao salvar:', e);
-      syncUI('error', 'Erro ao salvar — verifique conexão');
-    } finally {
-      _saving = false;
-    }
-  }, 600);
+clearTimeout(_saveTimer);
+_saveTimer = setTimeout(async () => {
+try {
+syncUI('syncing', 'Salvando...');
+_saving = true;
+await setDoc(DOC_REF, JSON.parse(JSON.stringify(A)));
+syncUI('synced', 'Salvo ✓');
+} catch(e) {
+console.error('Erro ao salvar:', e);
+syncUI('error', 'Erro ao salvar — verifique conexão');
+} finally {
+_saving = false;
 }
-
+}, 600);
+}
 // ══════════════════════════════════════════════════════
-// LOAD + REALTIME LISTENER
 // ══════════════════════════════════════════════════════
 // ── AUTH UI HELPERS ──
 window.switchTab = function(tab) {
-  document.getElementById('formLogin').style.display    = tab==='login'    ? '' : 'none';
-  document.getElementById('formCadastro').style.display = tab==='cadastro' ? '' : 'none';
-  document.getElementById('tabLogin').classList.toggle('active',    tab==='login');
-  document.getElementById('tabCadastro').classList.toggle('active', tab==='cadastro');
-  document.getElementById('authMsg').innerHTML = '';
+document.getElementById('formLogin').style.display    = tab==='login'    ? '' : 'none';
+document.getElementById('formCadastro').style.display = tab==='cadastro' ? '' : 'none';
+document.getElementById('tabLogin').classList.toggle('active',    tab==='login');
+document.getElementById('tabCadastro').classList.toggle('active', tab==='cadastro');
+document.getElementById('authMsg').innerHTML = '';
 };
-
 function showAuthMsg(msg, type) {
-  document.getElementById('authMsg').innerHTML = `<div class="auth-msg ${type}">${msg}</div>`;
+document.getElementById('authMsg').innerHTML = `<div class="auth-msg ${type}">${msg}</div>`;
 }
-
 window.doLogin = async function() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const senha = document.getElementById('loginSenha').value;
-  if (!email || !senha) return showAuthMsg('Preencha e-mail e senha.', 'error');
-  try {
-    await signInWithEmailAndPassword(auth, email, senha);
-  } catch(e) {
-    const msgs = {
-      'auth/invalid-credential': 'E-mail ou senha incorretos.',
-      'auth/user-not-found':     'Usuário não encontrado.',
-      'auth/wrong-password':     'Senha incorreta.',
-      'auth/too-many-requests':  'Muitas tentativas. Aguarde um momento.',
-    };
-    showAuthMsg(msgs[e.code] || 'Erro ao entrar: ' + e.message, 'error');
-  }
+const email = document.getElementById('loginEmail').value.trim();
+const senha = document.getElementById('loginSenha').value;
+if (!email || !senha) return showAuthMsg('Preencha e-mail e senha.', 'error');
+try {
+await signInWithEmailAndPassword(auth, email, senha);
+} catch(e) {
+const msgs = {
+'auth/invalid-credential': 'E-mail ou senha incorretos.',
+'auth/user-not-found':     'Usuário não encontrado.',
+'auth/wrong-password':     'Senha incorreta.',
+'auth/too-many-requests':  'Muitas tentativas. Aguarde um momento.',
 };
-
-window.doCadastro = async function() {
-  const nome  = document.getElementById('cadNome').value.trim();
-  const email = document.getElementById('cadEmail').value.trim();
-  const senha = document.getElementById('cadSenha').value;
-  const senha2= document.getElementById('cadSenha2').value;
-  if (!nome || !email || !senha) return showAuthMsg('Preencha todos os campos.', 'error');
-  if (senha !== senha2) return showAuthMsg('As senhas não coincidem.', 'error');
-  if (senha.length < 6) return showAuthMsg('Senha deve ter pelo menos 6 caracteres.', 'error');
-  try {
-    const cred = await createUserWithEmailAndPassword(auth, email, senha);
-    // Define status como pendente (admin aprova depois) — admin é aprovado direto
-    const status = email === ADMIN_EMAIL ? 'aprovado' : 'pendente';
-    await setDoc(doc(db, "usuarios", cred.user.uid), { nome, email, status, criadoEm: Date.now() });
-    if (status === 'pendente') {
-      await signOut(auth);
-      showAuthMsg('Cadastro realizado! Aguarde a aprovação do administrador.', 'pending');
-    }
-  } catch(e) {
-    const msgs = {
-      'auth/email-already-in-use': 'Este e-mail já está cadastrado.',
-      'auth/invalid-email':        'E-mail inválido.',
-      'auth/weak-password':        'Senha muito fraca.',
-    };
-    showAuthMsg(msgs[e.code] || 'Erro ao cadastrar: ' + e.message, 'error');
-  }
-};
-
-window.doLogout = async function() {
-  await signOut(auth);
-};
-
-// ── ADMIN ──
-async function loadAdminPanel() {
-  const listEl = document.getElementById('adminUserList');
-  try {
-    const snap = await getDocs(USUARIOS);
-    if (snap.empty) { listEl.innerHTML = '<span style="font-family:monospace;font-size:12px;color:var(--muted)">Nenhum usuário.</span>'; return; }
-    let html = '';
-    snap.forEach(d => {
-      const u   = d.data();
-      const sid = u.status || 'pendente';
-      const btnAprovar  = sid !== 'aprovado'  ? '<button class="admin-btn aprovar" onclick="adminAction(\''+d.id+'\',\'aprovado\')">APROVAR</button>' : '';
-      const btnRejeitar = sid !== 'rejeitado' ? '<button class="admin-btn rejeitar" onclick="adminAction(\''+d.id+'\',\'rejeitado\')">REJEITAR</button>' : '';
-      html += '<div class="admin-user-row">'
-            + '<span class="admin-user-email">' + (u.nome||'') + ' &lt;' + u.email + '&gt;</span>'
-            + '<span class="admin-user-status status-' + sid + '">' + sid.toUpperCase() + '</span>'
-            + btnAprovar + btnRejeitar
-            + '</div>';
-    });
-    listEl.innerHTML = html;
-  } catch(e) { listEl.innerHTML = '<span style="color:var(--accent2);font-size:12px">Erro ao carregar usuários.</span>'; }
+showAuthMsg(msgs[e.code] || 'Erro ao entrar: ' + e.message, 'error');
 }
-
-window.adminAction = async function(uid, novoStatus) {
-  await setDoc(doc(db, "usuarios", uid), { status: novoStatus }, { merge: true });
-  loadAdminPanel();
 };
-
+window.doCadastro = async function() {
+const nome  = document.getElementById('cadNome').value.trim();
+const email = document.getElementById('cadEmail').value.trim();
+const senha = document.getElementById('cadSenha').value;
+const senha2= document.getElementById('cadSenha2').value;
+if (!nome || !email || !senha) return showAuthMsg('Preencha todos os campos.', 'error');
+if (senha !== senha2) return showAuthMsg('As senhas não coincidem.', 'error');
+if (senha.length < 6) return showAuthMsg('Senha deve ter pelo menos 6 caracteres.', 'error');
+try {
+const cred = await createUserWithEmailAndPassword(auth, email, senha);
+const status = email === ADMIN_EMAIL ? 'aprovado' : 'pendente';
+await setDoc(doc(db, "usuarios", cred.user.uid), { nome, email, status, criadoEm: Date.now() });
+if (status === 'pendente') {
+await signOut(auth);
+showAuthMsg('Cadastro realizado! Aguarde a aprovação do administrador.', 'pending');
+}
+} catch(e) {
+const msgs = {
+'auth/email-already-in-use': 'Este e-mail já está cadastrado.',
+'auth/invalid-email':        'E-mail inválido.',
+'auth/weak-password':        'Senha muito fraca.',
+};
+showAuthMsg(msgs[e.code] || 'Erro ao cadastrar: ' + e.message, 'error');
+}
+};
+window.doLogout = async function() {
+await signOut(auth);
+};
+async function loadAdminPanel() {
+const listEl = document.getElementById('adminUserList');
+try {
+const snap = await getDocs(USUARIOS);
+if (snap.empty) { listEl.innerHTML = '<span style="font-family:monospace;font-size:12px;color:var(--muted)">Nenhum usuário.</span>'; return; }
+let html = '';
+snap.forEach(d => {
+const u   = d.data();
+const sid = u.status || 'pendente';
+const btnAprovar  = sid !== 'aprovado'  ? '<button class="admin-btn aprovar" onclick="adminAction(\''+d.id+'\',\'aprovado\')">APROVAR</button>' : '';
+const btnRejeitar = sid !== 'rejeitado' ? '<button class="admin-btn rejeitar" onclick="adminAction(\''+d.id+'\',\'rejeitado\')">REJEITAR</button>' : '';
+html += '<div class="admin-user-row">'
++ '<span class="admin-user-email">' + (u.nome||'') + ' &lt;' + u.email + '&gt;</span>'
++ '<span class="admin-user-status status-' + sid + '">' + sid.toUpperCase() + '</span>'
++ btnAprovar + btnRejeitar
++ '</div>';
+});
+listEl.innerHTML = html;
+} catch(e) { listEl.innerHTML = '<span style="color:var(--accent2);font-size:12px">Erro ao carregar usuários.</span>'; }
+}
+window.adminAction = async function(uid, novoStatus) {
+await setDoc(doc(db, "usuarios", uid), { status: novoStatus }, { merge: true });
+loadAdminPanel();
+};
 // ── AUTH STATE LISTENER (ponto de entrada principal) ──
 onAuthStateChanged(auth, async (user) => {
-  const authScreen = document.getElementById('authScreen');
-  const userBar    = document.getElementById('userBar');
-  const loading    = document.getElementById('loading');
-
-  if (!user) {
-    // Não logado — mostra tela de auth
-    loading.style.display    = 'none';
-    authScreen.style.display = 'flex';
-    userBar.style.display    = 'none';
-    document.getElementById('adminPanel').style.display = 'none';
-    return;
-  }
-
-  // Logado — verifica status no Firestore
-  authScreen.style.display = 'none';
-  loading.style.display    = 'flex';
-  loading.querySelector('p').textContent = 'Verificando acesso...';
-
-  try {
-    // Cada usuário tem seu próprio documento de dados
-    DOC_REF = doc(db, "jaf-loteca", user.uid);
-
-
-    const userDoc = await getDoc(doc(db, "usuarios", user.uid));
-    if (!userDoc.exists() || userDoc.data().status !== 'aprovado') {
-      // Não aprovado
-      loading.style.display = 'none';
-      authScreen.style.display = 'flex';
-      switchTab('login');
-      if (userDoc.exists() && userDoc.data().status === 'pendente') {
-        showAuthMsg('Seu cadastro está pendente de aprovação.', 'pending');
-      } else {
-        showAuthMsg('Acesso não autorizado.', 'error');
-      }
-      await signOut(auth);
-      return;
-    }
-
-    // Aprovado — mostra user bar
-    userBar.style.display = 'flex';
-    document.getElementById('userEmail').textContent = user.email;
-    const isAdmin = user.email === ADMIN_EMAIL;
-    document.getElementById('adminBadge').style.display = isAdmin ? '' : 'none';
-    if (isAdmin) {
-      document.getElementById('adminPanel').style.display = '';
-      loadAdminPanel();
-    }
-
-    // Carrega o app
-    await initFirebase();
-
-  } catch(e) {
-    loading.innerHTML = `<h2 style="color:var(--accent2)">Erro</h2><p style="font-family:monospace;color:var(--muted);font-size:13px;margin-top:12px">${e.message}</p>`;
-  }
-});
-
-async function initFirebase() {
-  try {
-    // Carrega estado inicial
-    const snap = await getDoc(DOC_REF);
-    if (snap.exists()) {
-      A = snap.data();
-      // Migração — garante campos
-      if (!A.lucroAlvo)    A.lucroAlvo    = 20;
-      if (!A.lucroAlvo6)   A.lucroAlvo6   = 20;
-      if (!A.lucroAlvoHT)  A.lucroAlvoHT  = 20;
-      if (!A.lucroAlvoHT6) A.lucroAlvoHT6 = 20;
-      if (!A.pctRecup)   A.pctRecup   = 10;
-      BASE_TARGET    = A.lucroAlvo;
-      BASE_TARGET6   = A.lucroAlvo6;
-      BASE_TARGET_HT  = A.lucroAlvoHT  || 20;
-      BASE_TARGET_HT6 = A.lucroAlvoHT6 || 20;
-      BASE_PCT     = A.pctRecup;
-      // Garante filterOn e threshold em cada concurso
-      A.concursos = A.concursos.map(c => ({
-        filterOn: (c.filterOn !== undefined ? c.filterOn : true), threshold: 6.5, ...c
-      }));
-      // Garante campos novos para dados antigos (migração)
-      A.lines = A.lines.map(ln => ({
-        stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{}, apostaOverride:{}, lastAction:null, pctX:{}, redistExtra:0,
-        ...ln
-      }));
-      if (!A.linesHT || A.linesHT.length !== N) {
-        A.linesHT = blankLinesHT();
-      } else {
-        A.linesHT = A.linesHT.map(ln => ({
-          stage:0, lostAccum:0, odd:2.0, pnlTotal:0, pnlLog:{}, apostaOverride:{}, lucroOverride:{}, lastAction:null, pctX:{}, redistExtra:0, apostado:{}, nulo:{},
-          ...ln
-        }));
-      }
-    } else {
-      A = initState();
-      await setDoc(DOC_REF, A);
-    }
-
-    // Esconde loading e renderiza
-    document.getElementById('loading').style.display = 'none';
-    loadOddsFromConc();  // restaura odds do concurso atual
-    render();
-
-    // Listener em tempo real — atualiza se outro dispositivo mudar
-    _unsubscribe = onSnapshot(DOC_REF, (snap) => {
-      if (_saving) return; // ignora echo do próprio save
-      if (snap.exists()) {
-        const remote = snap.data();
-        // Só aplica se for diferente do estado local
-        if (JSON.stringify(remote) !== JSON.stringify(A)) {
-          A = remote;
-          A.lines = A.lines.map(ln => ({
-            stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{},
-            ...ln
-          }));
-          // Garantir linesHT no snapshot remoto
-          if (!A.linesHT || A.linesHT.length !== N) {
-            A.linesHT = blankLinesHT();
-          } else {
-            A.linesHT = A.linesHT.map(ln => ({
-              home:'', away:'', stage:0, lostAccum:0, odd:2.0, pnlTotal:0, pnlLog:{}, apostaOverride:{}, lucroOverride:{}, lastAction:null, pctX:{}, redistExtra:0, apostado:{}, nulo:{},
-              ...ln
-            }));
-          }
-          loadOddsFromConc();  // restaura odds do concurso atual
-          render();
-          syncUI('synced', 'Sincronizado ↓');
-        }
-      }
-    }, (err) => {
-      console.error('Listener error:', err);
-      syncUI('error', 'Conexão perdida — tentando reconectar...');
-    });
-
-  } catch(e) {
-    console.error('Erro Firebase:', e);
-    document.getElementById('loading').innerHTML =
-      `<h2 style="color:var(--accent2)">Erro de conexão</h2>
-       <p style="font-family:monospace;color:var(--muted);font-size:13px;margin-top:12px">
-         Verifique sua internet e recarregue a página.<br><br>
-         <code style="font-size:11px;color:var(--accent3)">${e.message}</code>
-       </p>`;
-  }
+const authScreen = document.getElementById('authScreen');
+const userBar    = document.getElementById('userBar');
+const loading    = document.getElementById('loading');
+if (!user) {
+loading.style.display    = 'none';
+authScreen.style.display = 'flex';
+userBar.style.display    = 'none';
+document.getElementById('adminPanel').style.display = 'none';
+return;
 }
-
+authScreen.style.display = 'none';
+loading.style.display    = 'flex';
+loading.querySelector('p').textContent = 'Verificando acesso...';
+try {
+DOC_REF = doc(db, "jaf-loteca", user.uid);
+const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+if (!userDoc.exists() || userDoc.data().status !== 'aprovado') {
+loading.style.display = 'none';
+authScreen.style.display = 'flex';
+switchTab('login');
+if (userDoc.exists() && userDoc.data().status === 'pendente') {
+showAuthMsg('Seu cadastro está pendente de aprovação.', 'pending');
+} else {
+showAuthMsg('Acesso não autorizado.', 'error');
+}
+await signOut(auth);
+return;
+}
+userBar.style.display = 'flex';
+document.getElementById('userEmail').textContent = user.email;
+const isAdmin = user.email === ADMIN_EMAIL;
+document.getElementById('adminBadge').style.display = isAdmin ? '' : 'none';
+if (isAdmin) {
+document.getElementById('adminPanel').style.display = '';
+loadAdminPanel();
+}
+await initFirebase();
+} catch(e) {
+loading.innerHTML = `<h2 style="color:var(--accent2)">Erro</h2><p style="font-family:monospace;color:var(--muted);font-size:13px;margin-top:12px">${e.message}</p>`;
+}
+});
+async function initFirebase() {
+try {
+const snap = await getDoc(DOC_REF);
+if (snap.exists()) {
+A = snap.data();
+if (!A.lucroAlvo)    A.lucroAlvo    = 20;
+if (!A.lucroAlvo6)   A.lucroAlvo6   = 20;
+if (!A.lucroAlvoHT)  A.lucroAlvoHT  = 20;
+if (!A.lucroAlvoHT6) A.lucroAlvoHT6 = 20;
+if (!A.pctRecup)   A.pctRecup   = 10;
+BASE_TARGET    = A.lucroAlvo;
+BASE_TARGET6   = A.lucroAlvo6;
+BASE_TARGET_HT  = A.lucroAlvoHT  || 20;
+BASE_TARGET_HT6 = A.lucroAlvoHT6 || 20;
+BASE_PCT     = A.pctRecup;
+A.concursos = A.concursos.map(c => ({
+filterOn: (c.filterOn !== undefined ? c.filterOn : true), threshold: 6.5, ...c
+}));
+A.lines = A.lines.map(ln => ({
+stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{}, apostaOverride:{}, lastAction:null, pctX:{}, redistExtra:0,
+...ln
+}));
+if (!A.linesHT || A.linesHT.length !== N) {
+A.linesHT = blankLinesHT();
+} else {
+A.linesHT = A.linesHT.map(ln => ({
+stage:0, lostAccum:0, odd:2.0, pnlTotal:0, pnlLog:{}, apostaOverride:{}, lucroOverride:{}, lastAction:null, pctX:{}, redistExtra:0, apostado:{}, nulo:{},
+...ln
+}));
+}
+} else {
+A = initState();
+await setDoc(DOC_REF, A);
+}
+document.getElementById('loading').style.display = 'none';
+loadOddsFromConc();  // restaura odds do concurso atual
+render();
+_unsubscribe = onSnapshot(DOC_REF, (snap) => {
+if (_saving) return; // ignora echo do próprio save
+if (snap.exists()) {
+const remote = snap.data();
+if (JSON.stringify(remote) !== JSON.stringify(A)) {
+A = remote;
+A.lines = A.lines.map(ln => ({
+stage:0, lostAccum:0, odd:3.0, pnlTotal:0, pnlLog:{},
+...ln
+}));
+if (!A.linesHT || A.linesHT.length !== N) {
+A.linesHT = blankLinesHT();
+} else {
+A.linesHT = A.linesHT.map(ln => ({
+home:'', away:'', stage:0, lostAccum:0, odd:2.0, pnlTotal:0, pnlLog:{}, apostaOverride:{}, lucroOverride:{}, lastAction:null, pctX:{}, redistExtra:0, apostado:{}, nulo:{},
+...ln
+}));
+}
+loadOddsFromConc();  // restaura odds do concurso atual
+render();
+syncUI('synced', 'Sincronizado ↓');
+}
+}
+}, (err) => {
+console.error('Listener error:', err);
+syncUI('error', 'Conexão perdida — tentando reconectar...');
+});
+} catch(e) {
+console.error('Erro Firebase:', e);
+document.getElementById('loading').innerHTML =
+`<h2 style="color:var(--accent2)">Erro de conexão</h2>
+<p style="font-family:monospace;color:var(--muted);font-size:13px;margin-top:12px">
+Verifique sua internet e recarregue a página.<br><br>
+<code style="font-size:11px;color:var(--accent3)">${e.message}</code>
+</p>`;
+}
+}
 // ══════════════════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════════════════
 const curConc = () => A.concursos[A.cur];
 const curNum  = () => curConc().num;
 const r2      = v  => Math.round(v * 100) / 100;
-
 function calcBetHT(ln) {
-  var odd        = (ln.odd >= 1.01) ? ln.odd : 2.0;
-  var extra      = r2(Math.max(0, ln.redistExtra || 0));
-  var targetBase = (ln.stage >= 6) ? BASE_TARGET_HT6 : BASE_TARGET_HT;
-  if (ln.stage === 0) {
-    var lucroAlvo  = r2(targetBase + extra);
-    var apostaCalc = r2(lucroAlvo / (odd - 1));
-    var aposta     = Math.max(apostaCalc, 10);
-    var lucro      = r2(aposta * (odd - 1));
-    return { aposta: aposta, lucro: lucro };
-  }
-  var profit = Math.max(ln.lostAccum * (BASE_PCT / 100), targetBase + extra);
-  return { aposta: r2((ln.lostAccum + profit) / (odd - 1)), lucro: r2(profit) };
+var odd        = (ln.odd >= 1.01) ? ln.odd : 2.0;
+var extra      = r2(Math.max(0, ln.redistExtra || 0));
+var targetBase = (ln.stage >= 6) ? BASE_TARGET_HT6 : BASE_TARGET_HT;
+if (ln.stage === 0) {
+var lucroAlvo  = r2(targetBase + extra);
+var apostaCalc = r2(lucroAlvo / (odd - 1));
+var aposta     = Math.max(apostaCalc, 10);
+var lucro      = r2(aposta * (odd - 1));
+return { aposta: aposta, lucro: lucro };
 }
-
+var profit = Math.max(ln.lostAccum * (BASE_PCT / 100), targetBase + extra);
+return { aposta: r2((ln.lostAccum + profit) / (odd - 1)), lucro: r2(profit) };
+}
 function calcBet(ln) {
-  const odd   = ln.odd >= 1.01 ? ln.odd : 3.0;
-  const extra = r2(Math.max(0, ln.redistExtra || 0));
-  const targetBase = ln.stage >= 6 ? BASE_TARGET6 : BASE_TARGET;
-  if (ln.stage === 0) {
-    const lucroAlvo  = r2(targetBase + extra);
-    const apostaCalc = r2(lucroAlvo / (odd - 1));
-    const aposta     = Math.max(apostaCalc, 10);
-    const lucro      = r2(aposta * (odd - 1));  // lucro real baseado na aposta efetiva
-    return { aposta, lucro };
-  }
-  const profit = Math.max(ln.lostAccum * (BASE_PCT / 100), targetBase + extra);
-  return { aposta: r2((ln.lostAccum + profit) / (odd - 1)), lucro: r2(profit) };
+const odd   = ln.odd >= 1.01 ? ln.odd : 3.0;
+const extra = r2(Math.max(0, ln.redistExtra || 0));
+const targetBase = ln.stage >= 6 ? BASE_TARGET6 : BASE_TARGET;
+if (ln.stage === 0) {
+const lucroAlvo  = r2(targetBase + extra);
+const apostaCalc = r2(lucroAlvo / (odd - 1));
+const aposta     = Math.max(apostaCalc, 10);
+const lucro      = r2(aposta * (odd - 1));  // lucro real baseado na aposta efetiva
+return { aposta, lucro };
 }
-
+const profit = Math.max(ln.lostAccum * (BASE_PCT / 100), targetBase + extra);
+return { aposta: r2((ln.lostAccum + profit) / (odd - 1)), lucro: r2(profit) };
+}
 const pnlNow   = ln => (ln.pnlLog && ln.pnlLog[String(curNum())]) || 0;
 const pnlTotal = ln => ln.pnlTotal || 0;
-
 function fmtS(v) {
-  return (v < 0 ? '-' : v > 0 ? '+' : '') + 'R$\u00a0' + Math.abs(v).toFixed(2).replace('.', ',');
+return (v < 0 ? '-' : v > 0 ? '+' : '') + 'R$\u00a0' + Math.abs(v).toFixed(2).replace('.', ',');
 }
 function fmtU(v) { return 'R$\u00a0' + v.toFixed(2).replace('.', ','); }
 function esc(s)  { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
 function colorPnl(el, v) {
-  el.textContent = v === 0 ? '—' : fmtS(v);
-  el.style.color = v > 0 ? 'var(--win)' : v < 0 ? 'var(--loss)' : 'var(--muted)';
+el.textContent = v === 0 ? '—' : fmtS(v);
+el.style.color = v > 0 ? 'var(--win)' : v < 0 ? 'var(--loss)' : 'var(--muted)';
 }
-
 // ══════════════════════════════════════════════════════
 // RENDER
 // ══════════════════════════════════════════════════════
 function render() {
-  if (!A) return;
-  // Sincroniza lucro alvo com o estado salvo
-  if (A.lucroAlvo  && A.lucroAlvo  !== BASE_TARGET)  BASE_TARGET  = A.lucroAlvo;
-  if (A.lucroAlvo6   && A.lucroAlvo6   !== BASE_TARGET6)   BASE_TARGET6   = A.lucroAlvo6;
-  if (A.lucroAlvoHT  && A.lucroAlvoHT  !== BASE_TARGET_HT) BASE_TARGET_HT = A.lucroAlvoHT;
-  if (A.pctRecup   && A.pctRecup   !== BASE_PCT)     BASE_PCT     = A.pctRecup;
-  const inp = document.getElementById('lucroAlvoInput');
-  if (inp && parseFloat(inp.value) !== BASE_TARGET) inp.value = BASE_TARGET;
-  const inp6 = document.getElementById('lucroAlvoInput6');
-  if (inp6 && parseFloat(inp6.value) !== BASE_TARGET6) inp6.value = BASE_TARGET6;
-  const inpHT = document.getElementById('lucroAlvoHTInput');
-  if (inpHT && parseFloat(inpHT.value) !== BASE_TARGET_HT) inpHT.value = BASE_TARGET_HT;
-  const inpPct = document.getElementById('pctRecupInput');
-  if (inpPct && parseFloat(inpPct.value) !== BASE_PCT) inpPct.value = BASE_PCT;
-  const conc = curConc();
-  document.getElementById('navNum').textContent = conc.num;
-  const rulesEl = document.getElementById('rulesLucro');
-  if (rulesEl) rulesEl.textContent = 'R$ ' + BASE_TARGET.toFixed(2).replace('.',',');
-  document.getElementById('navIdx').textContent = `${A.cur+1} / ${A.concursos.length}`;
-  document.getElementById('btnPrev').disabled   = A.cur === 0;
-  const btnDel = document.getElementById('btnDel');
-  if (btnDel) btnDel.disabled = A.concursos.length <= 1;
-
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = '';
-
-  // Lê filterOn e threshold do concurso atual
-  const conc_filter = curConc();
-  const _filterOn   = conc_filter.filterOn !== undefined ? conc_filter.filterOn : true;
-  const threshold   = conc_filter.threshold || 6.5;
-  // Sincroniza UI do botão e input
-  const _btn   = document.getElementById('btnFilter');
-  const _lbl   = document.getElementById('btnFilterLabel');
-  const _bar   = document.getElementById('filterBar');
-  const _tinp  = document.getElementById('thresholdInput');
-  if (_filterOn) {
-    _btn.className    = 'btn-nav btn-filter-on';
-    _lbl.textContent  = 'FILTRO ON';
-    _bar.classList.add('active');
-  } else {
-    _btn.className    = 'btn-nav btn-filter-off';
-    _lbl.textContent  = 'FILTRO OFF';
-    _bar.classList.remove('active');
-  }
-  if (_tinp && parseFloat(_tinp.value) !== threshold) _tinp.value = threshold;
-  let totAposta=0, totLucro=0, totPnl=0, totAcc=0, wins=0, loss=0, recup=0, totDebit=0, totRisco=0, totOdd=0, cntOdd=0;
-
-  A.lines.forEach((ln, i) => {
-    const g            = conc.games[i];
-    const {aposta: apostaCalc, lucro: lucroCalc} = calcBet(ln);
-    const key2   = String(curNum());
-    const jaM2   = ln.lastAction && ln.lastAction.key === key2;
-    const aposta = (ln.apostaOverride && ln.apostaOverride[key2] != null)
-      ? ln.apostaOverride[key2]
-      : (jaM2 && ln.apostaLog && ln.apostaLog[key2] != null)
-        ? ln.apostaLog[key2]
-        : apostaCalc;
-    const lucro = (ln.lucroOverride && ln.lucroOverride[key2] != null)
-      ? ln.lucroOverride[key2]
-      : lucroCalc;
-    const pN     = pnlNow(ln);
-    const pT     = pnlTotal(ln);
-
-    // Filtro super favorito — usa a própria odd de aposta
-    const isNulo    = !!(ln.nulo && ln.nulo[String(curNum())]);
-    const isBlocked = !isNulo && (_filterOn && (ln.odd || 3.0) >= threshold);
-
-    if (!isBlocked && !isNulo) { totAposta += aposta; totLucro += lucro; }
-    totPnl += pN; totAcc += pT;
-    if (pN > 0) wins++; if (pN < 0) loss++;
-    if (ln.stage > 0) recup++;
-    if (pT < 0) totDebit += pT;
-    totRisco += (ln.lostAccum || 0);
-    if (!isBlocked && !isNulo) { totOdd += (ln.odd >= 1.01 ? ln.odd : 3.0); cntOdd++; }
-
-    const sc  = `s${Math.min(ln.stage, 3)}`;
-    const sl  = ln.stage === 0 ? 'INICIAL' : `RECUP #${ln.stage}`;
-    const ph  = g.home.startsWith('Casa ') || g.away.startsWith('Visitante ');
-    const pNC = pN > 0 ? 'pos' : pN < 0 ? 'neg' : 'zero';
-    const pTC = pT > 0 ? 'pos' : pT < 0 ? 'neg' : 'zero';
-
-    const tr = document.createElement('tr');
-    if (isBlocked) tr.classList.add('blocked');
-    if (isNulo)    tr.classList.add('nulo');
-    tr.innerHTML = `
-      <td class="game-num">${i+1}</td>
-      <td class="teams${ph?' ph':''}"><b>${esc(g.home)}</b> <span class="vs">x</span> <b>${esc(g.away)}</b></td>
-      <td><span class="day-badge">${esc(g.day)}</span></td>
-      <td><span class="stage ${sc}">${sl}</span></td>
-      <td class="risco-cell${(ln.lostAccum||0)===0?' zero':''}">${(ln.lostAccum||0)===0?'—':'-R$'+(ln.lostAccum||0).toFixed(2).replace('.',',')}</td>
-      <td><input type="number" min="1.01" max="99" step="0.01" class="odd-input${isBlocked?' odd-blocked':''}"
-            value="${Number(ln.odd||3).toFixed(2)}" onchange="window._setOdd(${i},this.value)"
-            title="${isBlocked?'Super favorito — linha bloqueada pelo filtro':'Odd de empate'}"></td>
-      <td>
-        <input type="number" min="0.01" step="0.01" class="aposta-input"
-          value="${aposta.toFixed(2)}"
-          data-auto="${aposta.toFixed(2)}"
-          title="Valor calculado: ${fmtU(aposta)}. Edite para ajustar manualmente."
-          onchange="window._setAposta(${i},this.value)"
-          ondblclick="window._resetAposta(${i},this)">
-      </td>
-      <td class="lucro-t">${fmtU(lucro)}</td>
-      <td class="pnl ${pNC}">${pN===0?'—':fmtS(pN)}</td>
-      <td class="accum-cell ${pTC}">${pT===0?'—':fmtS(pT)}${(ln.redistExtra||0)>0?'<span class="redistrib-badge">+R$'+r2(ln.redistExtra).toFixed(2).replace('.',',')+'</span>':''}</td>
-      <td><div class="result-btns">
-        ${(() => {
-          const jaM        = ln.lastAction && ln.lastAction.key === String(curNum());
-          const isApostado = !!(ln.apostado && ln.apostado[String(curNum())]);
-          if (isApostado) tr.classList.add('apostado-sim');
-          const podaRedist = !jaM && (ln.lostAccum||0) > 0;
-          if (jaM) {
-            const label = ln.lastAction.won ? '✓ EMPATE' : '✗ NÃO';
-            const cls   = ln.lastAction.won ? 'btn-r marcado-win' : 'btn-r marcado-loss';
-            return '<button class="' + cls + '" disabled>' + label + '</button>'
-                 + '<button class="btn-r undo" onclick="window._undoResult(' + i + ')" title="Desfazer marcação">↩</button>';
-          }
-          const btnsAcao = (isBlocked || isNulo)
-            ? '<button class="btn-r" disabled>✓ EMPATE</button><button class="btn-r" disabled>✗ NÃO</button>'
-            : '<button class="btn-r" onclick="window._doResult(' + i + ',true)">✓ EMPATE</button>'
-            + '<button class="btn-r" onclick="window._doResult(' + i + ',false)">✗ NÃO</button>';
-          // ↩ só aparece quando há resultado marcado (jaM=false aqui, então sempre oculto)
-          const btnUndo   = '<span class="btn-spacer"></span>';
-          // ↔ redistribuição — espaçador quando não há
-          const btnRedist = podaRedist
-            ? '<button class="btn-r redistrib" onclick="window._openRedistrib(' + i + ')" title="Redistribuir 50% do saldo em risco entre as demais linhas">↔</button>'
-            : '<span class="btn-spacer"></span>';
-          // 💰 apostado — só mostra quando marcado ou ainda não tem resultado
-          const btnApostado = (isApostado || !jaM)
-            ? '<button class="btn-apostado' + (isApostado ? ' sim' : '') + '" onclick="window._toggleApostado(' + i + ')" title="' + (isApostado ? 'Aposta feita ✓' : 'Marcar como apostado') + '">' + (isApostado ? '💰' : '💰') + '</button>'
-            : '<span class="btn-spacer"></span>';
-          // 🚫 nulo
-          const btnNulo = '<button class="btn-nulo' + (isNulo ? ' sim' : '') + '" onclick="window._toggleNulo(' + i + ')" title="' + (isNulo ? 'Jogo nulo — clique para reativar' : 'Marcar como nulo') + '">' + (isNulo ? '🚫' : '🚫') + '</button>';
-          return btnsAcao + btnUndo + btnRedist + btnApostado + btnNulo;
-        })()}
-      </div></td>`;
-    tbody.appendChild(tr);
-  });
-
-  // Totals
-  document.getElementById('sTotal').textContent = fmtU(totAposta);
-  colorPnl(document.getElementById('sPnl'),    totPnl);
-  colorPnl(document.getElementById('sPnlAcc'), totAcc);
-  document.getElementById('sWins').textContent  = wins;
-  const totalGreens = A.lines.reduce((s, ln) => {
-    if (!ln.pnlLog) return s;
-    return s + Object.values(ln.pnlLog).filter(v => v > 0).length;
-  }, 0);
-  document.getElementById('sTotalGreens').textContent = totalGreens || '—';
-  const valorGreens = A.lines.reduce((s, ln) => {
-    if (!ln.pnlLog) return s;
-    return r2(s + Object.values(ln.pnlLog).filter(v => v > 0).reduce((a, v) => r2(a + v), 0));
-  }, 0);
-  const vgEl = document.getElementById('sValorGreens');
-  if (valorGreens > 0) {
-    vgEl.textContent = '+R ' + valorGreens.toFixed(2).replace('.',',');
-    vgEl.style.color = 'var(--win)';
-  } else {
-    vgEl.textContent = '—';
-    vgEl.style.color = 'var(--muted)';
-  }
-  document.getElementById('sLoss').textContent  = loss;
-  document.getElementById('sRecup').textContent = recup;
-
-  const riscoEl = document.getElementById('sRisco');
-  if (totRisco > 0) {
-    riscoEl.textContent = '-' + fmtU(totRisco);
-    riscoEl.style.color = 'var(--loss)';
-  } else {
-    riscoEl.textContent = '—';
-    riscoEl.style.color = 'var(--muted)';
-  }
-
-
-  document.getElementById('fRisco').textContent  = totRisco > 0 ? '-' + fmtU(totRisco) : '—';
-
-
-  renderHT();
-  renderBonus();
-  renderHist();
-  // Média odd do concurso atual
-  const mediaOddConc = cntOdd > 0 ? (totOdd / cntOdd).toFixed(2) : null;
-  const fMediaEl = document.getElementById('fMediaOdd');
-  if (fMediaEl) fMediaEl.textContent = mediaOddConc ? mediaOddConc : '—';
-  // Média odd histórica (todos concursos)
-  // Média histórica: percorre todos concursos, pega só odds que foram editadas (diferentes de 3.0)
-  const todasOddsHist = A.concursos.flatMap(c => (c.odds || []).filter(o => o && o >= 1.01 && o !== 3.0));
-  const mediaOddHist = todasOddsHist.length >= 3
-    ? (todasOddsHist.reduce((a,b) => a+b, 0) / todasOddsHist.length).toFixed(2)
-    : null;
-  const sMediaHistEl = document.getElementById('sMediaOddHist');
-  if (sMediaHistEl) sMediaHistEl.textContent = mediaOddHist ? mediaOddHist : '—';
-  document.getElementById('fAposta').textContent = fmtU(totAposta);
-  document.getElementById('fLucro').textContent  = fmtU(totLucro);
-  colorPnl(document.getElementById('fPnl'),   totPnl);
-  colorPnl(document.getElementById('fAccum'), totAcc);
+if (!A) return;
+if (A.lucroAlvo  && A.lucroAlvo  !== BASE_TARGET)  BASE_TARGET  = A.lucroAlvo;
+if (A.lucroAlvo6   && A.lucroAlvo6   !== BASE_TARGET6)   BASE_TARGET6   = A.lucroAlvo6;
+if (A.lucroAlvoHT  && A.lucroAlvoHT  !== BASE_TARGET_HT) BASE_TARGET_HT = A.lucroAlvoHT;
+if (A.pctRecup   && A.pctRecup   !== BASE_PCT)     BASE_PCT     = A.pctRecup;
+const inp = document.getElementById('lucroAlvoInput');
+if (inp && parseFloat(inp.value) !== BASE_TARGET) inp.value = BASE_TARGET;
+const inp6 = document.getElementById('lucroAlvoInput6');
+if (inp6 && parseFloat(inp6.value) !== BASE_TARGET6) inp6.value = BASE_TARGET6;
+const inpHT = document.getElementById('lucroAlvoHTInput');
+if (inpHT && parseFloat(inpHT.value) !== BASE_TARGET_HT) inpHT.value = BASE_TARGET_HT;
+const inpPct = document.getElementById('pctRecupInput');
+if (inpPct && parseFloat(inpPct.value) !== BASE_PCT) inpPct.value = BASE_PCT;
+const conc = curConc();
+document.getElementById('navNum').textContent = conc.num;
+const rulesEl = document.getElementById('rulesLucro');
+if (rulesEl) rulesEl.textContent = 'R$ ' + BASE_TARGET.toFixed(2).replace('.',',');
+document.getElementById('navIdx').textContent = `${A.cur+1} / ${A.concursos.length}`;
+document.getElementById('btnPrev').disabled   = A.cur === 0;
+const btnDel = document.getElementById('btnDel');
+if (btnDel) btnDel.disabled = A.concursos.length <= 1;
+const tbody = document.getElementById('tbody');
+tbody.innerHTML = '';
+const conc_filter = curConc();
+const _filterOn   = conc_filter.filterOn !== undefined ? conc_filter.filterOn : true;
+const threshold   = conc_filter.threshold || 6.5;
+const _btn   = document.getElementById('btnFilter');
+const _lbl   = document.getElementById('btnFilterLabel');
+const _bar   = document.getElementById('filterBar');
+const _tinp  = document.getElementById('thresholdInput');
+if (_filterOn) {
+_btn.className    = 'btn-nav btn-filter-on';
+_lbl.textContent  = 'FILTRO ON';
+_bar.classList.add('active');
+} else {
+_btn.className    = 'btn-nav btn-filter-off';
+_lbl.textContent  = 'FILTRO OFF';
+_bar.classList.remove('active');
 }
-
+if (_tinp && parseFloat(_tinp.value) !== threshold) _tinp.value = threshold;
+let totAposta=0, totLucro=0, totPnl=0, totAcc=0, wins=0, loss=0, recup=0, totDebit=0, totRisco=0, totOdd=0, cntOdd=0;
+A.lines.forEach((ln, i) => {
+const g            = conc.games[i];
+const {aposta: apostaCalc, lucro: lucroCalc} = calcBet(ln);
+const key2   = String(curNum());
+const jaM2   = ln.lastAction && ln.lastAction.key === key2;
+const aposta = (ln.apostaOverride && ln.apostaOverride[key2] != null)
+? ln.apostaOverride[key2]
+: (jaM2 && ln.apostaLog && ln.apostaLog[key2] != null)
+? ln.apostaLog[key2]
+: apostaCalc;
+const lucro = (ln.lucroOverride && ln.lucroOverride[key2] != null)
+? ln.lucroOverride[key2]
+: lucroCalc;
+const pN     = pnlNow(ln);
+const pT     = pnlTotal(ln);
+const isNulo    = !!(ln.nulo && ln.nulo[String(curNum())]);
+const isBlocked = !isNulo && (_filterOn && (ln.odd || 3.0) >= threshold);
+if (!isBlocked && !isNulo) { totAposta += aposta; totLucro += lucro; }
+totPnl += pN; totAcc += pT;
+if (pN > 0) wins++; if (pN < 0) loss++;
+if (ln.stage > 0) recup++;
+if (pT < 0) totDebit += pT;
+totRisco += (ln.lostAccum || 0);
+if (!isBlocked && !isNulo) { totOdd += (ln.odd >= 1.01 ? ln.odd : 3.0); cntOdd++; }
+const sc  = `s${Math.min(ln.stage, 3)}`;
+const sl  = ln.stage === 0 ? 'INICIAL' : `RECUP #${ln.stage}`;
+const ph  = g.home.startsWith('Casa ') || g.away.startsWith('Visitante ');
+const pNC = pN > 0 ? 'pos' : pN < 0 ? 'neg' : 'zero';
+const pTC = pT > 0 ? 'pos' : pT < 0 ? 'neg' : 'zero';
+const tr = document.createElement('tr');
+if (isBlocked) tr.classList.add('blocked');
+if (isNulo)    tr.classList.add('nulo');
+tr.innerHTML = `
+<td class="game-num">${i+1}</td>
+<td class="teams${ph?' ph':''}"><b>${esc(g.home)}</b> <span class="vs">x</span> <b>${esc(g.away)}</b></td>
+<td><span class="day-badge">${esc(g.day)}</span></td>
+<td><span class="stage ${sc}">${sl}</span></td>
+<td class="risco-cell${(ln.lostAccum||0)===0?' zero':''}">${(ln.lostAccum||0)===0?'—':'-R$'+(ln.lostAccum||0).toFixed(2).replace('.',',')}</td>
+<td><input type="number" min="1.01" max="99" step="0.01" class="odd-input${isBlocked?' odd-blocked':''}"
+value="${Number(ln.odd||3).toFixed(2)}" onchange="window._setOdd(${i},this.value)"
+title="${isBlocked?'Super favorito — linha bloqueada pelo filtro':'Odd de empate'}"></td>
+<td>
+<input type="number" min="0.01" step="0.01" class="aposta-input"
+value="${aposta.toFixed(2)}"
+data-auto="${aposta.toFixed(2)}"
+title="Valor calculado: ${fmtU(aposta)}. Edite para ajustar manualmente."
+onchange="window._setAposta(${i},this.value)"
+ondblclick="window._resetAposta(${i},this)">
+</td>
+<td class="lucro-t">${fmtU(lucro)}</td>
+<td class="pnl ${pNC}">${pN===0?'—':fmtS(pN)}</td>
+<td class="accum-cell ${pTC}">${pT===0?'—':fmtS(pT)}${(ln.redistExtra||0)>0?'<span class="redistrib-badge">+R$'+r2(ln.redistExtra).toFixed(2).replace('.',',')+'</span>':''}</td>
+<td><div class="result-btns">
+${(() => {
+const jaM        = ln.lastAction && ln.lastAction.key === String(curNum());
+const isApostado = !!(ln.apostado && ln.apostado[String(curNum())]);
+if (isApostado) tr.classList.add('apostado-sim');
+const podaRedist = !jaM && (ln.lostAccum||0) > 0;
+if (jaM) {
+const label = ln.lastAction.won ? '✓ EMPATE' : '✗ NÃO';
+const cls   = ln.lastAction.won ? 'btn-r marcado-win' : 'btn-r marcado-loss';
+return '<button class="' + cls + '" disabled>' + label + '</button>'
++ '<button class="btn-r undo" onclick="window._undoResult(' + i + ')" title="Desfazer marcação">↩</button>';
+}
+const btnsAcao = (isBlocked || isNulo)
+? '<button class="btn-r" disabled>✓ EMPATE</button><button class="btn-r" disabled>✗ NÃO</button>'
+: '<button class="btn-r" onclick="window._doResult(' + i + ',true)">✓ EMPATE</button>'
++ '<button class="btn-r" onclick="window._doResult(' + i + ',false)">✗ NÃO</button>';
+const btnUndo   = '<span class="btn-spacer"></span>';
+const btnRedist = podaRedist
+? '<button class="btn-r redistrib" onclick="window._openRedistrib(' + i + ')" title="Redistribuir 50% do saldo em risco entre as demais linhas">↔</button>'
+: '<span class="btn-spacer"></span>';
+const btnApostado = (isApostado || !jaM)
+? '<button class="btn-apostado' + (isApostado ? ' sim' : '') + '" onclick="window._toggleApostado(' + i + ')" title="' + (isApostado ? 'Aposta feita ✓' : 'Marcar como apostado') + '">' + (isApostado ? '💰' : '💰') + '</button>'
+: '<span class="btn-spacer"></span>';
+const btnNulo = '<button class="btn-nulo' + (isNulo ? ' sim' : '') + '" onclick="window._toggleNulo(' + i + ')" title="' + (isNulo ? 'Jogo nulo — clique para reativar' : 'Marcar como nulo') + '">' + (isNulo ? '🚫' : '🚫') + '</button>';
+return btnsAcao + btnUndo + btnRedist + btnApostado + btnNulo;
+})()}
+</div></td>`;
+tbody.appendChild(tr);
+});
+document.getElementById('sTotal').textContent = fmtU(totAposta);
+colorPnl(document.getElementById('sPnl'),    totPnl);
+colorPnl(document.getElementById('sPnlAcc'), totAcc);
+document.getElementById('sWins').textContent  = wins;
+const totalGreens = A.lines.reduce((s, ln) => {
+if (!ln.pnlLog) return s;
+return s + Object.values(ln.pnlLog).filter(v => v > 0).length;
+}, 0);
+document.getElementById('sTotalGreens').textContent = totalGreens || '—';
+const valorGreens = A.lines.reduce((s, ln) => {
+if (!ln.pnlLog) return s;
+return r2(s + Object.values(ln.pnlLog).filter(v => v > 0).reduce((a, v) => r2(a + v), 0));
+}, 0);
+const vgEl = document.getElementById('sValorGreens');
+if (valorGreens > 0) {
+vgEl.textContent = '+R ' + valorGreens.toFixed(2).replace('.',',');
+vgEl.style.color = 'var(--win)';
+} else {
+vgEl.textContent = '—';
+vgEl.style.color = 'var(--muted)';
+}
+document.getElementById('sLoss').textContent  = loss;
+document.getElementById('sRecup').textContent = recup;
+const riscoEl = document.getElementById('sRisco');
+if (totRisco > 0) {
+riscoEl.textContent = '-' + fmtU(totRisco);
+riscoEl.style.color = 'var(--loss)';
+} else {
+riscoEl.textContent = '—';
+riscoEl.style.color = 'var(--muted)';
+}
+document.getElementById('fRisco').textContent  = totRisco > 0 ? '-' + fmtU(totRisco) : '—';
+renderHT();
+renderBonus();
+renderHist();
+const mediaOddConc = cntOdd > 0 ? (totOdd / cntOdd).toFixed(2) : null;
+const fMediaEl = document.getElementById('fMediaOdd');
+if (fMediaEl) fMediaEl.textContent = mediaOddConc ? mediaOddConc : '—';
+const todasOddsHist = A.concursos.flatMap(c => (c.odds || []).filter(o => o && o >= 1.01 && o !== 3.0));
+const mediaOddHist = todasOddsHist.length >= 3
+? (todasOddsHist.reduce((a,b) => a+b, 0) / todasOddsHist.length).toFixed(2)
+: null;
+const sMediaHistEl = document.getElementById('sMediaOddHist');
+if (sMediaHistEl) sMediaHistEl.textContent = mediaOddHist ? mediaOddHist : '—';
+document.getElementById('fAposta').textContent = fmtU(totAposta);
+document.getElementById('fLucro').textContent  = fmtU(totLucro);
+colorPnl(document.getElementById('fPnl'),   totPnl);
+colorPnl(document.getElementById('fAccum'), totAcc);
+}
 // ══════════════════════════════════════════════════════
-// ACTIONS — expostos via window._ para os onclick inline
 // ══════════════════════════════════════════════════════
 window._doResult = function(i, won) {
-  const ln  = A.lines[i];
-  const key = String(curNum());
-  if (!ln.pnlLog) ln.pnlLog = {};
-  // Bloquear dupla marcação no mesmo concurso
-  if (ln.lastAction && ln.lastAction.key === key) return;
-  const {aposta: apostaCalc, lucro} = calcBet(ln);
-  // Usa override se existir, senão usa o calculado
-  const aposta = (ln.apostaOverride && ln.apostaOverride[key] != null)
-    ? ln.apostaOverride[key]
-    : apostaCalc;
-  // Salva snapshot ANTES de alterar (para desfazer)
-  ln.lastAction = {
-    key, won, aposta, lucro,
-    stage:      ln.stage,
-    lostAccum:  ln.lostAccum,
-    pnlTotal:   ln.pnlTotal,
-    pnlLogVal:  (ln.pnlLog[key] || 0),
-    hadOverride: (ln.apostaOverride && ln.apostaOverride[key] != null),
-    overrideVal: (ln.apostaOverride && ln.apostaOverride[key]),
-  };
-  // Salvar aposta real por concurso para exibição no histórico
-  if (!ln.apostaLog) ln.apostaLog = {};
-  ln.apostaLog[key] = aposta;
-  // Limpa override após usar (resultado registrado)
-  if (ln.apostaOverride) delete ln.apostaOverride[key];
-  const prevLog = ln.pnlLog[key] || 0;
-
-  if (won) {
-    // GREEN: recupera tudo que foi perdido (lostAccum já debitado) + lucro líquido
-    ln.pnlTotal    = r2((ln.pnlTotal||0) + ln.lostAccum + lucro);
-    ln.redistExtra = 0;  // extra foi recuperado
-    // No pnlLog deste concurso: recupera o que foi perdido AQUI + lucro
-    const lostHere = prevLog < 0 ? Math.abs(prevLog) : 0;
-    const recover  = Math.min(ln.lostAccum, lostHere);
-    ln.pnlLog[key] = r2(prevLog + recover + lucro);
-    ln.stage       = 0;
-    ln.lostAccum   = 0;
-  } else {
-    // RED: debita nos dois contadores
-    ln.pnlLog[key] = r2(prevLog - aposta);
-    ln.pnlTotal    = r2((ln.pnlTotal||0) - aposta);
-    ln.lostAccum   = r2((ln.lostAccum||0) + aposta);
-    ln.stage++;
-  }
-  // Acumular totalApostado no concurso atual
-  const conc = curConc();
-  if (!conc.totalApostado) conc.totalApostado = 0;
-  conc.totalApostado = r2(conc.totalApostado + aposta);
-
-  save(); render();
+const ln  = A.lines[i];
+const key = String(curNum());
+if (!ln.pnlLog) ln.pnlLog = {};
+if (ln.lastAction && ln.lastAction.key === key) return;
+const {aposta: apostaCalc, lucro} = calcBet(ln);
+const aposta = (ln.apostaOverride && ln.apostaOverride[key] != null)
+? ln.apostaOverride[key]
+: apostaCalc;
+ln.lastAction = {
+key, won, aposta, lucro,
+stage:      ln.stage,
+lostAccum:  ln.lostAccum,
+pnlTotal:   ln.pnlTotal,
+pnlLogVal:  (ln.pnlLog[key] || 0),
+hadOverride: (ln.apostaOverride && ln.apostaOverride[key] != null),
+overrideVal: (ln.apostaOverride && ln.apostaOverride[key]),
 };
-
+if (!ln.apostaLog) ln.apostaLog = {};
+ln.apostaLog[key] = aposta;
+if (ln.apostaOverride) delete ln.apostaOverride[key];
+const prevLog = ln.pnlLog[key] || 0;
+if (won) {
+ln.pnlTotal    = r2((ln.pnlTotal||0) + ln.lostAccum + lucro);
+ln.redistExtra = 0;  // extra foi recuperado
+const lostHere = prevLog < 0 ? Math.abs(prevLog) : 0;
+const recover  = Math.min(ln.lostAccum, lostHere);
+ln.pnlLog[key] = r2(prevLog + recover + lucro);
+ln.stage       = 0;
+ln.lostAccum   = 0;
+} else {
+ln.pnlLog[key] = r2(prevLog - aposta);
+ln.pnlTotal    = r2((ln.pnlTotal||0) - aposta);
+ln.lostAccum   = r2((ln.lostAccum||0) + aposta);
+ln.stage++;
+}
+const conc = curConc();
+if (!conc.totalApostado) conc.totalApostado = 0;
+conc.totalApostado = r2(conc.totalApostado + aposta);
+save(); render();
+};
 window._undoResult = function(i) {
-  const ln = A.lines[i];
-  if (!ln.lastAction) return; // nada para desfazer
-  const snap = ln.lastAction;
-  // Restaura tudo do snapshot
-  ln.stage      = snap.stage;
-  ln.lostAccum  = snap.lostAccum;
-  ln.pnlTotal   = snap.pnlTotal;
-  if (!ln.pnlLog) ln.pnlLog = {};
-  if (snap.pnlLogVal === 0) {
-    delete ln.pnlLog[snap.key];
-  } else {
-    ln.pnlLog[snap.key] = snap.pnlLogVal;
-  }
-  // Restaura override se havia
-  if (!ln.apostaOverride) ln.apostaOverride = {};
-  if (snap.hadOverride) {
-    ln.apostaOverride[snap.key] = snap.overrideVal;
-  } else {
-    delete ln.apostaOverride[snap.key];
-  }
-  ln.lastAction = null; // só um nível de undo
-  // Remover apostaLog deste concurso
-  if (ln.apostaLog)     delete ln.apostaLog[snap.key];
-  if (ln.lucroOverride) delete ln.lucroOverride[snap.key];
-  // Subtrair do totalApostado do concurso
-  const concU = curConc();
-  if (concU.totalApostado) {
-    concU.totalApostado = r2(Math.max(0, concU.totalApostado - snap.aposta));
-  }
-  save(); render();
+const ln = A.lines[i];
+if (!ln.lastAction) return; // nada para desfazer
+const snap = ln.lastAction;
+ln.stage      = snap.stage;
+ln.lostAccum  = snap.lostAccum;
+ln.pnlTotal   = snap.pnlTotal;
+if (!ln.pnlLog) ln.pnlLog = {};
+if (snap.pnlLogVal === 0) {
+delete ln.pnlLog[snap.key];
+} else {
+ln.pnlLog[snap.key] = snap.pnlLogVal;
+}
+if (!ln.apostaOverride) ln.apostaOverride = {};
+if (snap.hadOverride) {
+ln.apostaOverride[snap.key] = snap.overrideVal;
+} else {
+delete ln.apostaOverride[snap.key];
+}
+ln.lastAction = null; // só um nível de undo
+if (ln.apostaLog)     delete ln.apostaLog[snap.key];
+if (ln.lucroOverride) delete ln.lucroOverride[snap.key];
+const concU = curConc();
+if (concU.totalApostado) {
+concU.totalApostado = r2(Math.max(0, concU.totalApostado - snap.aposta));
+}
+save(); render();
 };
-
 window._setAposta = function(i, val) {
-  const v = parseFloat(val);
-  if (isNaN(v) || v <= 0) return;
-  const ln  = A.lines[i];
-  const key = String(curNum());
-  if (!ln.apostaOverride) ln.apostaOverride = {};
-  const {aposta: apostaCalc} = calcBet(ln);
-
-  if (!ln.lucroOverride) ln.lucroOverride = {};
-  if (Math.abs(v - apostaCalc) < 0.005) {
-    delete ln.apostaOverride[key];
-    delete ln.lucroOverride[key];
-  } else {
-    ln.apostaOverride[key] = r2(v);
-    const odd      = ln.odd >= 1.01 ? ln.odd : 3.0;
-    const lucroLiq = r2(v * (odd - 1));
-    if (ln.stage === 0) {
-      ln.lucroOverride[key] = lucroLiq;
-    } else {
-      ln.lucroOverride[key] = r2(lucroLiq - (ln.lostAccum || 0));
-    }
-  }
-
-  const inputs = document.querySelectorAll('.aposta-input');
-  if (inputs[i]) {
-    const isModified = ln.apostaOverride && ln.apostaOverride[key] != null;
-    inputs[i].classList.toggle('modified', isModified);
-  }
-  save(); render();
+const v = parseFloat(val);
+if (isNaN(v) || v <= 0) return;
+const ln  = A.lines[i];
+const key = String(curNum());
+if (!ln.apostaOverride) ln.apostaOverride = {};
+const {aposta: apostaCalc} = calcBet(ln);
+if (!ln.lucroOverride) ln.lucroOverride = {};
+if (Math.abs(v - apostaCalc) < 0.005) {
+delete ln.apostaOverride[key];
+delete ln.lucroOverride[key];
+} else {
+ln.apostaOverride[key] = r2(v);
+const odd      = ln.odd >= 1.01 ? ln.odd : 3.0;
+const lucroLiq = r2(v * (odd - 1));
+if (ln.stage === 0) {
+ln.lucroOverride[key] = lucroLiq;
+} else {
+ln.lucroOverride[key] = r2(lucroLiq - (ln.lostAccum || 0));
+}
+}
+const inputs = document.querySelectorAll('.aposta-input');
+if (inputs[i]) {
+const isModified = ln.apostaOverride && ln.apostaOverride[key] != null;
+inputs[i].classList.toggle('modified', isModified);
+}
+save(); render();
 };
-
 window._resetAposta = function(i, el) {
-  // Duplo clique restaura o valor calculado
-  const ln  = A.lines[i];
-  const key = String(curNum());
-  if (!ln.apostaOverride) ln.apostaOverride = {};
-  delete ln.apostaOverride[key];
-  if (ln.lucroOverride) delete ln.lucroOverride[key];
-  const {aposta} = calcBet(ln);
-  el.value = aposta.toFixed(2);
-  el.classList.remove('modified');
-  save(); render();
+const ln  = A.lines[i];
+const key = String(curNum());
+if (!ln.apostaOverride) ln.apostaOverride = {};
+delete ln.apostaOverride[key];
+if (ln.lucroOverride) delete ln.lucroOverride[key];
+const {aposta} = calcBet(ln);
+el.value = aposta.toFixed(2);
+el.classList.remove('modified');
+save(); render();
 };
-
 let _redistIdx = null;
-
 window._openRedistrib = function(i) {
-  const ln     = A.lines[i];
-  const debito = ln.lostAccum || 0;  // EM RISCO desde último green
-  if (debito === 0) { alert('Esta linha não tem saldo em risco.'); return; }
-
-  const outras        = A.lines.filter((_,j) => j !== i);
-  const metade        = r2(debito * 0.5);
-  const valorPorLinha = r2(metade / outras.length);
-  const g             = curConc().games[i];
-  _redistIdx          = i;
-
-  document.getElementById('redistPreview').innerHTML =
-      '<div class="redist-row"><span class="redist-lbl">Linha de origem</span>'
-    + '<span class="redist-val" style="color:var(--accent2)">' + (i+1) + '. ' + esc(g.home) + ' x ' + esc(g.away) + '</span></div>'
-    + '<div class="redist-row"><span class="redist-lbl">Em risco (desde último green)</span>'
-    + '<span class="redist-val" style="color:var(--accent2)">-' + fmtU(debito) + '</span></div>'
-    + '<div class="redist-row"><span class="redist-lbl">50% redistribuído como lucro alvo</span>'
-    + '<span class="redist-val" style="color:var(--neutral)">' + fmtU(metade) + '</span></div>'
-    + '<div class="redist-row"><span class="redist-lbl">Em risco após redistribuição</span>'
-    + '<span class="redist-val" style="color:var(--accent2)">-' + fmtU(metade) + '</span></div>'
-    + '<div class="redist-row"><span class="redist-lbl">Linhas receptoras</span>'
-    + '<span class="redist-val">todas as outras ' + outras.length + '</span></div>'
-    + '<div class="redist-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px">'
-    + '<span class="redist-lbl">Adicionado ao saldo devedor de cada</span>'
-    + '<span class="redist-val" style="color:var(--accent2)">+' + fmtU(valorPorLinha) + ' no lostAccum</span></div>';
-  openM('mRedistrib');
+const ln     = A.lines[i];
+const debito = ln.lostAccum || 0;  // EM RISCO desde último green
+if (debito === 0) { alert('Esta linha não tem saldo em risco.'); return; }
+const outras        = A.lines.filter((_,j) => j !== i);
+const metade        = r2(debito * 0.5);
+const valorPorLinha = r2(metade / outras.length);
+const g             = curConc().games[i];
+_redistIdx          = i;
+document.getElementById('redistPreview').innerHTML =
+'<div class="redist-row"><span class="redist-lbl">Linha de origem</span>'
++ '<span class="redist-val" style="color:var(--accent2)">' + (i+1) + '. ' + esc(g.home) + ' x ' + esc(g.away) + '</span></div>'
++ '<div class="redist-row"><span class="redist-lbl">Em risco (desde último green)</span>'
++ '<span class="redist-val" style="color:var(--accent2)">-' + fmtU(debito) + '</span></div>'
++ '<div class="redist-row"><span class="redist-lbl">50% redistribuído como lucro alvo</span>'
++ '<span class="redist-val" style="color:var(--neutral)">' + fmtU(metade) + '</span></div>'
++ '<div class="redist-row"><span class="redist-lbl">Em risco após redistribuição</span>'
++ '<span class="redist-val" style="color:var(--accent2)">-' + fmtU(metade) + '</span></div>'
++ '<div class="redist-row"><span class="redist-lbl">Linhas receptoras</span>'
++ '<span class="redist-val">todas as outras ' + outras.length + '</span></div>'
++ '<div class="redist-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px">'
++ '<span class="redist-lbl">Adicionado ao saldo devedor de cada</span>'
++ '<span class="redist-val" style="color:var(--accent2)">+' + fmtU(valorPorLinha) + ' no lostAccum</span></div>';
+openM('mRedistrib');
 };
-
-
 function renderHT() {
-  if (!A.linesHT) return;
-  var tbody  = document.getElementById('tbodyHT');
-  if (!tbody) return;
-  var conc   = curConc();
-  var key    = String(curNum());
-  tbody.innerHTML = '';
-  var totAp=0, totLu=0, totPn=0, totAc=0, totRi=0, wins=0, loss=0, recup=0;
-
-  A.linesHT.forEach(function(ln, i) {
-    var isNulo   = !!(ln.nulo && ln.nulo[key]);
-    var jaM      = ln.lastAction && ln.lastAction.key === key;
-    var bet      = calcBetHT(ln);
-    var aposta   = (ln.apostaOverride && ln.apostaOverride[key] != null) ? ln.apostaOverride[key]
-                 : (jaM && ln.apostaLog && ln.apostaLog[key] != null) ? ln.apostaLog[key]
-                 : bet.aposta;
-    var lucro    = (ln.lucroOverride && ln.lucroOverride[key] != null) ? ln.lucroOverride[key] : bet.lucro;
-    var pN       = (ln.pnlLog && ln.pnlLog[key]) || 0;
-    var pT       = ln.pnlTotal || 0;
-    var stN      = ln.stage || 0;
-    var stLbl    = stN === 0 ? 'INICIAL' : 'RECUP #' + stN;
-    var stCls    = stN === 0 ? 's0' : stN <= 3 ? 's1' : 's2';
-    var pNC      = pN > 0 ? 'pos' : pN < 0 ? 'neg' : 'zero';
-    var pTC      = pT > 0 ? 'pos' : pT < 0 ? 'neg' : 'zero';
-    var lostStr  = (ln.lostAccum||0) > 0 ? '-R$' + (ln.lostAccum||0).toFixed(2).replace('.',',') : '—';
-    var jogoHT   = (ln.home || ln.away) ? esc(ln.home||'') + ' x ' + esc(ln.away||'') : (jaM ? '—' : '<em style="color:var(--muted);font-size:10px">clique para editar</em>');
-    var podeEditar = !jaM && !isNulo;
-
-    if (!isNulo) {
-      totAp += aposta; totLu += lucro;
-      totPn += pN; totAc += pT;
-      totRi += (ln.lostAccum||0);
-      if (pN > 0) wins++;
-      if (pN < 0) loss++;
-      if (stN > 0) recup++;
-    }
-
-    var btns = '';
-    if (jaM) {
-      btns = '<button class="btn-r ' + (ln.lastAction.won ? 'marcado-win' : 'marcado-loss') + '" disabled>'
-           + (ln.lastAction.won ? '✓ EMPATE' : '✗ NÃO') + '</button>'
-           + '<button class="btn-r undo" onclick="window._undoResultHT(' + i + ')">↩</button>';
-    } else if (!isNulo) {
-      btns = '<button class="btn-r" onclick="window._doResultHT(' + i + ',true)">✓ EMPATE</button>'
-           + '<button class="btn-r" onclick="window._doResultHT(' + i + ',false)">✗ NÃO</button>';
-    }
-    var btnNulo = '<button class="btn-nulo' + (isNulo?' sim':'') + '" onclick="window._toggleNuloHT(' + i + ')" title="Nulo">⛔</button>';
-
-    var tr = document.createElement('tr');
-    if (isNulo) tr.classList.add('nulo');
-    tr.innerHTML = '<td class="game-num">' + (i+1) + '</td>'
-      + '<td style="font-size:12px;color:' + (ln.home||ln.away ? 'var(--text)':'var(--muted)') + ';' + (podeEditar?'cursor:pointer':'') + '" ' + (podeEditar?'onclick="window._editHTJogo(' + i + ')" title="Clique para editar"':'') + '><span class="ht-badge">HT</span> ' + jogoHT + '</td>'
-      + '<td><span class="stage ' + stCls + '">' + stLbl + '</span></td>'
-      + '<td class="risco-cell' + ((ln.lostAccum||0)===0?' zero':'') + '">' + lostStr + '</td>'
-      + '<td><input type="number" min="1.01" max="99" step="0.01" class="odd-input" value="' + (ln.odd||2.0).toFixed(2) + '" onchange="window._setOddHT(' + i + ',this.value)"></td>'
-      + '<td><input type="number" min="0.01" step="0.01" class="aposta-input" value="' + aposta.toFixed(2) + '" onchange="window._setApostaHT(' + i + ',this.value)"></td>'
-      + '<td class="lucro-t">' + fmtU(lucro) + '</td>'
-      + '<td class="pnl ' + pNC + '">' + (pN===0?'—':fmtS(pN)) + '</td>'
-      + '<td class="accum-cell ' + pTC + '">' + (pT===0?'—':fmtS(pT)) + '</td>'
-      + '<td><div class="result-btns">' + btns + '<span class="btn-spacer"></span>' + btnNulo + '</div></td>';
-    tbody.appendChild(tr);
-  });
-
-  // Atualizar cards HT
-  var htT = document.getElementById('htTotal');
-  if (htT) htT.textContent = fmtU(totAp);
-  var htPC = document.getElementById('htPnlConc');
-  if (htPC) { htPC.textContent = totPn===0?'—':fmtS(totPn); htPC.style.color = totPn>0?'var(--win)':totPn<0?'var(--loss)':'var(--muted)'; }
-  var htPA = document.getElementById('htPnlAcc');
-  if (htPA) { htPA.textContent = totAc===0?'—':fmtS(totAc); htPA.style.color = totAc>0?'var(--win)':totAc<0?'var(--loss)':'var(--muted)'; }
-  var htW = document.getElementById('htWins'); if (htW) htW.textContent = wins;
-  var htL = document.getElementById('htLoss'); if (htL) htL.textContent = loss;
-  var htR = document.getElementById('htRecup'); if (htR) htR.textContent = recup;
-  var htH = document.getElementById('htHaver');
-  if (htH) { htH.textContent = totRi>0?'-'+fmtU(totRi):'—'; htH.style.color = totRi>0?'var(--loss)':'var(--muted)'; }
-  // Sync inputs lucro HT
-  var inpHT = document.getElementById('htLucroInput');
-  if (inpHT && parseFloat(inpHT.value) !== BASE_TARGET_HT) inpHT.value = BASE_TARGET_HT;
-  var inpHT6 = document.getElementById('htLucroInput6');
-  if (inpHT6 && parseFloat(inpHT6.value) !== BASE_TARGET_HT6) inpHT6.value = BASE_TARGET_HT6;
-  // Tfoot
-  var ftH = document.getElementById('ftHaver'); if (ftH) ftH.textContent = totRi>0?'-'+fmtU(totRi):'—';
-  var ftA = document.getElementById('ftAposta'); if (ftA) ftA.textContent = fmtU(totAp);
-  var ftL = document.getElementById('ftLucro');  if (ftL) ftL.textContent = fmtU(totLu);
-  var ftP = document.getElementById('ftPnl');    if (ftP) { ftP.textContent = totPn===0?'—':fmtS(totPn); ftP.style.color = totPn>0?'var(--win)':totPn<0?'var(--loss)':'var(--muted)'; }
-  var ftC = document.getElementById('ftAccum');  if (ftC) { ftC.textContent = totAc===0?'—':fmtS(totAc); ftC.style.color = totAc>0?'var(--win)':totAc<0?'var(--loss)':'var(--muted)'; }
-
-  // Badge ciclo completo
-  var keyBadge = String(curNum());
-  var todasJogadasRender = A.linesHT.every(function(l) {
-    var jogada = l.lastAction && l.lastAction.key === keyBadge;
-    var nula   = !!(l.nulo && l.nulo[keyBadge]);
-    return jogada || nula;
-  });
-  var htTitle = document.querySelector('.ht-section-title');
-  if (htTitle) {
-    var badge = htTitle.querySelector('.ht-ciclo-badge');
-    if (todasJogadasRender) {
-      if (!badge) {
-        var b = document.createElement('span');
-        b.className = 'ht-ciclo-badge';
-        b.textContent = 'CICLO COMPLETO — RESETANDO...';
-        b.style.cssText = 'font-family:"DM Mono",monospace;font-size:10px;color:var(--accent);background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);padding:2px 8px;border-radius:2px;margin-left:8px;';
-        htTitle.appendChild(b);
-      }
-    } else {
-      if (badge) badge.remove();
-    }
-  }
+if (!A.linesHT) return;
+var tbody  = document.getElementById('tbodyHT');
+if (!tbody) return;
+var conc   = curConc();
+var key    = String(curNum());
+tbody.innerHTML = '';
+var totAp=0, totLu=0, totPn=0, totAc=0, totRi=0, wins=0, loss=0, recup=0;
+A.linesHT.forEach(function(ln, i) {
+var isNulo   = !!(ln.nulo && ln.nulo[key]);
+var jaM      = ln.lastAction && ln.lastAction.key === key;
+var bet      = calcBetHT(ln);
+var aposta   = (ln.apostaOverride && ln.apostaOverride[key] != null) ? ln.apostaOverride[key]
+: (jaM && ln.apostaLog && ln.apostaLog[key] != null) ? ln.apostaLog[key]
+: bet.aposta;
+var lucro    = (ln.lucroOverride && ln.lucroOverride[key] != null) ? ln.lucroOverride[key] : bet.lucro;
+var pN       = (ln.pnlLog && ln.pnlLog[key]) || 0;
+var pT       = ln.pnlTotal || 0;
+var stN      = ln.stage || 0;
+var stLbl    = stN === 0 ? 'INICIAL' : 'RECUP #' + stN;
+var stCls    = stN === 0 ? 's0' : stN <= 3 ? 's1' : 's2';
+var pNC      = pN > 0 ? 'pos' : pN < 0 ? 'neg' : 'zero';
+var pTC      = pT > 0 ? 'pos' : pT < 0 ? 'neg' : 'zero';
+var lostStr  = (ln.lostAccum||0) > 0 ? '-R$' + (ln.lostAccum||0).toFixed(2).replace('.',',') : '—';
+var jogoHT   = (ln.home || ln.away) ? esc(ln.home||'') + ' x ' + esc(ln.away||'') : (jaM ? '—' : '<em style="color:var(--muted);font-size:10px">clique para editar</em>');
+var podeEditar = !jaM && !isNulo;
+if (!isNulo) {
+totAp += aposta; totLu += lucro;
+totPn += pN; totAc += pT;
+totRi += (ln.lostAccum||0);
+if (pN > 0) wins++;
+if (pN < 0) loss++;
+if (stN > 0) recup++;
 }
-
+var btns = '';
+if (jaM) {
+btns = '<button class="btn-r ' + (ln.lastAction.won ? 'marcado-win' : 'marcado-loss') + '" disabled>'
++ (ln.lastAction.won ? '✓ EMPATE' : '✗ NÃO') + '</button>'
++ '<button class="btn-r undo" onclick="window._undoResultHT(' + i + ')">↩</button>';
+} else if (!isNulo) {
+btns = '<button class="btn-r" onclick="window._doResultHT(' + i + ',true)">✓ EMPATE</button>'
++ '<button class="btn-r" onclick="window._doResultHT(' + i + ',false)">✗ NÃO</button>';
+}
+var btnNulo = '<button class="btn-nulo' + (isNulo?' sim':'') + '" onclick="window._toggleNuloHT(' + i + ')" title="Nulo">⛔</button>';
+var tr = document.createElement('tr');
+if (isNulo) tr.classList.add('nulo');
+tr.innerHTML = '<td class="game-num">' + (i+1) + '</td>'
++ '<td style="font-size:12px;color:' + (ln.home||ln.away ? 'var(--text)':'var(--muted)') + ';' + (podeEditar?'cursor:pointer':'') + '" ' + (podeEditar?'onclick="window._editHTJogo(' + i + ')" title="Clique para editar"':'') + '><span class="ht-badge">HT</span> ' + jogoHT + '</td>'
++ '<td><span class="stage ' + stCls + '">' + stLbl + '</span></td>'
++ '<td class="risco-cell' + ((ln.lostAccum||0)===0?' zero':'') + '">' + lostStr + '</td>'
++ '<td><input type="number" min="1.01" max="99" step="0.01" class="odd-input" value="' + (ln.odd||2.0).toFixed(2) + '" onchange="window._setOddHT(' + i + ',this.value)"></td>'
++ '<td><input type="number" min="0.01" step="0.01" class="aposta-input" value="' + aposta.toFixed(2) + '" onchange="window._setApostaHT(' + i + ',this.value)"></td>'
++ '<td class="lucro-t">' + fmtU(lucro) + '</td>'
++ '<td class="pnl ' + pNC + '">' + (pN===0?'—':fmtS(pN)) + '</td>'
++ '<td class="accum-cell ' + pTC + '">' + (pT===0?'—':fmtS(pT)) + '</td>'
++ '<td><div class="result-btns">' + btns + '<span class="btn-spacer"></span>' + btnNulo + '</div></td>';
+tbody.appendChild(tr);
+});
+var htT = document.getElementById('htTotal');
+if (htT) htT.textContent = fmtU(totAp);
+var htPC = document.getElementById('htPnlConc');
+if (htPC) { htPC.textContent = totPn===0?'—':fmtS(totPn); htPC.style.color = totPn>0?'var(--win)':totPn<0?'var(--loss)':'var(--muted)'; }
+var htPA = document.getElementById('htPnlAcc');
+if (htPA) { htPA.textContent = totAc===0?'—':fmtS(totAc); htPA.style.color = totAc>0?'var(--win)':totAc<0?'var(--loss)':'var(--muted)'; }
+var htW = document.getElementById('htWins'); if (htW) htW.textContent = wins;
+var htL = document.getElementById('htLoss'); if (htL) htL.textContent = loss;
+var htR = document.getElementById('htRecup'); if (htR) htR.textContent = recup;
+var htH = document.getElementById('htHaver');
+if (htH) { htH.textContent = totRi>0?'-'+fmtU(totRi):'—'; htH.style.color = totRi>0?'var(--loss)':'var(--muted)'; }
+var inpHT = document.getElementById('htLucroInput');
+if (inpHT && parseFloat(inpHT.value) !== BASE_TARGET_HT) inpHT.value = BASE_TARGET_HT;
+var inpHT6 = document.getElementById('htLucroInput6');
+if (inpHT6 && parseFloat(inpHT6.value) !== BASE_TARGET_HT6) inpHT6.value = BASE_TARGET_HT6;
+var ftH = document.getElementById('ftHaver'); if (ftH) ftH.textContent = totRi>0?'-'+fmtU(totRi):'—';
+var ftA = document.getElementById('ftAposta'); if (ftA) ftA.textContent = fmtU(totAp);
+var ftL = document.getElementById('ftLucro');  if (ftL) ftL.textContent = fmtU(totLu);
+var ftP = document.getElementById('ftPnl');    if (ftP) { ftP.textContent = totPn===0?'—':fmtS(totPn); ftP.style.color = totPn>0?'var(--win)':totPn<0?'var(--loss)':'var(--muted)'; }
+var ftC = document.getElementById('ftAccum');  if (ftC) { ftC.textContent = totAc===0?'—':fmtS(totAc); ftC.style.color = totAc>0?'var(--win)':totAc<0?'var(--loss)':'var(--muted)'; }
+var keyBadge = String(curNum());
+var todasJogadasRender = A.linesHT.every(function(l) {
+var jogada = l.lastAction && l.lastAction.key === keyBadge;
+var nula   = !!(l.nulo && l.nulo[keyBadge]);
+return jogada || nula;
+});
+var htTitle = document.querySelector('.ht-section-title');
+if (htTitle) {
+var badge = htTitle.querySelector('.ht-ciclo-badge');
+if (todasJogadasRender) {
+if (!badge) {
+var b = document.createElement('span');
+b.className = 'ht-ciclo-badge';
+b.textContent = 'CICLO COMPLETO — RESETANDO...';
+b.style.cssText = 'font-family:"DM Mono",monospace;font-size:10px;color:var(--accent);background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);padding:2px 8px;border-radius:2px;margin-left:8px;';
+htTitle.appendChild(b);
+}
+} else {
+if (badge) badge.remove();
+}
+}
+}
 function renderBonus() {
-  var grid = document.getElementById('bonusGrid');
-  var summ = document.getElementById('bonusSummary');
-  if (!grid || !summ) return;
-  if (!A.bonus) {
-    A.bonus = [
-      {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-      {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-      {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0}
-    ];
-  }
-  grid.innerHTML = '';
-  for (var bi = 0; bi < A.bonus.length; bi++) {
-    (function(i) {
-      var b = A.bonus[i];
-      var hasResult = b.result !== null;
-      var pnlColor = b.pnl > 0 ? 'var(--win)' : b.pnl < 0 ? 'var(--loss)' : 'var(--muted)';
-      var pnlStr = b.pnl !== 0 ? (b.pnl > 0 ? '+R$ ' : '-R$ ') + Math.abs(b.pnl).toFixed(2).replace('.',',') : '';
-
-      var card = document.createElement('div');
-      card.className = 'bonus-card' + (hasResult ? (b.result ? ' win' : ' loss') : '');
-
-      var num = document.createElement('div');
-      num.className = 'bonus-num';
-      num.textContent = 'BONUS ' + (i + 1);
-      card.appendChild(num);
-
-      var ih = document.createElement('input');
-      ih.className = 'bonus-input'; ih.placeholder = 'Mandante'; ih.value = b.home || '';
-      ih.oninput = function() { A.bonus[i].home = this.value; save(); };
-      card.appendChild(ih);
-
-      var ia = document.createElement('input');
-      ia.className = 'bonus-input'; ia.placeholder = 'Visitante'; ia.value = b.away || '';
-      ia.oninput = function() { A.bonus[i].away = this.value; save(); };
-      card.appendChild(ia);
-
-      var row = document.createElement('div');
-      row.className = 'bonus-row';
-
-      var io = document.createElement('input');
-      io.className = 'bonus-input'; io.type = 'number'; io.placeholder = 'Odd';
-      io.min = '1.01'; io.step = '0.01'; io.value = b.odd || 3.0; io.style.width = '80px';
-      io.oninput = function() { A.bonus[i].odd = parseFloat(this.value) || 3.0; save(); };
-      row.appendChild(io);
-
-      var iap = document.createElement('input');
-      iap.className = 'bonus-input'; iap.type = 'number'; iap.placeholder = 'R$';
-      iap.min = '1'; iap.step = '0.01'; iap.value = b.aposta || 10;
-      iap.oninput = function() { A.bonus[i].aposta = parseFloat(this.value) || 10; save(); };
-      row.appendChild(iap);
-      card.appendChild(row);
-
-      var btns = document.createElement('div');
-      btns.className = 'bonus-btns';
-      if (!hasResult) {
-        var bEmp = document.createElement('button');
-        bEmp.className = 'bonus-btn empate';
-        bEmp.textContent = 'EMPATE';
-        bEmp.onclick = function() { window._bonusResult(i, true); };
-        btns.appendChild(bEmp);
-        var bNao = document.createElement('button');
-        bNao.className = 'bonus-btn nao';
-        bNao.textContent = 'NAO';
-        bNao.onclick = function() { window._bonusResult(i, false); };
-        btns.appendChild(bNao);
-      } else {
-        var bRst = document.createElement('button');
-        bRst.className = 'bonus-btn reset';
-        bRst.textContent = 'Desfazer';
-        bRst.onclick = function() { window._bonusReset(i); };
-        btns.appendChild(bRst);
-      }
-      card.appendChild(btns);
-
-      if (hasResult && pnlStr) {
-        var pd = document.createElement('div');
-        pd.className = 'bonus-result'; pd.style.color = pnlColor; pd.textContent = pnlStr;
-        card.appendChild(pd);
-      }
-      grid.appendChild(card);
-    })(bi);
-  }
-
-  var bonusPnl   = r2(A.bonus.reduce(function(s,b){ return s + (b.pnl||0); }, 0));
-  var bonusTotal = A.bonusPnlTotal || 0;
-  var wins  = A.bonus.filter(function(b){ return b.result === true; }).length;
-  var loss  = A.bonus.filter(function(b){ return b.result === false; }).length;
-  var bpC = bonusPnl  >= 0 ? 'var(--win)' : 'var(--loss)';
-  var btC = bonusTotal >= 0 ? 'var(--win)' : 'var(--loss)';
-
-  summ.innerHTML = '';
-  var items = [
-    {val: wins,      color: 'var(--win)',  lbl: 'Greens'},
-    {val: loss,      color: 'var(--loss)', lbl: 'Vermelhos'},
-    {val: (bonusPnl  >= 0 ? '+' : '') + 'R$ ' + Math.abs(bonusPnl).toFixed(2).replace('.',','),  color: bpC, lbl: 'P&L Rodada'},
-    {val: (bonusTotal >= 0 ? '+' : '') + 'R$ ' + Math.abs(bonusTotal).toFixed(2).replace('.',','), color: btC, lbl: 'P&L Acum Bonus'}
-  ];
-  items.forEach(function(it) {
-    var d = document.createElement('div');
-    d.style.display = 'flex'; d.style.flexDirection = 'column'; d.style.gap = '2px';
-    var v = document.createElement('div');
-    v.className = 'bonus-sv'; v.style.color = it.color; v.textContent = it.val;
-    var l = document.createElement('div');
-    l.className = 'bonus-sl'; l.textContent = it.lbl;
-    d.appendChild(v); d.appendChild(l);
-    summ.appendChild(d);
-  });
+var grid = document.getElementById('bonusGrid');
+var summ = document.getElementById('bonusSummary');
+if (!grid || !summ) return;
+if (!A.bonus) {
+A.bonus = [
+{home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
+{home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
+{home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0}
+];
 }
-
+grid.innerHTML = '';
+for (var bi = 0; bi < A.bonus.length; bi++) {
+(function(i) {
+var b = A.bonus[i];
+var hasResult = b.result !== null;
+var pnlColor = b.pnl > 0 ? 'var(--win)' : b.pnl < 0 ? 'var(--loss)' : 'var(--muted)';
+var pnlStr = b.pnl !== 0 ? (b.pnl > 0 ? '+R$ ' : '-R$ ') + Math.abs(b.pnl).toFixed(2).replace('.',',') : '';
+var card = document.createElement('div');
+card.className = 'bonus-card' + (hasResult ? (b.result ? ' win' : ' loss') : '');
+var num = document.createElement('div');
+num.className = 'bonus-num';
+num.textContent = 'BONUS ' + (i + 1);
+card.appendChild(num);
+var ih = document.createElement('input');
+ih.className = 'bonus-input'; ih.placeholder = 'Mandante'; ih.value = b.home || '';
+ih.oninput = function() { A.bonus[i].home = this.value; save(); };
+card.appendChild(ih);
+var ia = document.createElement('input');
+ia.className = 'bonus-input'; ia.placeholder = 'Visitante'; ia.value = b.away || '';
+ia.oninput = function() { A.bonus[i].away = this.value; save(); };
+card.appendChild(ia);
+var row = document.createElement('div');
+row.className = 'bonus-row';
+var io = document.createElement('input');
+io.className = 'bonus-input'; io.type = 'number'; io.placeholder = 'Odd';
+io.min = '1.01'; io.step = '0.01'; io.value = b.odd || 3.0; io.style.width = '80px';
+io.oninput = function() { A.bonus[i].odd = parseFloat(this.value) || 3.0; save(); };
+row.appendChild(io);
+var iap = document.createElement('input');
+iap.className = 'bonus-input'; iap.type = 'number'; iap.placeholder = 'R$';
+iap.min = '1'; iap.step = '0.01'; iap.value = b.aposta || 10;
+iap.oninput = function() { A.bonus[i].aposta = parseFloat(this.value) || 10; save(); };
+row.appendChild(iap);
+card.appendChild(row);
+var btns = document.createElement('div');
+btns.className = 'bonus-btns';
+if (!hasResult) {
+var bEmp = document.createElement('button');
+bEmp.className = 'bonus-btn empate';
+bEmp.textContent = 'EMPATE';
+bEmp.onclick = function() { window._bonusResult(i, true); };
+btns.appendChild(bEmp);
+var bNao = document.createElement('button');
+bNao.className = 'bonus-btn nao';
+bNao.textContent = 'NAO';
+bNao.onclick = function() { window._bonusResult(i, false); };
+btns.appendChild(bNao);
+} else {
+var bRst = document.createElement('button');
+bRst.className = 'bonus-btn reset';
+bRst.textContent = 'Desfazer';
+bRst.onclick = function() { window._bonusReset(i); };
+btns.appendChild(bRst);
+}
+card.appendChild(btns);
+if (hasResult && pnlStr) {
+var pd = document.createElement('div');
+pd.className = 'bonus-result'; pd.style.color = pnlColor; pd.textContent = pnlStr;
+card.appendChild(pd);
+}
+grid.appendChild(card);
+})(bi);
+}
+var bonusPnl   = r2(A.bonus.reduce(function(s,b){ return s + (b.pnl||0); }, 0));
+var bonusTotal = A.bonusPnlTotal || 0;
+var wins  = A.bonus.filter(function(b){ return b.result === true; }).length;
+var loss  = A.bonus.filter(function(b){ return b.result === false; }).length;
+var bpC = bonusPnl  >= 0 ? 'var(--win)' : 'var(--loss)';
+var btC = bonusTotal >= 0 ? 'var(--win)' : 'var(--loss)';
+summ.innerHTML = '';
+var items = [
+{val: wins,      color: 'var(--win)',  lbl: 'Greens'},
+{val: loss,      color: 'var(--loss)', lbl: 'Vermelhos'},
+{val: (bonusPnl  >= 0 ? '+' : '') + 'R$ ' + Math.abs(bonusPnl).toFixed(2).replace('.',','),  color: bpC, lbl: 'P&L Rodada'},
+{val: (bonusTotal >= 0 ? '+' : '') + 'R$ ' + Math.abs(bonusTotal).toFixed(2).replace('.',','), color: btC, lbl: 'P&L Acum Bonus'}
+];
+items.forEach(function(it) {
+var d = document.createElement('div');
+d.style.display = 'flex'; d.style.flexDirection = 'column'; d.style.gap = '2px';
+var v = document.createElement('div');
+v.className = 'bonus-sv'; v.style.color = it.color; v.textContent = it.val;
+var l = document.createElement('div');
+l.className = 'bonus-sl'; l.textContent = it.lbl;
+d.appendChild(v); d.appendChild(l);
+summ.appendChild(d);
+});
+}
 window._bonusResult = function(i, won) {
-  if (!A.bonus || A.bonus[i].result !== null) return;
-  var b = A.bonus[i];
-  var odd    = b.odd    || 3.0;
-  var aposta = b.aposta || 10;
-  b.result = won;
-  if (won) {
-    b.pnl = r2(aposta * (odd - 1));
-    A.bonusPnlTotal = r2((A.bonusPnlTotal || 0) + b.pnl);
-  } else {
-    b.pnl = -aposta;
-    A.bonusPnlTotal = r2((A.bonusPnlTotal || 0) - aposta);
-    var frac = r2(aposta / A.lines.length);
-    A.lines.forEach(function(ln) {
-      ln.lostAccum = r2((ln.lostAccum || 0) + frac);
-      ln.pnlTotal  = r2((ln.pnlTotal  || 0) - frac);
-    });
-  }
-  save(); render();
+if (!A.bonus || A.bonus[i].result !== null) return;
+var b = A.bonus[i];
+var odd    = b.odd    || 3.0;
+var aposta = b.aposta || 10;
+b.result = won;
+if (won) {
+b.pnl = r2(aposta * (odd - 1));
+A.bonusPnlTotal = r2((A.bonusPnlTotal || 0) + b.pnl);
+} else {
+b.pnl = -aposta;
+A.bonusPnlTotal = r2((A.bonusPnlTotal || 0) - aposta);
+var frac = r2(aposta / A.lines.length);
+A.lines.forEach(function(ln) {
+ln.lostAccum = r2((ln.lostAccum || 0) + frac);
+ln.pnlTotal  = r2((ln.pnlTotal  || 0) - frac);
+});
+}
+save(); render();
 };
-
 window._bonusReset = function(i) {
-  if (!A.bonus || A.bonus[i].result === null) return;
-  var b = A.bonus[i];
-  var aposta = b.aposta || 10;
-  A.bonusPnlTotal = r2((A.bonusPnlTotal || 0) - b.pnl);
-  if (!b.result) {
-    var frac = r2(aposta / A.lines.length);
-    A.lines.forEach(function(ln) {
-      ln.lostAccum = r2(Math.max(0, (ln.lostAccum || 0) - frac));
-      ln.pnlTotal  = r2((ln.pnlTotal || 0) + frac);
-    });
-  }
-  b.result = null; b.pnl = 0;
-  save(); render();
+if (!A.bonus || A.bonus[i].result === null) return;
+var b = A.bonus[i];
+var aposta = b.aposta || 10;
+A.bonusPnlTotal = r2((A.bonusPnlTotal || 0) - b.pnl);
+if (!b.result) {
+var frac = r2(aposta / A.lines.length);
+A.lines.forEach(function(ln) {
+ln.lostAccum = r2(Math.max(0, (ln.lostAccum || 0) - frac));
+ln.pnlTotal  = r2((ln.pnlTotal || 0) + frac);
+});
+}
+b.result = null; b.pnl = 0;
+save(); render();
 };
-
 window._bonusNovoConc = function() {
-  if (!confirm('Resetar as 3 linhas bonus para o proximo concurso?')) return;
-  A.bonus = [
-    {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-    {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-    {home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0}
-  ];
-  save(); render();
+if (!confirm('Resetar as 3 linhas bonus para o proximo concurso?')) return;
+A.bonus = [
+{home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
+{home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
+{home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0}
+];
+save(); render();
 };
-
-// ── HISTÓRICO ──
 function renderHist() {
-  const tbody = document.getElementById('histTbody');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-
-  // P&L acumulado real = soma dos pnlTotal de todas as linhas (igual ao painel)
-  const pnlAcumTotal = r2(A.lines.reduce((s, ln) => s + (ln.pnlTotal || 0), 0));
-
-  // P&L por rodada de cada concurso
-  const pnlRodPorConc = A.concursos.map(c =>
-    r2(A.lines.reduce((s, ln) => s + ((ln.pnlLog && ln.pnlLog[String(c.num)]) || 0), 0))
-  );
-
-  // Reconstruir pnlAcum de tras pra frente — ultimo = valor real do painel
-  const pnlAcumPorConc = new Array(A.concursos.length).fill(0);
-  pnlAcumPorConc[A.concursos.length - 1] = pnlAcumTotal;
-  for (let i = A.concursos.length - 2; i >= 0; i--) {
-    pnlAcumPorConc[i] = r2(pnlAcumPorConc[i + 1] - pnlRodPorConc[i + 1]);
-  }
-
-  A.concursos.forEach((c, idx) => {
-    const num     = c.num;
-    const pnlRod  = pnlRodPorConc[idx];
-    const pnlAcum = pnlAcumPorConc[idx];
-
-    // Apostado = soma das apostas registradas nesta rodada
-    // Estimativa: contar resultados marcados
-    const apostado = c.totalApostado || 0;
-    let wins = 0, xCount = 0, recup = 0, haver = 0, apostadoCount = 0;
-
-    A.lines.forEach(ln => {
-      con
+const tbody = document.getElementById('histTbody');
+if (!tbody) return;
+tbody.innerHTML = '';
+const pnlAcumTotal = r2(A.lines.reduce((s, ln) => s + (ln.pnlTotal || 0), 0));
+const pnlRodPorConc = A.concursos.map(c =>
+r2(A.lines.reduce((s, ln) => s + ((ln.pnlLog && ln.pnlLog[String(c.num)]) || 0), 0))
+);
+const pnlAcumPorConc = new Array(A.concursos.length).fill(0);
+pnlAcumPorConc[A.concursos.length - 1] = pnlAcumTotal;
+for (let i = A.concursos.length - 2; i >= 0; i--) {
+pnlAcumPorConc[i] = r2(pnlAcumPorConc[i + 1] - pnlRodPorConc[i + 1]);
+}
+A.concursos.forEach((c, idx) => {
+const num     = c.num;
+const pnlRod  = pnlRodPorConc[idx];
+const pnlAcum = pnlAcumPorConc[idx];
+const apostado = c.totalApostado || 0;
+let wins = 0, xCount = 0, recup = 0, haver = 0, apostadoCount = 0;
+A.lines.forEach(ln => {
+const key = String(num);
+if (ln.lastAction && ln.lastAction.key === key) {
+if (ln.lastAction.won) wins++; else xCount++;
+} else {
+const logVal = (ln.pnlLog && ln.pnlLog[key]) || 0;
+if (logVal > 0) wins++;
+else if (logVal < 0) xCount++;
+}
+if (ln.apostado && ln.apostado[key]) apostadoCount++;
+});
+if (idx === A.cur) {
+recup  = A.lines.filter(ln => ln.stage > 0).length;
+haver  = r2(A.lines.reduce((s, ln) => s + (ln.lostAccum || 0), 0));
+}
+const data = c.date || '—';
+function inferYear(n) {
+if (n >= 1227) return 2026;
+if (n >= 1166) return 2025;
+if (n >= 1113) return 2024;
+if (n >= 1058) return 2023;
+return 2022;
+}
+const isCur = idx === A.cur;
+const anoColors = {'2022':'#a0a0a0','2023':'#f5a623','2024':'#5b7cfd','2025':'#00e5a0','2026':'#ff4d6d'};
+const anoFull = c.year ? String(c.year) : String(inferYear(num));
+const pR = r2(pnlRod);
+const pA = r2(pnlAcum);
+const pRcls = pR > 0 ? 'hist-pos' : pR < 0 ? 'hist-neg' : 'hist-zero';
+const pAcls = pA > 0 ? 'hist-pos' : pA < 0 ? 'hist-neg' : 'hist-zero';
+const anoColor = anoColors[anoFull] || 'var(--muted)';
+const tr = document.createElement('tr');
+if (isCur) tr.classList.add('cur-row');
+tr.onclick = () => { A.cur = idx; save(); render(); window.scrollTo({top:0,behavior:'smooth'}); };
+tr.innerHTML = `
+<td class="hist-num">${num}</td>
+<td><span class="hist-year" style="background:${anoColor}22;color:${anoColor};border:1px solid ${anoColor}44">${anoFull}</span></td>
+<td style="color:var(--muted)">${data}</td>
+<td style="color:var(--text)">${apostado > 0 ? fmtU(apostado) : '—'}</td>
+<td class="${pRcls}">${pR === 0 ? '—' : (pR > 0 ? '+' : '') + 'R$ ' + Math.abs(pR).toFixed(2).replace('.',',')}</td>
+<td class="${pAcls}">${pA === 0 ? '—' : (pA > 0 ? '+' : '') + 'R$ ' + Math.abs(pA).toFixed(2).replace('.',',')}</td>
+<td style="color:var(--win)">${wins || '—'}</td>
+<td style="color:var(--accent3)">${xCount || '—'}</td>
+<td style="color:var(--accent3)">${isCur ? recup || '—' : '—'}</td>
+<td style="color:var(--loss)">${isCur && haver > 0 ? 'R$ ' + haver.toFixed(2).replace('.',',') : '—'}</td>
+<td style="color:var(--muted)">${apostadoCount || '—'}</td>
+`;
+tbody.appendChild(tr);
+});
+}
+window._doResultHT = function(i, won) {
+if (!A.linesHT) return;
+var ln  = A.linesHT[i];
+var key = String(curNum());
+if (!ln.pnlLog) ln.pnlLog = {};
+if (ln.lastAction && ln.lastAction.key === key) return;
+var bet    = calcBetHT(ln);
+var aposta = (ln.apostaOverride && ln.apostaOverride[key] != null) ? ln.apostaOverride[key] : bet.aposta;
+var lucro  = bet.lucro;
+ln.lastAction = { key: key, won: won, aposta: aposta, lucro: lucro,
+stage: ln.stage, lostAccum: ln.lostAccum, pnlTotal: ln.pnlTotal,
+pnlLogVal: (ln.pnlLog[key] || 0) };
+if (!ln.apostaLog) ln.apostaLog = {};
+ln.apostaLog[key] = aposta;
+if (ln.apostaOverride) delete ln.apostaOverride[key];
+var prevLog = ln.pnlLog[key] || 0;
+if (won) {
+ln.pnlTotal  = r2((ln.pnlTotal||0) + ln.lostAccum + lucro);
+ln.redistExtra = 0;
+var lostHere = prevLog < 0 ? Math.abs(prevLog) : 0;
+var recover  = Math.min(ln.lostAccum, lostHere);
+ln.pnlLog[key] = r2(prevLog + recover + lucro);
+ln.stage     = 0;
+ln.lostAccum = 0;
+} else {
+ln.pnlLog[key] = r2(prevLog - aposta);
+ln.pnlTotal    = r2((ln.pnlTotal||0) - aposta);
+ln.lostAccum   = r2((ln.lostAccum||0) + aposta);
+ln.stage++;
+}
+save(); render();
+var keyCheck = String(curNum());
+var todasJogadas = A.linesHT.every(function(l) {
+var jogada = l.lastAction && l.lastAction.key === keyCheck;
+var nula   = !!(l.nulo && l.nulo[keyCheck]);
+return jogada || nula;
+});
+if (todasJogadas) {
+setTimeout(function() {
+A.linesHT.forEach(function(l) {
+l.home = '';
+l.away = '';
+l.lastAction = null;
+});
+save(); render();
+}, 2000);
+}
+};
+window._undoResultHT = function(i) {
+if (!A.linesHT) return;
+var ln = A.linesHT[i];
+if (!ln.lastAction) return;
+var snap = ln.lastAction;
+ln.stage     = snap.stage;
+ln.lostAccum = snap.lostAccum;
+ln.pnlTotal  = snap.pnlTotal;
+if (!ln.pnlLog) ln.pnlLog = {};
+if (snap.pnlLogVal === 0) delete ln.pnlLog[snap.key];
+else ln.pnlLog[snap.key] = snap.pnlLogVal;
+ln.lastAction = null;
+save(); render();
+};
+window._editHTJogo = function(i) {
+if (!A.linesHT) return;
+var ln = A.linesHT[i];
+if (ln.lastAction && ln.lastAction.key === String(curNum())) return;
+var home = prompt('Mandante (HT ' + (i+1) + '):', ln.home || '');
+if (home === null) return;
+var away = prompt('Visitante (HT ' + (i+1) + '):', ln.away || '');
+if (away === null) return;
+ln.home = home.trim();
+ln.away = away.trim();
+save(); render();
+};
+window._setApostaHT = function(i, val) {
+if (!A.linesHT) return;
+var v = parseFloat(val);
+if (isNaN(v) || v <= 0) return;
+var ln  = A.linesHT[i];
+var key = String(curNum());
+if (!ln.apostaOverride) ln.apostaOverride = {};
+if (!ln.lucroOverride)  ln.lucroOverride  = {};
+var bet = calcBetHT(ln);
+if (Math.abs(v - bet.aposta) < 0.005) {
+delete ln.apostaOverride[key];
+delete ln.lucroOverride[key];
+} else {
+ln.apostaOverride[key] = r2(v);
+var odd    = (ln.odd >= 1.01) ? ln.odd : 2.0;
+var lucroLiq = r2(v * (odd - 1));
+ln.lucroOverride[key] = (ln.stage === 0) ? lucroLiq : r2(lucroLiq - (ln.lostAccum || 0));
+}
+save(); render();
+};
+window._setOddHT = function(i, val) {
+if (!A.linesHT) return;
+var v = parseFloat(val);
+if (!isNaN(v) && v >= 1.01) {
+A.linesHT[i].odd = Math.round(v * 100) / 100;
+save(); render();
+}
+};
+window._toggleNuloHT = function(i) {
+if (!A.linesHT) return;
+var ln  = A.linesHT[i];
+var key = String(curNum());
+if (!ln.nulo) ln.nulo = {};
+ln.nulo[key] = !ln.nulo[key];
+save(); render();
+};
+window._toggleNulo = function(i) {
+const ln  = A.lines[i];
+const key = String(curNum());
+if (!ln.nulo) ln.nulo = {};
+ln.nulo[key] = !ln.nulo[key];
+save(); render();
+};
+window._toggleApostado = function(i) {
+const ln  = A.lines[i];
+const key = String(curNum());
+if (!ln.apostado) ln.apostado = {};
+ln.apostado[key] = !ln.apostado[key];
+save(); render();
+};
+window.confirmRedistrib = function() {
+if (_redistIdx === null) return;
+const i      = _redistIdx;
+const ln     = A.lines[i];
+const debito = ln.lostAccum || 0;
+const metade = r2(debito * 0.5);
+const outras = A.lines.filter((_,j) => j !== i);
+const valorPorLinha = r2(metade / outras.length);
+if (!A.redistLog) A.redistLog = [];
+A.redistLog.push({
+origem: i,
+lostAccumAntes: ln.lostAccum,
+valorPorLinha: valorPorLinha,
+receptoras: outras.map((_,j) => j >= i ? j+1 : j)
+});
+outras.forEach(l => {
+l.redistExtra = r2((l.redistExtra||0) + valorPorLinha);
+});
+ln.lostAccum = r2(metade);
+_redistIdx = null;
+closeM('mRedistrib');
+save(); render();
+};
+window.undoRedistrib = function() {
+if (!A.redistLog || A.redistLog.length === 0) {
+alert('Nenhuma redistribuicao para desfazer.');
+return;
+}
+const snap = A.redistLog.pop();
+const ln   = A.lines[snap.origem];
+ln.lostAccum = snap.lostAccumAntes;
+A.lines.forEach(function(l, j) {
+if (j !== snap.origem) {
+l.redistExtra = r2((l.redistExtra||0) - snap.valorPorLinha);
+}
+});
+save(); render();
+};
+window.setPctRecup = function(val) {
+const v = parseFloat(val);
+if (!v || v < 1 || v > 100) return;
+BASE_PCT   = Math.round(v * 10) / 10;
+A.pctRecup = BASE_PCT;
+const inpPct = document.getElementById('pctRecupInput');
+if (inpPct) inpPct.value = BASE_PCT;
+save(); render();
+};
+window.setLucroAlvoHT6 = function(val) {
+var v = parseFloat(val);
+if (!v || v < 1) return;
+BASE_TARGET_HT6 = Math.round(v * 100) / 100;
+A.lucroAlvoHT6  = BASE_TARGET_HT6;
+var inpHT6 = document.getElementById('htLucroInput6');
+if (inpHT6) inpHT6.value = BASE_TARGET_HT6;
+save(); render();
+};
+window.setLucroAlvoHT = function(val) {
+const v = parseFloat(val);
+if (!v || v < 1) return;
+BASE_TARGET_HT = Math.round(v * 100) / 100;
+A.lucroAlvoHT  = BASE_TARGET_HT;
+const inpHT = document.getElementById('lucroAlvoHTInput');
+if (inpHT) inpHT.value = BASE_TARGET_HT;
+save(); render();
+};
+window.setLucroAlvo6 = function(val) {
+const v = parseFloat(val);
+if (!v || v < 1) return;
+BASE_TARGET6 = Math.round(v * 100) / 100;
+A.lucroAlvo6 = BASE_TARGET6;
+const inp6 = document.getElementById('lucroAlvoInput6');
+if (inp6) inp6.value = BASE_TARGET6;
+save(); render();
+};
+window.setLucroAlvo = function(val) {
+const v = parseFloat(val);
+if (isNaN(v) || v < 1) return;
+BASE_TARGET    = Math.round(v * 100) / 100;
+A.lucroAlvo    = BASE_TARGET;
+const inp = document.getElementById('lucroAlvoInput');
+if (inp) inp.value = BASE_TARGET;
+save(); render();
+};
+window.setThreshold = function(val) {
+const v = parseFloat(val);
+if (isNaN(v) || v < 1.5) return;
+curConc().threshold = Math.round(v * 10) / 10;
+save(); render();
+};
+window.toggleFilter = function() {
+const c  = curConc();
+c.filterOn = !(c.filterOn || false);
+save(); render();
+};
+window._setOdd = function(i, val) {
+const v = parseFloat(val);
+if (!isNaN(v) && v >= 1.01) {
+A.lines[i].odd = Math.round(v * 100) / 100;
+if (!curConc().odds) curConc().odds = Array(N).fill(3.0);
+curConc().odds[i] = A.lines[i].odd;
+save(); render();
+}
+};
+function saveOddsToConc()
