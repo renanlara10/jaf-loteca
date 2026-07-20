@@ -1581,4 +1581,315 @@ curConc().odds[i] = A.lines[i].odd;
 save(); render();
 }
 };
-function saveOddsToConc()
+function saveOddsToConc() {
+curConc().odds = A.lines.map(ln => ln.odd || 3.0);
+}
+function loadOddsFromConc() {
+const odds = curConc().odds;
+if (odds && odds.length === N) {
+A.lines.forEach((ln, i) => { ln.odd = odds[i]; });
+} else {
+A.lines.forEach(ln => { ln.odd = 3.0; });
+}
+}
+window.goPrev = function() {
+if (A.cur > 0) {
+saveOddsToConc();  // salva odds do concurso atual
+A.cur--;
+loadOddsFromConc(); // carrega odds do concurso anterior
+save(); render();
+}
+};
+window.openNext = function() {
+const curId = curNum();
+const curParsed = parseInt(curId);
+document.getElementById('nextNumIn').value = !isNaN(curParsed) ? curParsed + 1 : '';
+openM('mNext');
+};
+window.confirmNext = function() {
+const raw = document.getElementById('nextNumIn').value.trim();
+let num;
+if (!raw) {
+const curId = curNum();
+const curParsed = parseInt(curId);
+num = !isNaN(curParsed) ? curParsed + 1 : curId + ' (2)';
+} else {
+const parsed = parseInt(raw);
+num = (!isNaN(parsed) && String(parsed) === raw) ? parsed : raw;
+}
+if (!num && num !== 0) return;
+if (A.cur < A.concursos.length - 1) {
+saveOddsToConc();   // salva odds do concurso atual
+A.cur++;
+loadOddsFromConc(); // carrega odds do próximo
+} else {
+saveOddsToConc();   // salva odds do concurso atual
+const prev = curConc();
+const today = new Date();
+const dd = String(today.getDate()).padStart(2,'0');
+const mm = String(today.getMonth()+1).padStart(2,'0');
+const yy = String(today.getFullYear()).slice(-2);
+A.concursos.push({
+num,
+games:     blankGames(),
+filterOn:  prev.filterOn  !== undefined ? prev.filterOn : true,
+threshold: prev.threshold || 6.5,
+odds:      Array(N).fill(3.0),
+date:      dd + '/' + mm + '/' + yy,
+year:      today.getFullYear(),
+});
+A.cur = A.concursos.length - 1;
+loadOddsFromConc(); // carrega 3.0 do novo concurso
+}
+closeM('mNext'); save(); render();
+};
+window.openImport = function() {
+document.getElementById('impNum').textContent = curNum();
+const num2 = curNum();
+const lj = document.getElementById('linkJornalheiros');
+if (lj) lj.href = 'https://jornalheiros.blogspot.com/search?q=loteca+programacao+concurso+' + num2;
+const lv = document.getElementById('linkVovoteca');
+if (lv) lv.href = 'https://vovoteca.com/?s=loteca+' + num2;
+const grid  = document.getElementById('impGrid');
+grid.innerHTML = '';
+const games = curConc().games;
+games.forEach((g, i) => {
+const ph = g.home.startsWith('Casa ') || g.away.startsWith('Visitante ');
+const rn = document.createElement('div');
+rn.className = 'rn'; rn.textContent = i + 1; grid.appendChild(rn);
+const hi = document.createElement('input');
+hi.type='text'; hi.id=`ih${i}`; hi.placeholder=`Time da Casa ${i+1}`;
+hi.value = ph ? '' : g.home; grid.appendChild(hi);
+const vs = document.createElement('div');
+vs.className='vss'; vs.textContent='x'; grid.appendChild(vs);
+const ai = document.createElement('input');
+ai.type='text'; ai.id=`ia${i}`; ai.placeholder=`Visitante ${i+1}`;
+ai.value = ph ? '' : g.away; grid.appendChild(ai);
+const di = document.createElement('input');
+di.type='text'; di.id=`id${i}`; di.placeholder='Sáb'; di.maxLength=3;
+di.value = g.day || 'Sáb';
+di.style.cssText='width:50px;text-align:center;font-family:monospace;font-size:12px;padding:7px 4px;';
+grid.appendChild(di);
+});
+openM('mImport');
+};
+window.autoImport = async function() {
+return;
+const num = curNum();
+try {
+const resp = await fetch('https://jaf-loteca-proxy.renanlara.workers.dev', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ concurso: num })
+});
+const data = await resp.json();
+if (!resp.ok) {
+if (resp.status === 429 || (data.error && data.error.includes('429'))) {
+throw new Error('rate_limit');
+}
+throw new Error('Erro HTTP ' + resp.status);
+}
+const jogos = data.jogos || [];
+if (jogos.length === 0) {
+const detalhe = data.error ? data.error : (data.debug ? data.debug.slice(0,100) : 'sem jogos');
+throw new Error('not_found:' + detalhe);
+}
+jogos.forEach((j, i) => {
+const ih = document.getElementById('ih' + i);
+const ia = document.getElementById('ia' + i);
+const id = document.getElementById('id' + i);
+if (ih && j.home) ih.value = j.home;
+if (ia && j.away) ia.value = j.away;
+if (id && j.day)  id.value = j.day;
+});
+status.textContent = '✓ ' + jogos.length + ' jogos encontrados! Verifique e salve.';
+status.style.color = 'var(--win)';
+btn.textContent = '✓ BUSCADO';
+} catch (e) {
+const msg = e.message === 'rate_limit' ? 'Muitas tentativas. Aguarde 1 minuto e tente novamente.' :
+e.message.startsWith('not_found') ? 'Grade não encontrada: ' + e.message.slice(9) :
+'Erro: ' + e.message + '. Preencha manualmente.';
+status.textContent = '✗ ' + msg;
+status.style.color = 'var(--loss)';
+btn.disabled = false;
+btn.textContent = '↺ TENTAR NOVAMENTE';
+}
+};
+window.exportExcelImport = function() {
+const conc   = curConc();
+const num    = conc.num;
+const games  = conc.games || [];
+const rows = [['#', 'MANDANTE', 'VISITANTE', 'DIA', 'ODD EMPATE', 'STAGE', 'EM RISCO', 'APOSTA', 'LUCRO ALVO', 'P&L ACUM.']];
+A.lines.forEach((ln, i) => {
+const g = games[i] || {};
+const {aposta, lucro} = calcBet(ln);
+const key = String(num);
+const apostaReal = (ln.apostaOverride && ln.apostaOverride[key] != null) ? ln.apostaOverride[key] : aposta;
+const lucroReal  = (ln.lucroOverride  && ln.lucroOverride[key]  != null) ? ln.lucroOverride[key]  : lucro;
+rows.push([
+i + 1,
+g.home || '',
+g.away || '',
+g.day  || '',
+ln.odd || 3.0,
+ln.stage || 0,
+ln.lostAccum || 0,
+apostaReal,
+lucroReal,
+ln.pnlTotal || 0,
+]);
+});
+const totAposta = A.lines.reduce((s, ln, i) => {
+const {aposta} = calcBet(ln);
+const key = String(num);
+return s + ((ln.apostaOverride && ln.apostaOverride[key] != null) ? ln.apostaOverride[key] : aposta);
+}, 0);
+const totPnl = A.lines.reduce((s, ln) => s + (ln.pnlTotal || 0), 0);
+rows.push(['', 'TOTAIS', '', '', '', '', '', r2(totAposta), '', r2(totPnl)]);
+const ws = XLSX.utils.aoa_to_sheet(rows);
+ws['!cols'] = [
+{wch:4},{wch:22},{wch:22},{wch:6},{wch:12},{wch:8},{wch:12},{wch:12},{wch:12},{wch:14}
+];
+const wb = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb, ws, 'Concurso ' + num);
+XLSX.writeFile(wb, 'JAF-Loteca-' + num + '.xlsx');
+};
+window.confirmImport = function() {
+const games = curConc().games;
+games.forEach((gm, i) => {
+const h = document.getElementById(`ih${i}`).value.trim();
+const a = document.getElementById(`ia${i}`).value.trim();
+const d = document.getElementById(`id${i}`).value.trim();
+if (h) gm.home = h;
+if (a) gm.away = a;
+if (d) gm.day  = d;
+});
+save(); closeM('mImport'); render();
+};
+window.confirmResetAll = function() {
+A = initState();
+save();
+closeM('mResetAll');
+render();
+};
+window.openM  = function(id) { document.getElementById(id).classList.add('open'); };
+window.closeM = function(id) { document.getElementById(id).classList.remove('open'); };
+document.querySelectorAll('.mo').forEach(el =>
+el.addEventListener('click', e => { if (e.target === el) closeM(el.id); })
+);
+// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+function binomCoef(n, k) {
+if (k < 0 || k > n) return 0;
+if (k === 0 || k === n) return 1;
+let c = 1;
+for (let i = 0; i < k; i++) c = c * (n - i) / (i + 1);
+return c;
+}
+function binomProb(n, k, p) {
+return binomCoef(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
+}
+window.calcUpdate = function() {
+const lucroAlvo = parseFloat(document.getElementById('cLucro').value) || 1000;
+const odd       = parseFloat(document.getElementById('cOdd').value)   || 3.0;
+const pct       = parseFloat(document.getElementById('cPct').value)   || 30;
+const jogos     = parseInt(document.getElementById('cJogos').value)   || 14;
+const p         = pct / 100;
+const empEsp = p * jogos;
+const lucroLinha = lucroAlvo / empEsp;
+const apostaPorLinha = lucroLinha / (odd - 1);
+const totalApostado = apostaPorLinha * jogos;
+const reserva = totalApostado * 3;
+let rows = '';
+let probLucro = 0;
+let probPrejuizo = 0;
+for (let k = 0; k <= jogos; k++) {
+const prob    = binomProb(jogos, k, p);
+const pnl     = k * lucroLinha - (jogos - k) * apostaPorLinha;
+const isProft = pnl >= 0;
+const isExp   = k === Math.round(empEsp);
+const barW    = Math.round(prob * 100 * 4);
+const barCol  = isProft ? 'var(--win)' : 'var(--loss)';
+const pnlStr  = (pnl >= 0 ? '+' : '') + 'R$ ' + Math.abs(pnl).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+if (isProft) probLucro += prob;
+else probPrejuizo += prob;
+if (prob < 0.003 && k !== Math.round(empEsp)) continue; // omite linhas insignificantes
+rows += `<tr class="${isProft ? 'profit' : 'loss-row'}${isExp ? ' expected' : ''}">
+<td>${k} empate${k!==1?'s':''}</td>
+<td>${(prob*100).toFixed(1)}%
+<span class="prob-bar" style="width:${barW}px;background:${barCol};opacity:.6"></span>
+</td>
+<td style="font-weight:600">${pnlStr}</td>
+</tr>`;
+}
+const fmtBRL = v => 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+document.getElementById('calcResult').innerHTML = `
+<div class="calc-result-grid">
+<div class="calc-kpi">
+<div class="calc-kpi-val" style="color:var(--accent)">${fmtBRL(apostaPorLinha)}</div>
+<div class="calc-kpi-lbl">Aposta por linha</div>
+</div>
+<div class="calc-kpi">
+<div class="calc-kpi-val" style="color:var(--accent3)">${fmtBRL(totalApostado)}</div>
+<div class="calc-kpi-lbl">Total apostado</div>
+</div>
+<div class="calc-kpi">
+<div class="calc-kpi-val" style="color:var(--neutral)">${empEsp.toFixed(1)}</div>
+<div class="calc-kpi-lbl">Empates esperados</div>
+</div>
+<div class="calc-kpi">
+<div class="calc-kpi-val" style="color:var(--win)">${(probLucro*100).toFixed(1)}%</div>
+<div class="calc-kpi-lbl">Prob. lucro na rodada</div>
+</div>
+<div class="calc-kpi">
+<div class="calc-kpi-val" style="color:var(--loss)">${(probPrejuizo*100).toFixed(1)}%</div>
+<div class="calc-kpi-lbl">Prob. prejuízo na rodada</div>
+</div>
+<div class="calc-kpi">
+<div class="calc-kpi-val" style="color:var(--accent2)">${fmtBRL(reserva)}</div>
+<div class="calc-kpi-lbl">Reserva recomendada (3×)</div>
+</div>
+</div>
+<table class="prob-table">
+<thead><tr><th>Resultado</th><th>Probabilidade</th><th>P&L estimado</th></tr></thead>
+<tbody>${rows}</tbody>
+</table>
+<div class="calc-note" style="margin-top:12px">
+<strong>Como usar:</strong> Linha destacada = cenário mais provável.
+Verde = rodada lucrativa · Vermelho = rodada de prejuízo (martingale recupera nas seguintes).
+A <strong>reserva recomendada</strong> cobre 3 rodadas sem nenhum empate — o pior cenário razoável.
+Com filtro de super favoritos ativo, aumente o % esperado para ~33%.
+</div>`;
+};
+document.getElementById('mCalc').addEventListener('click', function(e) {
+if (e.target === this) closeM('mCalc');
+});
+const _origOpenM = window.openM;
+window.openM = function(id) {
+if (id === 'mDelConc') {
+const c = curConc();
+document.getElementById('mDelConcMsg').innerHTML =
+'Excluir o concurso <strong>' + c.num + '</strong>?<br>'
++ '<span style="font-family:monospace;font-size:11px;color:var(--muted)">'
++ 'Os times e resultados deste concurso ser\u00e3o removidos.<br>'
++ 'O martingale das linhas <strong style="color:var(--accent3)">n\u00e3o \u00e9 afetado</strong>.</span>';
+}
+_origOpenM(id);
+if (id === 'mCalc') calcUpdate();
+};
+// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+window.confirmDelConc = function() {
+if (A.concursos.length <= 1) { closeM('mDelConc'); return; }
+saveOddsToConc();
+A.concursos.splice(A.cur, 1);
+if (A.cur >= A.concursos.length) A.cur = A.concursos.length - 1;
+loadOddsFromConc();
+closeM('mDelConc');
+save(); render();
+};
+// ══════════════════════════════════════════════════════
+// BOOT — iniciado via onAuthStateChanged
+// ══════════════════════════════════════════════════════</script>
+</body>
+</html>
