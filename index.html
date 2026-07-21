@@ -701,7 +701,7 @@ const curNum  = () => curConc().num;
 const r2      = v  => Math.round(v * 100) / 100;
 function calcBetHT(ln) {
 var odd        = (ln.odd >= 1.01) ? ln.odd : 2.0;
-var extra      = r2(Math.max(0, ln.redistExtra || 0));
+var extra      = 0;  // redistExtra nao mais usado no calculo
 var targetBase = (ln.stage >= 6) ? BASE_TARGET_HT6 : BASE_TARGET_HT;
 if (ln.stage === 0) {
 var lucroAlvo  = r2(targetBase + extra);
@@ -715,7 +715,7 @@ return { aposta: r2((ln.lostAccum + profit) / (odd - 1)), lucro: r2(profit) };
 }
 function calcBet(ln) {
 const odd   = ln.odd >= 1.01 ? ln.odd : 3.0;
-const extra = r2(Math.max(0, ln.redistExtra || 0));
+const extra = 0;  // redistExtra nao mais usado no calculo
 const targetBase = ln.stage >= 6 ? BASE_TARGET6 : BASE_TARGET;
 if (ln.stage === 0) {
 const lucroAlvo  = r2(targetBase + extra);
@@ -834,7 +834,7 @@ ondblclick="window._resetAposta(${i},this)">
 </td>
 <td class="lucro-t">${fmtU(lucro)}</td>
 <td class="pnl ${pNC}">${pN===0?'—':fmtS(pN)}</td>
-<td class="accum-cell ${pTC}">${pT===0?'—':fmtS(pT)}${(ln.redistExtra||0)>0?'<span class="redistrib-badge">+R$'+r2(ln.redistExtra).toFixed(2).replace('.',',')+'</span>':''}</td>
+<td class="accum-cell ${pTC}">${pT===0?'—':fmtS(pT)}</td>
 <td><div class="result-btns">
 ${(() => {
 const jaM        = ln.lastAction && ln.lastAction.key === String(curNum());
