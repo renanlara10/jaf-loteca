@@ -316,6 +316,13 @@
 
 <div class="mo" id="mImport"><div class="mc" style="max-width:540px;text-align:left">
   <h2 style="text-align:center">Importar Times — Concurso <span id="impNum">—</span></h2>
+  <div style="margin-bottom:12px">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:5px">COLE A LISTA DE JOGOS:</div>
+    <textarea id="pasteGames" rows="6" placeholder="Jogo 1: Flamengo x Vasco
+Jogo 2: Palmeiras x Corinthians
+..." style="width:100%;background:var(--surface);border:1px solid rgba(0,229,160,.3);color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:7px;border-radius:2px;outline:none;resize:none;box-sizing:border-box;line-height:1.5"></textarea>
+    <button id="btnParse" onclick="window._parsePasteGames()" style="margin-top:5px;width:100%;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.04em;padding:7px;border-radius:2px;border:1px solid rgba(0,229,160,.35);background:rgba(0,229,160,.1);color:var(--accent);cursor:pointer">DISTRIBUIR NAS LINHAS</button>
+  </div>
   <div class="imp-hint" style="margin-bottom:14px">
     <strong>Consulte a grade e preencha abaixo:</strong><br>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
@@ -1648,6 +1655,10 @@ closeM('mNext'); save(); render();
 window.openImport = function() {
 document.getElementById('impNum').textContent = curNum();
 var pa = document.getElementById('pasteGames');
+if (pa) pa.value = '';
+var bp = document.getElementById('btnParse');
+if (bp) bp.textContent = 'DISTRIBUIR NAS LINHAS';
+var pa = document.getElementById('pasteGames');
 if (pa) { pa.value = ''; }
 const num2 = curNum();
 const lj = document.getElementById('linkJornalheiros');
@@ -1757,6 +1768,36 @@ ws['!cols'] = [
 const wb = XLSX.utils.book_new();
 XLSX.utils.book_append_sheet(wb, ws, 'Concurso ' + num);
 XLSX.writeFile(wb, 'JAF-Loteca-' + num + '.xlsx');
+};
+window._parsePasteGames = function() {
+  var txt = (document.getElementById('pasteGames').value || '').trim();
+  if (!txt) return;
+  var linhas = txt.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+  var jogos = [];
+  for (var i = 0; i < linhas.length; i++) {
+    var l = linhas[i].replace(/^(jogo\s*)?\d+[\s\.\:\-]*/i, '').trim();
+    var m = l.match(/^(.+?) [xX] (.+?)( (Seg|Ter|Qua|Qui|Sex|Sab|Sab|Dom|SAB|DOM|TER|QUA|FIM))?$/i);
+    if (m) {
+      var day = m[4] ? m[4].charAt(0).toUpperCase() + m[4].slice(1).toLowerCase() : 'Sab';
+      if (/^s/i.test(day)) day = 'Sab';
+      if (/^d/i.test(day)) day = 'Dom';
+      if (/^t/i.test(day)) day = 'Ter';
+      if (/^q/i.test(day)) day = 'Qua';
+      jogos.push({home: m[1].trim(), away: m[2].trim(), day: day});
+    }
+  }
+  if (!jogos.length) { alert('Nenhum jogo reconhecido. Use formato: Jogo 1: Time A x Time B'); return; }
+  for (var j = 0; j < Math.min(jogos.length, 14); j++) {
+    var ih = document.getElementById('ih' + j);
+    var ia = document.getElementById('ia' + j);
+    var id = document.getElementById('id' + j);
+    if (ih) ih.value = jogos[j].home;
+    if (ia) ia.value = jogos[j].away;
+    if (id) id.value = jogos[j].day;
+  }
+  document.getElementById('pasteGames').value = '';
+  var btn = document.getElementById('btnParse');
+  if (btn) btn.textContent = jogos.length + ' JOGOS DISTRIBUIDOS!';
 };
 window.confirmImport = function() {
 const games = curConc().games;
