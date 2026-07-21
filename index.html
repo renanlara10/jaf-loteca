@@ -1496,6 +1496,18 @@ const metade = r2(debito * 0.5);
 const outras = A.lines.filter((_,j) => j !== i);
 const valorPorLinha = r2(metade / outras.length);
 if (!A.redistLog) A.redistLog = [];
+      // Migrar redistExtra para lostAccum automaticamente
+      var precisaMigrar = A.lines.some(function(ln){ return (ln.redistExtra||0) > 0; });
+      if (precisaMigrar) {
+        A.lines.forEach(function(ln) {
+          if ((ln.redistExtra||0) > 0) {
+            ln.lostAccum   = r2((ln.lostAccum||0) + ln.redistExtra);
+            ln.pnlTotal    = r2((ln.pnlTotal||0)  - ln.redistExtra);
+            ln.redistExtra = 0;
+          }
+        });
+        save();
+      }
 A.redistLog.push({
 origem: i,
 lostAccumAntes: ln.lostAccum,
@@ -1503,7 +1515,8 @@ valorPorLinha: valorPorLinha,
 receptoras: outras.map((_,j) => j >= i ? j+1 : j)
 });
 outras.forEach(l => {
-l.redistExtra = r2((l.redistExtra||0) + valorPorLinha);
+l.lostAccum = r2((l.lostAccum||0) + valorPorLinha);
+    l.pnlTotal  = r2((l.pnlTotal||0)  - valorPorLinha);
 });
 ln.lostAccum = r2(metade);
 _redistIdx = null;
