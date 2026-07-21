@@ -336,7 +336,6 @@
   <div class="imp-grid" id="impGrid"></div>
   <div class="mbtns">
     <button onclick="closeM('mImport')">Cancelar</button>
-    <button onclick="exportExcelImport()" style="background:rgba(91,124,253,.15);color:var(--neutral);border:1px solid rgba(91,124,253,.35)">⬇ Excel</button>
     <button class="ok" onclick="confirmImport()">✓ Salvar Times</button>
   </div>
 </div></div>
@@ -890,6 +889,9 @@ riscoEl.textContent = '—';
 riscoEl.style.color = 'var(--muted)';
 }
 document.getElementById('fRisco').textContent  = totRisco > 0 ? '-' + fmtU(totRisco) : '—';
+var temRedistExtra = A.lines.some(function(ln){ return (ln.redistExtra||0) > 0; });
+var btnMig = document.getElementById('btnMigRedist');
+if (btnMig) btnMig.style.display = temRedistExtra ? 'inline-block' : 'none';
 renderHT();
 renderBonus();
 renderHist();
