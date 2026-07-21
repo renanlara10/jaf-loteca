@@ -1647,6 +1647,8 @@ closeM('mNext'); save(); render();
 };
 window.openImport = function() {
 document.getElementById('impNum').textContent = curNum();
+var pa = document.getElementById('pasteGames');
+if (pa) { pa.value = ''; }
 const num2 = curNum();
 const lj = document.getElementById('linkJornalheiros');
 if (lj) lj.href = 'https://jornalheiros.blogspot.com/search?q=loteca+programacao+concurso+' + num2;
