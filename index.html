@@ -851,16 +851,13 @@ const btnsAcao = (isBlocked || isNulo)
 ? '<button class="btn-r" disabled>✓ EMPATE</button><button class="btn-r" disabled>✗ NÃO</button>'
 : '<button class="btn-r" onclick="window._doResult(' + i + ',true)">✓ EMPATE</button>'
 + '<button class="btn-r" onclick="window._doResult(' + i + ',false)">✗ NÃO</button>';
-const btnUndo   = '<span class="btn-spacer"></span>';
 const btnRedist = podaRedist
-? '<button class="btn-r redistrib" onclick="window._openRedistrib(' + i + ')" title="Redistribuir 50% do saldo em risco entre as demais linhas">↔</button>'
+? '<button class="btn-r redistrib" onclick="window._openRedistrib(' + i + ')" title="Redistribuir 50% do saldo em risco entre as demais linhas">⇔</button>'
 : '<span class="btn-spacer"></span>';
 const btnApostado = (isApostado || !jaM)
 ? '<button class="btn-apostado' + (isApostado ? ' sim' : '') + '" onclick="window._toggleApostado(' + i + ')" title="' + (isApostado ? 'Aposta feita ✓' : 'Marcar como apostado') + '">' + (isApostado ? '💰' : '💰') + '</button>'
 : '<span class="btn-spacer"></span>';
-const nuloRes = (isNulo && ln.nuloResult) ? ln.nuloResult[String(curNum())] : null;
-const nuloIcon = isNulo ? ('⛔ ' + (nuloRes||'?')) : '⛔';
-const btnNulo = '<button class="btn-nulo' + (isNulo ? ' sim' : '') + '" onclick="window._toggleNulo(' + i + ')" title="' + (isNulo ? 'Nulo (' + (nuloRes||'?') + ') - reativar' : 'Marcar nulo') + '">' + nuloIcon + '</button>';
+const btnNulo = '<button class="btn-nulo' + (isNulo ? ' sim' : '') + '" onclick="window._toggleNulo(' + i + ')" title="' + (isNulo ? 'Anulado - clique para reativar' : 'Anular jogo') + '">' + (isNulo ? '⛔ NULO' : '⛔') + '</button>';
 return btnsAcao + btnUndo + btnRedist + btnApostado + btnNulo;
 })()}
 </div></td>`;
@@ -925,12 +922,6 @@ const ln  = A.lines[i];
 const key = String(curNum());
 if (!ln.pnlLog) ln.pnlLog = {};
 if (ln.lastAction && ln.lastAction.key === key) return;
-const isNuloAgora = !!(ln.nulo && ln.nulo[key]);
-if (isNuloAgora) {
-ln.lastAction = {key, won, aposta:0, lucro:0, stage:ln.stage, lostAccum:ln.lostAccum, pnlTotal:ln.pnlTotal, pnlLogVal:0};
-ln.pnlLog[key] = won ? 0.001 : -0.001;
-save(); render(); return;
-}
 const {aposta: apostaCalc, lucro} = calcBet(ln);
 const aposta = (ln.apostaOverride && ln.apostaOverride[key] != null)
 ? ln.apostaOverride[key]
