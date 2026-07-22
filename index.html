@@ -925,6 +925,12 @@ const ln  = A.lines[i];
 const key = String(curNum());
 if (!ln.pnlLog) ln.pnlLog = {};
 if (ln.lastAction && ln.lastAction.key === key) return;
+const isNuloAgora = !!(ln.nulo && ln.nulo[key]);
+if (isNuloAgora) {
+ln.lastAction = {key, won, aposta:0, lucro:0, stage:ln.stage, lostAccum:ln.lostAccum, pnlTotal:ln.pnlTotal, pnlLogVal:0};
+ln.pnlLog[key] = won ? 0.001 : -0.001;
+save(); render(); return;
+}
 const {aposta: apostaCalc, lucro} = calcBet(ln);
 const aposta = (ln.apostaOverride && ln.apostaOverride[key] != null)
 ? ln.apostaOverride[key]
