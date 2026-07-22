@@ -593,6 +593,19 @@ loading.style.display    = 'flex';
 loading.querySelector('p').textContent = 'Verificando acesso...';
 try {
 DOC_REF = doc(db, "jaf-loteca", user.uid);
+// Migração: se doc vazio, copiar do UID principal
+const MAIN_UID = "lqNaWIvs9cW2LHaMlf1UAS0fb1y2";
+if (user.uid !== MAIN_UID) {
+  const curSnap2 = await getDoc(DOC_REF);
+  const curData2 = curSnap2.exists() ? curSnap2.data() : null;
+  const temDados2 = curData2 && curData2.concursos && curData2.concursos.length > 1;
+  if (!temDados2) {
+    const mainSnap2 = await getDoc(doc(db, "jaf-loteca", MAIN_UID));
+    if (mainSnap2.exists() && mainSnap2.data().concursos && mainSnap2.data().concursos.length > 1) {
+      await setDoc(DOC_REF, mainSnap2.data());
+    }
+  }
+}
 const userDoc = await getDoc(doc(db, "usuarios", user.uid));
 if (!userDoc.exists() || userDoc.data().status !== 'aprovado') {
 loading.style.display = 'none';
