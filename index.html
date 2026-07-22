@@ -758,7 +758,7 @@ if (inpPct && parseFloat(inpPct.value) !== BASE_PCT) inpPct.value = BASE_PCT;
 const conc = curConc();
 document.getElementById('navNum').textContent = conc.num;
 const rulesEl = document.getElementById('rulesLucro');
-if (rulesEl) rulesEl.textContent = 'R$ ' + BASE_TARGET.toFixed(2).replace('.',',');
+if (rulesEl) rulesEl.textContent = 'R$ ' + BASE_TARGET.toFixed(2).replace('.',',');
 document.getElementById('navIdx').textContent = `${A.cur+1} / ${A.concursos.length}`;
 document.getElementById('btnPrev').disabled   = A.cur === 0;
 const btnDel = document.getElementById('btnDel');
@@ -851,13 +851,14 @@ const btnsAcao = (isBlocked || isNulo)
 ? '<button class="btn-r" disabled>✓ EMPATE</button><button class="btn-r" disabled>✗ NÃO</button>'
 : '<button class="btn-r" onclick="window._doResult(' + i + ',true)">✓ EMPATE</button>'
 + '<button class="btn-r" onclick="window._doResult(' + i + ',false)">✗ NÃO</button>';
+const btnUndo   = '<span class="btn-spacer"></span>';
 const btnRedist = podaRedist
-? '<button class="btn-r redistrib" onclick="window._openRedistrib(' + i + ')" title="Redistribuir 50% do saldo em risco entre as demais linhas">⇔</button>'
+? '<button class="btn-r redistrib" onclick="window._openRedistrib(' + i + ')" title="Redistribuir 50% do saldo em risco entre as demais linhas">↔</button>'
 : '<span class="btn-spacer"></span>';
 const btnApostado = (isApostado || !jaM)
 ? '<button class="btn-apostado' + (isApostado ? ' sim' : '') + '" onclick="window._toggleApostado(' + i + ')" title="' + (isApostado ? 'Aposta feita ✓' : 'Marcar como apostado') + '">' + (isApostado ? '💰' : '💰') + '</button>'
 : '<span class="btn-spacer"></span>';
-const btnNulo = '<button class="btn-nulo' + (isNulo ? ' sim' : '') + '" onclick="window._toggleNulo(' + i + ')" title="' + (isNulo ? 'Anulado - clique para reativar' : 'Anular jogo') + '">' + (isNulo ? '⛔ NULO' : '⛔') + '</button>';
+const btnNulo = '<button class="btn-nulo' + (isNulo ? ' sim' : '') + '" onclick="window._toggleNulo(' + i + ')" title="' + (isNulo ? 'Jogo nulo — clique para reativar' : 'Marcar como nulo') + '">' + (isNulo ? '🚫' : '🚫') + '</button>';
 return btnsAcao + btnUndo + btnRedist + btnApostado + btnNulo;
 })()}
 </div></td>`;
@@ -878,7 +879,7 @@ return r2(s + Object.values(ln.pnlLog).filter(v => v > 0).reduce((a, v) => r2(a 
 }, 0);
 const vgEl = document.getElementById('sValorGreens');
 if (valorGreens > 0) {
-vgEl.textContent = '+R ' + valorGreens.toFixed(2).replace('.',',');
+vgEl.textContent = '+R ' + valorGreens.toFixed(2).replace('.',',');
 vgEl.style.color = 'var(--win)';
 } else {
 vgEl.textContent = '—';
@@ -1351,12 +1352,12 @@ tr.innerHTML = `
 <td><span class="hist-year" style="background:${anoColor}22;color:${anoColor};border:1px solid ${anoColor}44">${anoFull}</span></td>
 <td style="color:var(--muted)">${data}</td>
 <td style="color:var(--text)">${apostado > 0 ? fmtU(apostado) : '—'}</td>
-<td class="${pRcls}">${pR === 0 ? '—' : (pR > 0 ? '+' : '') + 'R$ ' + Math.abs(pR).toFixed(2).replace('.',',')}</td>
-<td class="${pAcls}">${pA === 0 ? '—' : (pA > 0 ? '+' : '') + 'R$ ' + Math.abs(pA).toFixed(2).replace('.',',')}</td>
+<td class="${pRcls}">${pR === 0 ? '—' : (pR > 0 ? '+' : '') + 'R$ ' + Math.abs(pR).toFixed(2).replace('.',',')}</td>
+<td class="${pAcls}">${pA === 0 ? '—' : (pA > 0 ? '+' : '') + 'R$ ' + Math.abs(pA).toFixed(2).replace('.',',')}</td>
 <td style="color:var(--win)">${wins || '—'}</td>
 <td style="color:var(--accent3)">${xCount || '—'}</td>
 <td style="color:var(--accent3)">${isCur ? recup || '—' : '—'}</td>
-<td style="color:var(--loss)">${isCur && haver > 0 ? 'R$ ' + haver.toFixed(2).replace('.',',') : '—'}</td>
+<td style="color:var(--loss)">${isCur && haver > 0 ? 'R$ ' + haver.toFixed(2).replace('.',',') : '—'}</td>
 <td style="color:var(--muted)">${apostadoCount || '—'}</td>
 `;
 tbody.appendChild(tr);
@@ -1476,18 +1477,7 @@ window._toggleNulo = function(i) {
 const ln  = A.lines[i];
 const key = String(curNum());
 if (!ln.nulo) ln.nulo = {};
-if (!ln.nulo[key]) {
-  var resp = confirm('Este jogo foi EMPATE?\nOK = Empate | Cancelar = Nao empate');
-  ln.nulo[key] = true;
-  if (!ln.nuloResult) ln.nuloResult = {};
-  ln.nuloResult[key] = resp ? 'X' : '1';
-  if (!ln.pnlLog) ln.pnlLog = {};
-  ln.pnlLog[key] = resp ? 0.001 : -0.001;
-} else {
-  ln.nulo[key] = false;
-  if (ln.nuloResult) delete ln.nuloResult[key];
-  if (ln.pnlLog && Math.abs(ln.pnlLog[key]||0) <= 0.001) delete ln.pnlLog[key];
-}
+ln.nulo[key] = !ln.nulo[key];
 save(); render();
 };
 window._toggleApostado = function(i) {
@@ -1506,7 +1496,18 @@ const metade = r2(debito * 0.5);
 const outras = A.lines.filter((_,j) => j !== i);
 const valorPorLinha = r2(metade / outras.length);
 if (!A.redistLog) A.redistLog = [];
-
+      // Migrar redistExtra para lostAccum automaticamente
+      var precisaMigrar = A.lines.some(function(ln){ return (ln.redistExtra||0) > 0; });
+      if (precisaMigrar) {
+        A.lines.forEach(function(ln) {
+          if ((ln.redistExtra||0) > 0) {
+            ln.lostAccum   = r2((ln.lostAccum||0) + ln.redistExtra);
+            ln.pnlTotal    = r2((ln.pnlTotal||0)  - ln.redistExtra);
+            ln.redistExtra = 0;
+          }
+        });
+        save();
+      }
 A.redistLog.push({
 origem: i,
 lostAccumAntes: ln.lostAccum,
@@ -1867,7 +1868,7 @@ const isProft = pnl >= 0;
 const isExp   = k === Math.round(empEsp);
 const barW    = Math.round(prob * 100 * 4);
 const barCol  = isProft ? 'var(--win)' : 'var(--loss)';
-const pnlStr  = (pnl >= 0 ? '+' : '') + 'R$ ' + Math.abs(pnl).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const pnlStr  = (pnl >= 0 ? '+' : '') + 'R$ ' + Math.abs(pnl).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 if (isProft) probLucro += prob;
 else probPrejuizo += prob;
 if (prob < 0.003 && k !== Math.round(empEsp)) continue; // omite linhas insignificantes
@@ -1879,7 +1880,7 @@ rows += `<tr class="${isProft ? 'profit' : 'loss-row'}${isExp ? ' expected' : ''
 <td style="font-weight:600">${pnlStr}</td>
 </tr>`;
 }
-const fmtBRL = v => 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const fmtBRL = v => 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 document.getElementById('calcResult').innerHTML = `
 <div class="calc-result-grid">
 <div class="calc-kpi">
