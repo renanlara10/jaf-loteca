@@ -858,7 +858,9 @@ const btnRedist = podaRedist
 const btnApostado = (isApostado || !jaM)
 ? '<button class="btn-apostado' + (isApostado ? ' sim' : '') + '" onclick="window._toggleApostado(' + i + ')" title="' + (isApostado ? 'Aposta feita ✓' : 'Marcar como apostado') + '">' + (isApostado ? '💰' : '💰') + '</button>'
 : '<span class="btn-spacer"></span>';
-const btnNulo = '<button class="btn-nulo' + (isNulo ? ' sim' : '') + '" onclick="window._toggleNulo(' + i + ')" title="' + (isNulo ? 'Jogo nulo — clique para reativar' : 'Marcar como nulo') + '">' + (isNulo ? '🚫' : '🚫') + '</button>';
+const nuloRes = (isNulo && ln.nuloResult) ? ln.nuloResult[String(curNum())] : null;
+const nuloIcon = isNulo ? ('⛔ ' + (nuloRes||'?')) : '⛔';
+const btnNulo = '<button class="btn-nulo' + (isNulo ? ' sim' : '') + '" onclick="window._toggleNulo(' + i + ')" title="' + (isNulo ? 'Nulo (' + (nuloRes||'?') + ') - reativar' : 'Marcar nulo') + '">' + nuloIcon + '</button>';
 return btnsAcao + btnUndo + btnRedist + btnApostado + btnNulo;
 })()}
 </div></td>`;
@@ -1477,7 +1479,18 @@ window._toggleNulo = function(i) {
 const ln  = A.lines[i];
 const key = String(curNum());
 if (!ln.nulo) ln.nulo = {};
-ln.nulo[key] = !ln.nulo[key];
+if (!ln.nulo[key]) {
+  var resp = confirm('Este jogo foi EMPATE?\nOK = Empate | Cancelar = Nao empate');
+  ln.nulo[key] = true;
+  if (!ln.nuloResult) ln.nuloResult = {};
+  ln.nuloResult[key] = resp ? 'X' : '1';
+  if (!ln.pnlLog) ln.pnlLog = {};
+  ln.pnlLog[key] = resp ? 0.001 : -0.001;
+} else {
+  ln.nulo[key] = false;
+  if (ln.nuloResult) delete ln.nuloResult[key];
+  if (ln.pnlLog && Math.abs(ln.pnlLog[key]||0) <= 0.001) delete ln.pnlLog[key];
+}
 save(); render();
 };
 window._toggleApostado = function(i) {
