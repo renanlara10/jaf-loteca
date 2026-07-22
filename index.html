@@ -593,19 +593,6 @@ loading.style.display    = 'flex';
 loading.querySelector('p').textContent = 'Verificando acesso...';
 try {
 DOC_REF = doc(db, "jaf-loteca", user.uid);
-// Migração: se doc vazio, copiar do UID principal
-const MAIN_UID = "lqNaWIvs9cW2LHaMlf1UAS0fb1y2";
-if (user.uid !== MAIN_UID) {
-  const curSnap2 = await getDoc(DOC_REF);
-  const curData2 = curSnap2.exists() ? curSnap2.data() : null;
-  const temDados2 = curData2 && curData2.concursos && curData2.concursos.length > 1;
-  if (!temDados2) {
-    const mainSnap2 = await getDoc(doc(db, "jaf-loteca", MAIN_UID));
-    if (mainSnap2.exists() && mainSnap2.data().concursos && mainSnap2.data().concursos.length > 1) {
-      await setDoc(DOC_REF, mainSnap2.data());
-    }
-  }
-}
 const userDoc = await getDoc(doc(db, "usuarios", user.uid));
 if (!userDoc.exists() || userDoc.data().status !== 'aprovado') {
 loading.style.display = 'none';
@@ -1519,18 +1506,7 @@ const metade = r2(debito * 0.5);
 const outras = A.lines.filter((_,j) => j !== i);
 const valorPorLinha = r2(metade / outras.length);
 if (!A.redistLog) A.redistLog = [];
-      // Migrar redistExtra para lostAccum automaticamente
-      var precisaMigrar = A.lines.some(function(ln){ return (ln.redistExtra||0) > 0; });
-      if (precisaMigrar) {
-        A.lines.forEach(function(ln) {
-          if ((ln.redistExtra||0) > 0) {
-            ln.lostAccum   = r2((ln.lostAccum||0) + ln.redistExtra);
-            ln.pnlTotal    = r2((ln.pnlTotal||0)  - ln.redistExtra);
-            ln.redistExtra = 0;
-          }
-        });
-        save();
-      }
+
 A.redistLog.push({
 origem: i,
 lostAccumAntes: ln.lostAccum,
