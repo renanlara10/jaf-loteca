@@ -758,7 +758,7 @@ if (inpPct && parseFloat(inpPct.value) !== BASE_PCT) inpPct.value = BASE_PCT;
 const conc = curConc();
 document.getElementById('navNum').textContent = conc.num;
 const rulesEl = document.getElementById('rulesLucro');
-if (rulesEl) rulesEl.textContent = 'R$ ' + BASE_TARGET.toFixed(2).replace('.',',');
+if (rulesEl) rulesEl.textContent = 'R$ ' + BASE_TARGET.toFixed(2).replace('.',',');
 document.getElementById('navIdx').textContent = `${A.cur+1} / ${A.concursos.length}`;
 document.getElementById('btnPrev').disabled   = A.cur === 0;
 const btnDel = document.getElementById('btnDel');
@@ -879,7 +879,7 @@ return r2(s + Object.values(ln.pnlLog).filter(v => v > 0).reduce((a, v) => r2(a 
 }, 0);
 const vgEl = document.getElementById('sValorGreens');
 if (valorGreens > 0) {
-vgEl.textContent = '+R ' + valorGreens.toFixed(2).replace('.',',');
+vgEl.textContent = '+R ' + valorGreens.toFixed(2).replace('.',',');
 vgEl.style.color = 'var(--win)';
 } else {
 vgEl.textContent = '—';
@@ -1352,12 +1352,12 @@ tr.innerHTML = `
 <td><span class="hist-year" style="background:${anoColor}22;color:${anoColor};border:1px solid ${anoColor}44">${anoFull}</span></td>
 <td style="color:var(--muted)">${data}</td>
 <td style="color:var(--text)">${apostado > 0 ? fmtU(apostado) : '—'}</td>
-<td class="${pRcls}">${pR === 0 ? '—' : (pR > 0 ? '+' : '') + 'R$ ' + Math.abs(pR).toFixed(2).replace('.',',')}</td>
-<td class="${pAcls}">${pA === 0 ? '—' : (pA > 0 ? '+' : '') + 'R$ ' + Math.abs(pA).toFixed(2).replace('.',',')}</td>
+<td class="${pRcls}">${pR === 0 ? '—' : (pR > 0 ? '+' : '') + 'R$ ' + Math.abs(pR).toFixed(2).replace('.',',')}</td>
+<td class="${pAcls}">${pA === 0 ? '—' : (pA > 0 ? '+' : '') + 'R$ ' + Math.abs(pA).toFixed(2).replace('.',',')}</td>
 <td style="color:var(--win)">${wins || '—'}</td>
 <td style="color:var(--accent3)">${xCount || '—'}</td>
 <td style="color:var(--accent3)">${isCur ? recup || '—' : '—'}</td>
-<td style="color:var(--loss)">${isCur && haver > 0 ? 'R$ ' + haver.toFixed(2).replace('.',',') : '—'}</td>
+<td style="color:var(--loss)">${isCur && haver > 0 ? 'R$ ' + haver.toFixed(2).replace('.',',') : '—'}</td>
 <td style="color:var(--muted)">${apostadoCount || '—'}</td>
 `;
 tbody.appendChild(tr);
@@ -1868,7 +1868,7 @@ const isProft = pnl >= 0;
 const isExp   = k === Math.round(empEsp);
 const barW    = Math.round(prob * 100 * 4);
 const barCol  = isProft ? 'var(--win)' : 'var(--loss)';
-const pnlStr  = (pnl >= 0 ? '+' : '') + 'R$ ' + Math.abs(pnl).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const pnlStr  = (pnl >= 0 ? '+' : '') + 'R$ ' + Math.abs(pnl).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 if (isProft) probLucro += prob;
 else probPrejuizo += prob;
 if (prob < 0.003 && k !== Math.round(empEsp)) continue; // omite linhas insignificantes
@@ -1880,7 +1880,7 @@ rows += `<tr class="${isProft ? 'profit' : 'loss-row'}${isExp ? ' expected' : ''
 <td style="font-weight:600">${pnlStr}</td>
 </tr>`;
 }
-const fmtBRL = v => 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const fmtBRL = v => 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 document.getElementById('calcResult').innerHTML = `
 <div class="calc-result-grid">
 <div class="calc-kpi">
