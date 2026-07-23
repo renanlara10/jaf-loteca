@@ -1607,8 +1607,13 @@ function toggleHist(bodyId, iconId) {
 var body = document.getElementById(bodyId);
 var icon = document.getElementById(iconId);
 if (!body) return;
-if (body.style.display === 'none') { body.style.display = ''; if(icon) icon.textContent = '▼'; }
-else { body.style.display = 'none'; if(icon) icon.textContent = '▶'; }
+if (body.style.display === 'none') {
+  body.style.display = '';
+  if(icon) icon.textContent = '▼';
+} else {
+  body.style.display = 'none';
+  if(icon) icon.textContent = '▶';
+}
 }
 
 // ══ HISTÓRICO PRINCIPAL ══
@@ -1774,8 +1779,12 @@ window.xToggleNulo=function(i){var ln=A.xLines[i];var key=String(xCurNum());if(!
 window.xToggleApostado=function(i){var ln=A.xLines[i];var key=String(xCurNum());if(!ln.apostado)ln.apostado={};ln.apostado[key]=!ln.apostado[key];save();xRender();};
 
 function xRender(){
-  if(!A||!A.xLines||!A.xConcursos)return;
+  if(!A||!A.xConcursos)return;
+  if(!A.xLines||A.xLines.length!==14){A.xLines=blankLines();save();}
+  if(A.xCur===undefined||A.xCur>=A.xConcursos.length)A.xCur=0;
+  if(!A.xLucroAlvo)A.xLucroAlvo=20;
   var conc=xCurConc();var key=String(xCurNum());
+  if(!conc.games||conc.games.length!==14)conc.games=blankGames();
   var tbody=document.getElementById('xTbody');if(!tbody)return;
   tbody.innerHTML='';
   var totAp=0,totLu=0,totPnl=0,totAcc=0,totRisco=0,wins=0,loss=0,recup=0;
