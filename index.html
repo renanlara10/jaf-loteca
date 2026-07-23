@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JAF Loteca</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-<style>:root{--bg:#0a0d12;--surface:#111520;--card:#161c2a;--border:#1e2a3a;--accent:#00e5a0;--accent2:#ff4d6d;--accent3:#f5a623;--text:#d4dff0;--muted:#4a5a70;--win:#00e5a0;--loss:#ff4d6d;--neutral:#5b7cfd}*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;width:100%}body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4}#syncBar{position:fixed;top:0;left:0;right:0;z-index:999;padding:6px 16px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-align:center;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:8px}#syncBar.syncing{background:rgba(245,166,35,.15);color:var(--accent3);border-bottom:1px solid rgba(245,166,35,.25)}#syncBar.synced{background:rgba(0,229,160,.1);color:var(--accent);border-bottom:1px solid rgba(0,229,160,.2)}#syncBar.error{background:rgba(255,77,109,.15);color:var(--accent2);border-bottom:1px solid rgba(255,77,109,.25)}#syncBar.hidden{display:none}.sync-dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.2s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}#syncBar.synced .sync-dot,#syncBar.error .sync-dot{animation:none}.header{position:relative;padding:52px 24px 20px;text-align:center;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(0,229,160,.04) 0%,transparent 100%)}.header-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--accent);background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.2);padding:4px 14px;border-radius:2px;margin-bottom:10px}h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,7vw,64px);letter-spacing:.04em;line-height:1;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.subtitle{margin-top:6px;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace}.concurso-nav{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface)}.concurso-info{display:flex;align-items:center;gap:8px;background:rgba(91,124,253,.1);border:1px solid rgba(91,124,253,.25);padding:7px 16px;border-radius:2px;font-family:'DM Mono',monospace;font-size:12px;color:var(--neutral)}.concurso-info .num{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.06em;color:#fff}.btn-nav{display:inline-flex;align-items:center;gap:6px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:2px;transition:all .15s}.btn-nav:hover{filter:brightness(1.25);transform:translateY(-1px)}.btn-nav:disabled{opacity:.3;cursor:not-allowed;transform:none}.btn-prev{background:rgba(74,90,112,.25);color:var(--muted);border:1px solid var(--border)}.btn-next{background:rgba(0,229,160,.12);color:var(--accent);border:1px solid rgba(0,229,160,.25)}.btn-import{background:rgba(91,124,253,.12);color:var(--neutral);border:1px solid rgba(91,124,253,.28)}.btn-del{background:rgba(255,77,109,.08);color:var(--accent2);border:1px solid rgba(255,77,109,.22)}.btn-del:disabled{opacity:.2;cursor:not-allowed;transform:none}.btn-resetall{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.28)}.btn-filter-off{background:rgba(74,90,112,.2);color:var(--muted);border:1px solid var(--border)}.btn-filter-on{background:rgba(245,166,35,.18);color:var(--accent3);border:1px solid rgba(245,166,35,.45)}tr.blocked{opacity:.35}tr.blocked td{pointer-events:none}tr.nulo td{opacity:.3;text-decoration:line-through}.btn-nulo{font-size:11px;padding:4px 8px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s}.btn-nulo:hover{border-color:var(--accent2);color:var(--accent2)}.btn-nulo.sim{background:rgba(255,77,109,.1);color:var(--loss);border-color:rgba(255,77,109,.4);font-weight:600}.blocked-badge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;border-radius:2px;background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.3);letter-spacing:.06em}.filter-bar{display:none;align-items:center;gap:10px;padding:10px 16px;background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.2);border-radius:2px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);flex-wrap:wrap}.filter-bar strong{color:var(--accent3)}.filter-bar.active{display:flex}.threshold-input{background:var(--surface);border:1px solid rgba(245,166,35,.4);color:var(--accent3);font-family:'DM Mono',monospace;font-size:14px;font-weight:600;width:46px;text-align:center;padding:4px;border-radius:2px;outline:none}.threshold-input:focus{border-color:var(--accent3)}.summary-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--border);border-bottom:1px solid var(--border)}.summary-item{background:var(--surface);padding:14px 16px;text-align:center}.summary-value{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.04em;line-height:1}.summary-item.editable{cursor:pointer;position:relative}.summary-item.editable:hover{background:rgba(0,229,160,.04)}.lucro-alvo-input{background:transparent;border:none;border-bottom:1px solid rgba(0,229,160,.4);color:var(--accent);font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.04em;line-height:1;width:100px;text-align:center;outline:none;padding:0}.lucro-alvo-input:focus{border-bottom-color:var(--accent)}.edit-hint{font-size:8px;letter-spacing:.08em;color:rgba(0,229,160,.4);font-family:'DM Mono',monospace;margin-top:2px}.summary-label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px;font-family:'DM Mono',monospace}.container{max-width:1400px;margin:0 auto;padding:20px 12px 48px;position:relative;z-index:1}.rules-card{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent3);padding:13px 18px;margin-bottom:18px;font-size:12px;color:var(--muted);line-height:1.7;font-family:'DM Mono',monospace}.rules-card strong{color:var(--accent3)}.info-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}.pill{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:2px;padding:5px 11px;font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)}.pill .dot-icon{width:7px;height:7px;border-radius:50%;flex-shrink:0}.table-wrapper{overflow-x:auto;border-radius:4px;border:1px solid var(--border)}table{width:100%;border-collapse:collapse;font-size:13px}thead tr{background:var(--surface);border-bottom:2px solid var(--border)}thead th{padding:9px 6px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}thead th:first-child{padding-left:8px}tbody tr{background:var(--card);border-bottom:1px solid var(--border);transition:background .15s}tbody tr:hover{background:rgba(22,28,42,.85)}td{padding:8px 6px;vertical-align:middle;white-space:nowrap}td:first-child{padding-left:8px}.game-num{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--muted);width:22px;text-align:center}.teams{font-weight:600;font-size:12px;color:var(--text);min-width:140px;max-width:200px;white-space:normal;line-height:1.3}.teams span.vs{color:var(--muted);font-weight:300;font-size:11px;margin:0 4px}.teams.ph{color:var(--muted);font-style:italic;font-weight:400}.day-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:2px;background:rgba(74,90,112,.3);color:var(--muted)}.stage{display:inline-flex;align-items:center;font-family:'DM Mono',monospace;font-size:11px;padding:3px 8px;border-radius:2px}.s0{background:rgba(0,229,160,.08);color:var(--accent);border:1px solid rgba(0,229,160,.2)}.s1{background:rgba(245,166,35,.1);color:var(--accent3);border:1px solid rgba(245,166,35,.25)}.s2{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25)}.s3{background:rgba(255,77,109,.18);color:#ff6b85;border:1px solid rgba(255,77,109,.35)}.aposta-input{background:var(--surface);border:1px solid rgba(0,229,160,.3);color:var(--accent);font-family:'DM Mono',monospace;font-size:13px;font-weight:500;width:74px;text-align:center;padding:4px 3px;border-radius:2px;outline:none;transition:border-color .15s}.aposta-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,229,160,.12)}.aposta-input.modified{border-color:rgba(245,166,35,.6);color:var(--accent3)}.odd-input{background:var(--surface);border:1px solid var(--border);color:var(--accent3);font-family:'DM Mono',monospace;font-size:13px;font-weight:500;width:54px;text-align:center;padding:4px 3px;border-radius:2px;outline:none;transition:border-color .15s}.odd-input:focus{border-color:var(--accent3);box-shadow:0 0 0 2px rgba(245,166,35,.12)}.odd-input.odd-blocked{border-color:rgba(245,166,35,.6);background:rgba(245,166,35,.06)}.aposta-r{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--accent)}.lucro-t{font-family:'DM Mono',monospace;font-size:13px;color:var(--neutral)}.pnl{font-family:'DM Mono',monospace;font-size:12px;font-weight:500}.pos{color:var(--win)}.neg{color:var(--loss)}.zero{color:var(--muted)}.accum-cell{font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap}.risco-cell{font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;color:var(--loss)}.risco-cell.zero{color:var(--muted)}.accum-cell.pos{color:rgba(0,229,160,.7)}.accum-cell.neg{color:rgba(255,77,109,.7)}.accum-cell.zero{color:var(--muted)}.result-btns{display:flex;gap:3px;flex-wrap:nowrap;align-items:center}.btn-spacer{display:inline-block;width:28px}.btn-r{border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.04em;padding:4px 8px;border-radius:2px;transition:all .15s;background:var(--surface);color:var(--muted);border:1px solid var(--border)}.btn-r:hover{filter:brightness(1.35);transform:translateY(-1px)}.btn-r:disabled{opacity:.35;cursor:not-allowed;transform:none}.btn-r.rst{background:rgba(74,90,112,.2)}.btn-r.rst:hover{background:rgba(74,90,112,.4);color:var(--text)}.btn-r.undo{background:rgba(91,124,253,.12);color:var(--neutral);border-color:rgba(91,124,253,.25)}.btn-r.undo:hover{background:rgba(91,124,253,.25);color:#fff}.btn-r.undo:disabled{opacity:.2}.btn-r.marcado-win{background:rgba(0,229,160,.15);color:var(--win);border-color:rgba(0,229,160,.4);font-weight:600;cursor:default}.btn-r.marcado-loss{background:rgba(255,77,109,.12);color:var(--loss);border-color:rgba(255,77,109,.35);font-weight:600;cursor:default}.btn-apostado{font-size:11px;padding:4px 8px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s}.btn-apostado:hover{border-color:var(--accent3);color:var(--accent3)}.btn-apostado.sim{background:rgba(245,166,35,.12);color:var(--accent3);border-color:rgba(245,166,35,.4);font-weight:600}tr.apostado-sim td{background:rgba(245,166,35,.04)}.btn-r.redistrib{background:rgba(91,124,253,.12);color:var(--neutral);border-color:rgba(91,124,253,.3);font-size:11px;padding:4px 9px}.btn-r.redistrib:hover{background:rgba(91,124,253,.25);color:#fff}.redistrib-badge{font-family:'DM Mono',monospace;font-size:9px;padding:1px 5px;border-radius:2px;background:rgba(91,124,253,.12);color:var(--neutral);border:1px solid rgba(91,124,253,.25);margin-left:4px;vertical-align:middle}#mRedistrib .mc{max-width:480px;text-align:left}.redist-preview{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:12px 14px;margin:14px 0}.redist-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(30,42,58,.5);font-family:'DM Mono',monospace;font-size:12px}.redist-row:last-child{border-bottom:none}.redist-lbl{color:var(--muted)}.redist-val{font-weight:500}tfoot tr{background:var(--surface);border-top:2px solid var(--border)}.ht-section{margin-top:28px}.ht-section-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--neutral);margin-bottom:12px;display:flex;align-items:center;gap:10px}.ht-section-title::before{content:'';flex:1;height:1px;background:var(--border)}.ht-summary-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:16px}.ht-summary-item{background:var(--surface);padding:14px 16px;text-align:center}.ht-summary-value{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;line-height:1}.ht-summary-item.editable{cursor:pointer;position:relative}.ht-summary-item.editable:hover{background:rgba(91,124,253,.04)}.ht-lucro-input{background:transparent;border:none;border-bottom:1px solid rgba(91,124,253,.4);color:var(--neutral);font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;width:90px;text-align:center;outline:none;padding:0}.ht-badge{font-family:'DM Mono',monospace;font-size:9px;padding:1px 6px;border-radius:2px;background:rgba(91,124,253,.15);color:var(--neutral);border:1px solid rgba(91,124,253,.3);letter-spacing:.04em}.bonus-section{margin-top:28px}.bonus-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--accent3);margin-bottom:10px;display:flex;align-items:center;gap:10px}.bonus-title::before{content:'';flex:1;height:1px;background:var(--border)}.bonus-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}.bonus-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:14px}.bonus-card.win{border-color:rgba(0,229,160,.3)}.bonus-card.loss{border-color:rgba(255,77,109,.25)}.bonus-num{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--muted);letter-spacing:.06em;margin-bottom:8px}.bonus-input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:5px 8px;border-radius:2px;margin-bottom:6px;box-sizing:border-box}.bonus-input:focus{border-color:var(--accent3);outline:none}.bonus-row{display:flex;gap:6px;margin-bottom:6px}.bonus-row .bonus-input{margin-bottom:0}.bonus-btns{display:flex;gap:4px;margin-top:8px}.bonus-btn{flex:1;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.04em;padding:6px 4px;border-radius:2px;border:1px solid var(--border);background:transparent;cursor:pointer;transition:all .15s}.bonus-btn.empate{color:var(--win);border-color:rgba(0,229,160,.3)}.bonus-btn.empate:hover{background:rgba(0,229,160,.1)}.bonus-btn.nao{color:var(--loss);border-color:rgba(255,77,109,.3)}.bonus-btn.nao:hover{background:rgba(255,77,109,.1)}.bonus-btn.reset{color:var(--muted);font-size:12px}.bonus-result{font-family:'DM Mono',monospace;font-size:11px;margin-top:6px;text-align:center}.bonus-summary{display:flex;gap:12px;background:var(--surface);border:1px solid var(--border);padding:12px 16px;border-radius:4px}.bonus-sv{font-family:'Bebas Neue',sans-serif;font-size:20px}.bonus-sl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}@media(max-width:600px){.bonus-grid{grid-template-columns:1fr}}.hist-section{margin-top:28px}.hist-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:10px}.hist-title::before{content:'';flex:1;height:1px;background:var(--border)}.hist-table{width:100%;border-collapse:collapse;font-size:11px}.hist-table th{background:var(--surface);padding:7px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}.hist-table th:hover{color:var(--text)}.hist-table td{padding:7px 10px;font-family:'DM Mono',monospace;border-bottom:1px solid rgba(30,42,58,.5);white-space:nowrap}.hist-table tr:hover td{background:rgba(255,255,255,.02)}.hist-table tr.cur-row td{background:rgba(0,229,160,.05);border-left:2px solid var(--accent)}.hist-table tr{cursor:pointer}.hist-pos{color:var(--win)}.hist-neg{color:var(--loss)}.hist-zero{color:var(--muted)}.hist-num{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--accent)}.hist-year{font-size:9px;padding:1px 5px;border-radius:2px;font-family:'DM Mono',monospace}tfoot td{padding:12px 10px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.03em}tfoot td:first-child{padding-left:14px}.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:300;backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:16px;overflow-y:auto}.mo.open{display:flex}.mc{background:var(--card);border:1px solid var(--border);padding:20px;width:100%;text-align:center;max-height:94vh;overflow-y:auto}.mc h2{font-family:'Bebas Neue',sans-serif;font-size:26px;margin-bottom:8px}.mc p{color:var(--muted);font-size:12px;margin-bottom:16px;font-family:'DM Mono',monospace;line-height:1.65}.mc p strong{color:var(--accent)}.mbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.mbtns button{padding:9px 20px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:17px;cursor:pointer;border-radius:2px;transition:all .15s}.mbtns button:hover{filter:brightness(1.3)}.mbtns .ok{background:rgba(0,229,160,.15);color:var(--accent);border-color:rgba(0,229,160,.35)}.mbtns .danger{background:rgba(255,77,109,.15);color:var(--accent2);border-color:rgba(255,77,109,.35)}.next-num{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;width:220px;text-align:center;padding:8px;border-radius:2px;outline:none;display:block;margin:0 auto 6px}.next-num:focus{border-color:var(--accent)}#mImport .mc{max-width:540px;text-align:left}#mImport .mc h2,#mImport .mc p{text-align:center}.imp-hint{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:14px;background:rgba(91,124,253,.07);border:1px solid rgba(91,124,253,.18);padding:10px 12px;border-radius:2px;line-height:1.65}.imp-hint strong{color:var(--neutral)}.imp-grid{display:grid;grid-template-columns:22px 1fr auto 1fr 50px;gap:5px 7px;align-items:center;margin-bottom:16px;max-height:58vh;overflow-y:auto;padding-right:4px}.imp-grid .rn{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--muted);text-align:center}.imp-grid input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 9px;border-radius:2px;outline:none;width:100%;transition:border-color .15s}.imp-grid input:focus{border-color:var(--accent)}.imp-grid .vss{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center}#authScreen{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px}.auth-box{background:var(--card);border:1px solid var(--border);padding:36px 32px;width:100%;max-width:380px}.auth-box h2{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.04em;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}.auth-box .auth-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:24px}.auth-tabs{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--border);border-radius:2px;overflow:hidden}.auth-tab{flex:1;padding:9px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:var(--surface);color:var(--muted);border:none;transition:all .15s}.auth-tab.active{background:rgba(0,229,160,.12);color:var(--accent)}.auth-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}.auth-field label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.auth-field input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 12px;border-radius:2px;outline:none;transition:border-color .15s}.auth-field input:focus{border-color:var(--accent)}.auth-btn{width:100%;padding:12px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.06em;border:none;cursor:pointer;border-radius:2px;transition:all .15s;margin-top:4px}.auth-btn.primary{background:rgba(0,229,160,.15);color:var(--accent);border:1px solid rgba(0,229,160,.35)}.auth-btn.primary:hover{background:rgba(0,229,160,.25)}.auth-btn:disabled{opacity:.4;cursor:not-allowed}.auth-msg{font-family:'DM Mono',monospace;font-size:11px;padding:8px 12px;border-radius:2px;margin-top:12px;text-align:center}.auth-msg.error{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25)}.auth-msg.success{background:rgba(0,229,160,.08);color:var(--accent);border:1px solid rgba(0,229,160,.2)}.auth-msg.pending{background:rgba(245,166,35,.08);color:var(--accent3);border:1px solid rgba(245,166,35,.2)}.user-bar{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:6px 20px;background:var(--surface);border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}.user-bar .user-email{color:var(--neutral)}.user-bar .admin-badge{background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.25);padding:2px 8px;border-radius:2px;font-size:10px;letter-spacing:.08em}.btn-logout{background:none;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);padding:3px 8px;border-radius:2px;transition:all .15s}.btn-logout:hover{color:var(--accent2)}#adminPanel{background:var(--card);border:1px solid rgba(245,166,35,.25);border-left:3px solid var(--accent3);padding:16px 18px;margin-bottom:18px}#adminPanel h3{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent3);margin-bottom:12px}.admin-user-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:12px}.admin-user-row:last-child{border-bottom:none}.admin-user-email{flex:1;color:var(--text)}.admin-user-status{font-size:10px;padding:2px 8px;border-radius:2px}.status-pendente{background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.2)}.status-aprovado{background:rgba(0,229,160,.08);color:var(--accent);border:1px solid rgba(0,229,160,.2)}.status-rejeitado{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.2)}.admin-btn{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.06em;padding:3px 10px;border-radius:2px;border:none;cursor:pointer;transition:all .15s}.admin-btn.aprovar{background:rgba(0,229,160,.15);color:var(--accent);border:1px solid rgba(0,229,160,.3)}.admin-btn.aprovar:hover{background:rgba(0,229,160,.28)}.admin-btn.rejeitar{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25)}.admin-btn.rejeitar:hover{background:rgba(255,77,109,.22)}#loading{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}#loading h2{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.06em;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}#loading p{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)}#mCalc .mc{max-width:700px;text-align:left;max-height:92vh;display:flex;flex-direction:column}#mCalc .mc h2{text-align:center}.calc-scroll{overflow-y:auto;flex:1;padding-right:4px}.calc-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:12px}.calc-field{display:flex;flex-direction:column;gap:3px}.calc-field label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.calc-field input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;padding:7px 8px;border-radius:2px;outline:none;width:100%;transition:border-color .15s}.calc-field input:focus{border-color:var(--accent)}.calc-field span{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);line-height:1.3}.calc-result{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:10px}.calc-result-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);margin-bottom:10px}.calc-kpi{background:var(--card);padding:8px 6px;text-align:center}.calc-kpi-val{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:.04em;line-height:1}.calc-kpi-lbl{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace}.prob-table{width:100%;border-collapse:collapse;font-size:11px}.prob-table th{padding:5px 6px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)}.prob-table td{padding:4px 6px;font-family:'DM Mono',monospace;border-bottom:1px solid rgba(30,42,58,.5)}.prob-table tr.profit td{color:var(--win)}.prob-table tr.loss-row td{color:rgba(255,77,109,.7)}.prob-table tr.expected td{background:rgba(91,124,253,.08)}.prob-bar{display:inline-block;height:6px;border-radius:2px;margin-left:4px;vertical-align:middle}.calc-note{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);line-height:1.5;padding:8px 10px;background:rgba(91,124,253,.06);border:1px solid rgba(91,124,253,.15);border-radius:2px}.calc-note strong{color:var(--neutral)}@media(max-width:600px){.calc-grid{grid-template-columns:1fr 1fr}.calc-result-grid{grid-template-columns:repeat(3,1fr)}}@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}tbody tr{animation:fadeIn .22s ease both}tbody tr:nth-child(1){animation-delay:.02s}tbody tr:nth-child(2){animation-delay:.04s}tbody tr:nth-child(3){animation-delay:.06s}tbody tr:nth-child(4){animation-delay:.08s}tbody tr:nth-child(5){animation-delay:.10s}tbody tr:nth-child(6){animation-delay:.12s}tbody tr:nth-child(7){animation-delay:.14s}tbody tr:nth-child(8){animation-delay:.16s}tbody tr:nth-child(9){animation-delay:.18s}tbody tr:nth-child(10){animation-delay:.20s}tbody tr:nth-child(11){animation-delay:.22s}tbody tr:nth-child(12){animation-delay:.24s}tbody tr:nth-child(13){animation-delay:.26s}tbody tr:nth-child(14){animation-delay:.28s}50%{opacity:.5}}50%{opacity:.5}}50%{opacity:.5}}50%{opacity:.4}}50%{opacity:.4}}50%{opacity:.4}}50%{opacity:.4}}50%{opacity:.4}100%{opacity:1}}@media(max-width:700px){.teams{min-width:130px;font-size:12px}td{padding:8px 6px}.btn-r{padding:5px 8px;font-size:13px}.btn-nav{padding:7px 10px;font-size:10px}}</style>
+<style>:root{--bg:#0a0d12;--surface:#111520;--card:#161c2a;--border:#1e2a3a;--accent:#00e5a0;--accent2:#ff4d6d;--accent3:#f5a623;--text:#d4dff0;--muted:#4a5a70;--win:#00e5a0;--loss:#ff4d6d;--neutral:#5b7cfd}*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;width:100%}body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4}#syncBar{position:fixed;top:0;left:0;right:0;z-index:999;padding:6px 16px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-align:center;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:8px}#syncBar.syncing{background:rgba(245,166,35,.15);color:var(--accent3);border-bottom:1px solid rgba(245,166,35,.25)}#syncBar.synced{background:rgba(0,229,160,.1);color:var(--accent);border-bottom:1px solid rgba(0,229,160,.2)}#syncBar.error{background:rgba(255,77,109,.15);color:var(--accent2);border-bottom:1px solid rgba(255,77,109,.25)}#syncBar.hidden{display:none}.sync-dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.2s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}#syncBar.synced .sync-dot,#syncBar.error .sync-dot{animation:none}.header{position:relative;padding:52px 24px 20px;text-align:center;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(0,229,160,.04) 0%,transparent 100%)}.header-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--accent);background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.2);padding:4px 14px;border-radius:2px;margin-bottom:10px}h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,7vw,64px);letter-spacing:.04em;line-height:1;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.subtitle{margin-top:6px;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace}.concurso-nav{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface)}.concurso-info{display:flex;align-items:center;gap:8px;background:rgba(91,124,253,.1);border:1px solid rgba(91,124,253,.25);padding:7px 16px;border-radius:2px;font-family:'DM Mono',monospace;font-size:12px;color:var(--neutral)}.concurso-info .num{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.06em;color:#fff}.btn-nav{display:inline-flex;align-items:center;gap:6px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:2px;transition:all .15s}.btn-nav:hover{filter:brightness(1.25);transform:translateY(-1px)}.btn-nav:disabled{opacity:.3;cursor:not-allowed;transform:none}.btn-prev{background:rgba(74,90,112,.25);color:var(--muted);border:1px solid var(--border)}.btn-next{background:rgba(0,229,160,.12);color:var(--accent);border:1px solid rgba(0,229,160,.25)}.btn-import{background:rgba(91,124,253,.12);color:var(--neutral);border:1px solid rgba(91,124,253,.28)}.btn-del{background:rgba(255,77,109,.08);color:var(--accent2);border:1px solid rgba(255,77,109,.22)}.btn-del:disabled{opacity:.2;cursor:not-allowed;transform:none}.btn-resetall{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.28)}.btn-filter-off{background:rgba(74,90,112,.2);color:var(--muted);border:1px solid var(--border)}.btn-filter-on{background:rgba(245,166,35,.18);color:var(--accent3);border:1px solid rgba(245,166,35,.45)}tr.blocked{opacity:.35}tr.blocked td{pointer-events:none}tr.nulo td{opacity:.3;text-decoration:line-through}.btn-nulo{font-size:11px;padding:4px 8px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s}.btn-nulo:hover{border-color:var(--accent2);color:var(--accent2)}.btn-nulo.sim{background:rgba(255,77,109,.1);color:var(--loss);border-color:rgba(255,77,109,.4);font-weight:600}.blocked-badge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;border-radius:2px;background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.3);letter-spacing:.06em}.filter-bar{display:none;align-items:center;gap:10px;padding:10px 16px;background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.2);border-radius:2px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);flex-wrap:wrap}.filter-bar strong{color:var(--accent3)}.filter-bar.active{display:flex}.threshold-input{background:var(--surface);border:1px solid rgba(245,166,35,.4);color:var(--accent3);font-family:'DM Mono',monospace;font-size:14px;font-weight:600;width:46px;text-align:center;padding:4px;border-radius:2px;outline:none}.threshold-input:focus{border-color:var(--accent3)}.summary-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--border);border-bottom:1px solid var(--border)}.summary-item{background:var(--surface);padding:14px 16px;text-align:center}.summary-value{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.04em;line-height:1}.summary-item.editable{cursor:pointer;position:relative}.summary-item.editable:hover{background:rgba(0,229,160,.04)}.lucro-alvo-input{background:transparent;border:none;border-bottom:1px solid rgba(0,229,160,.4);color:var(--accent);font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.04em;line-height:1;width:100px;text-align:center;outline:none;padding:0}.lucro-alvo-input:focus{border-bottom-color:var(--accent)}.edit-hint{font-size:8px;letter-spacing:.08em;color:rgba(0,229,160,.4);font-family:'DM Mono',monospace;margin-top:2px}.summary-label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px;font-family:'DM Mono',monospace}.container{max-width:1400px;margin:0 auto;padding:20px 12px 48px;position:relative;z-index:1}.rules-card{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent3);padding:13px 18px;margin-bottom:18px;font-size:12px;color:var(--muted);line-height:1.7;font-family:'DM Mono',monospace}.rules-card strong{color:var(--accent3)}.info-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}.pill{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:2px;padding:5px 11px;font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)}.pill .dot-icon{width:7px;height:7px;border-radius:50%;flex-shrink:0}.table-wrapper{overflow-x:auto;border-radius:4px;border:1px solid var(--border)}table{width:100%;border-collapse:collapse;font-size:13px}thead tr{background:var(--surface);border-bottom:2px solid var(--border)}thead th{padding:9px 6px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}thead th:first-child{padding-left:8px}tbody tr{background:var(--card);border-bottom:1px solid var(--border);transition:background .15s}tbody tr:hover{background:rgba(22,28,42,.85)}td{padding:8px 6px;vertical-align:middle;white-space:nowrap}td:first-child{padding-left:8px}.game-num{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--muted);width:22px;text-align:center}.teams{font-weight:600;font-size:12px;color:var(--text);min-width:140px;max-width:200px;white-space:normal;line-height:1.3}.teams span.vs{color:var(--muted);font-weight:300;font-size:11px;margin:0 4px}.teams.ph{color:var(--muted);font-style:italic;font-weight:400}.day-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:2px;background:rgba(74,90,112,.3);color:var(--muted)}.stage{display:inline-flex;align-items:center;font-family:'DM Mono',monospace;font-size:11px;padding:3px 8px;border-radius:2px}.s0{background:rgba(0,229,160,.08);color:var(--accent);border:1px solid rgba(0,229,160,.2)}.s1{background:rgba(245,166,35,.1);color:var(--accent3);border:1px solid rgba(245,166,35,.25)}.s2{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25)}.s3{background:rgba(255,77,109,.18);color:#ff6b85;border:1px solid rgba(255,77,109,.35)}.aposta-input{background:var(--surface);border:1px solid rgba(0,229,160,.3);color:var(--accent);font-family:'DM Mono',monospace;font-size:13px;font-weight:500;width:74px;text-align:center;padding:4px 3px;border-radius:2px;outline:none;transition:border-color .15s}.aposta-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,229,160,.12)}.aposta-input.modified{border-color:rgba(245,166,35,.6);color:var(--accent3)}.odd-input{background:var(--surface);border:1px solid var(--border);color:var(--accent3);font-family:'DM Mono',monospace;font-size:13px;font-weight:500;width:54px;text-align:center;padding:4px 3px;border-radius:2px;outline:none;transition:border-color .15s}.odd-input:focus{border-color:var(--accent3);box-shadow:0 0 0 2px rgba(245,166,35,.12)}.odd-input.odd-blocked{border-color:rgba(245,166,35,.6);background:rgba(245,166,35,.06)}.aposta-r{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--accent)}.lucro-t{font-family:'DM Mono',monospace;font-size:13px;color:var(--neutral)}.pnl{font-family:'DM Mono',monospace;font-size:12px;font-weight:500}.pos{color:var(--win)}.neg{color:var(--loss)}.zero{color:var(--muted)}.accum-cell{font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap}.risco-cell{font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;color:var(--loss)}.risco-cell.zero{color:var(--muted)}.accum-cell.pos{color:rgba(0,229,160,.7)}.accum-cell.neg{color:rgba(255,77,109,.7)}.accum-cell.zero{color:var(--muted)}.result-btns{display:flex;gap:3px;flex-wrap:nowrap;align-items:center}.btn-spacer{display:inline-block;width:28px}.btn-r{border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.04em;padding:4px 8px;border-radius:2px;transition:all .15s;background:var(--surface);color:var(--muted);border:1px solid var(--border)}.btn-r:hover{filter:brightness(1.35);transform:translateY(-1px)}.btn-r:disabled{opacity:.35;cursor:not-allowed;transform:none}.btn-r.rst{background:rgba(74,90,112,.2)}.btn-r.rst:hover{background:rgba(74,90,112,.4);color:var(--text)}.btn-r.undo{background:rgba(91,124,253,.12);color:var(--neutral);border-color:rgba(91,124,253,.25)}.btn-r.undo:hover{background:rgba(91,124,253,.25);color:#fff}.btn-r.undo:disabled{opacity:.2}.btn-r.marcado-win{background:rgba(0,229,160,.15);color:var(--win);border-color:rgba(0,229,160,.4);font-weight:600;cursor:default}.btn-r.marcado-loss{background:rgba(255,77,109,.12);color:var(--loss);border-color:rgba(255,77,109,.35);font-weight:600;cursor:default}.btn-apostado{font-size:11px;padding:4px 8px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s}.btn-apostado:hover{border-color:var(--accent3);color:var(--accent3)}.btn-apostado.sim{background:rgba(245,166,35,.12);color:var(--accent3);border-color:rgba(245,166,35,.4);font-weight:600}tr.apostado-sim td{background:rgba(245,166,35,.04)}.btn-r.redistrib{background:rgba(91,124,253,.12);color:var(--neutral);border-color:rgba(91,124,253,.3);font-size:11px;padding:4px 9px}.btn-r.redistrib:hover{background:rgba(91,124,253,.25);color:#fff}.redistrib-badge{font-family:'DM Mono',monospace;font-size:9px;padding:1px 5px;border-radius:2px;background:rgba(91,124,253,.12);color:var(--neutral);border:1px solid rgba(91,124,253,.25);margin-left:4px;vertical-align:middle}#mRedistrib .mc{max-width:480px;text-align:left}.redist-preview{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:12px 14px;margin:14px 0}.redist-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(30,42,58,.5);font-family:'DM Mono',monospace;font-size:12px}.redist-row:last-child{border-bottom:none}.redist-lbl{color:var(--muted)}.redist-val{font-weight:500}tfoot tr{background:var(--surface);border-top:2px solid var(--border)}@media(max-width:600px){}.hist-section{margin-top:28px}.hist-toggle{cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}.hist-toggle:hover{opacity:.8}.hist-toggle .toggle-icon{font-size:12px;transition:transform .2s}.hist-body{overflow:hidden;transition:all .3s}.extra-section{margin-top:36px;border-top:2px solid rgba(91,124,253,.25);padding-top:28px}.extra-section-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.06em;color:var(--neutral);margin-bottom:0;display:flex;align-items:center;gap:12px}.extra-badge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;border-radius:2px;background:rgba(91,124,253,.15);color:var(--neutral);border:1px solid rgba(91,124,253,.3);letter-spacing:.06em}.hist-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:10px}.hist-title::before{content:'';flex:1;height:1px;background:var(--border)}.hist-table{width:100%;border-collapse:collapse;font-size:11px}.hist-table th{background:var(--surface);padding:7px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}.hist-table th:hover{color:var(--text)}.hist-table td{padding:7px 10px;font-family:'DM Mono',monospace;border-bottom:1px solid rgba(30,42,58,.5);white-space:nowrap}.hist-table tr:hover td{background:rgba(255,255,255,.02)}.hist-table tr.cur-row td{background:rgba(0,229,160,.05);border-left:2px solid var(--accent)}.hist-table tr{cursor:pointer}.hist-pos{color:var(--win)}.hist-neg{color:var(--loss)}.hist-zero{color:var(--muted)}.hist-num{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--accent)}.hist-year{font-size:9px;padding:1px 5px;border-radius:2px;font-family:'DM Mono',monospace}tfoot td{padding:12px 10px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.03em}tfoot td:first-child{padding-left:14px}.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:300;backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:16px;overflow-y:auto}.mo.open{display:flex}.mc{background:var(--card);border:1px solid var(--border);padding:20px;width:100%;text-align:center;max-height:94vh;overflow-y:auto}.mc h2{font-family:'Bebas Neue',sans-serif;font-size:26px;margin-bottom:8px}.mc p{color:var(--muted);font-size:12px;margin-bottom:16px;font-family:'DM Mono',monospace;line-height:1.65}.mc p strong{color:var(--accent)}.mbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.mbtns button{padding:9px 20px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:17px;cursor:pointer;border-radius:2px;transition:all .15s}.mbtns button:hover{filter:brightness(1.3)}.mbtns .ok{background:rgba(0,229,160,.15);color:var(--accent);border-color:rgba(0,229,160,.35)}.mbtns .danger{background:rgba(255,77,109,.15);color:var(--accent2);border-color:rgba(255,77,109,.35)}.next-num{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;width:220px;text-align:center;padding:8px;border-radius:2px;outline:none;display:block;margin:0 auto 6px}.next-num:focus{border-color:var(--accent)}#mImport .mc{max-width:540px;text-align:left}#mImport .mc h2,#mImport .mc p{text-align:center}.imp-hint{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:14px;background:rgba(91,124,253,.07);border:1px solid rgba(91,124,253,.18);padding:10px 12px;border-radius:2px;line-height:1.65}.imp-hint strong{color:var(--neutral)}.imp-grid{display:grid;grid-template-columns:22px 1fr auto 1fr 50px;gap:5px 7px;align-items:center;margin-bottom:16px;max-height:58vh;overflow-y:auto;padding-right:4px}.imp-grid .rn{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--muted);text-align:center}.imp-grid input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 9px;border-radius:2px;outline:none;width:100%;transition:border-color .15s}.imp-grid input:focus{border-color:var(--accent)}.imp-grid .vss{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center}#authScreen{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px}.auth-box{background:var(--card);border:1px solid var(--border);padding:36px 32px;width:100%;max-width:380px}.auth-box h2{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.04em;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}.auth-box .auth-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:24px}.auth-tabs{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--border);border-radius:2px;overflow:hidden}.auth-tab{flex:1;padding:9px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:var(--surface);color:var(--muted);border:none;transition:all .15s}.auth-tab.active{background:rgba(0,229,160,.12);color:var(--accent)}.auth-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}.auth-field label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.auth-field input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 12px;border-radius:2px;outline:none;transition:border-color .15s}.auth-field input:focus{border-color:var(--accent)}.auth-btn{width:100%;padding:12px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.06em;border:none;cursor:pointer;border-radius:2px;transition:all .15s;margin-top:4px}.auth-btn.primary{background:rgba(0,229,160,.15);color:var(--accent);border:1px solid rgba(0,229,160,.35)}.auth-btn.primary:hover{background:rgba(0,229,160,.25)}.auth-btn:disabled{opacity:.4;cursor:not-allowed}.auth-msg{font-family:'DM Mono',monospace;font-size:11px;padding:8px 12px;border-radius:2px;margin-top:12px;text-align:center}.auth-msg.error{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25)}.auth-msg.success{background:rgba(0,229,160,.08);color:var(--accent);border:1px solid rgba(0,229,160,.2)}.auth-msg.pending{background:rgba(245,166,35,.08);color:var(--accent3);border:1px solid rgba(245,166,35,.2)}.user-bar{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:6px 20px;background:var(--surface);border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}.user-bar .user-email{color:var(--neutral)}.user-bar .admin-badge{background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.25);padding:2px 8px;border-radius:2px;font-size:10px;letter-spacing:.08em}.btn-logout{background:none;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);padding:3px 8px;border-radius:2px;transition:all .15s}.btn-logout:hover{color:var(--accent2)}#adminPanel{background:var(--card);border:1px solid rgba(245,166,35,.25);border-left:3px solid var(--accent3);padding:16px 18px;margin-bottom:18px}#adminPanel h3{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent3);margin-bottom:12px}.admin-user-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:12px}.admin-user-row:last-child{border-bottom:none}.admin-user-email{flex:1;color:var(--text)}.admin-user-status{font-size:10px;padding:2px 8px;border-radius:2px}.status-pendente{background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.2)}.status-aprovado{background:rgba(0,229,160,.08);color:var(--accent);border:1px solid rgba(0,229,160,.2)}.status-rejeitado{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.2)}.admin-btn{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.06em;padding:3px 10px;border-radius:2px;border:none;cursor:pointer;transition:all .15s}.admin-btn.aprovar{background:rgba(0,229,160,.15);color:var(--accent);border:1px solid rgba(0,229,160,.3)}.admin-btn.aprovar:hover{background:rgba(0,229,160,.28)}.admin-btn.rejeitar{background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.25)}.admin-btn.rejeitar:hover{background:rgba(255,77,109,.22)}#loading{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}#loading h2{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.06em;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}#loading p{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)}#mCalc .mc{max-width:700px;text-align:left;max-height:92vh;display:flex;flex-direction:column}#mCalc .mc h2{text-align:center}.calc-scroll{overflow-y:auto;flex:1;padding-right:4px}.calc-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:12px}.calc-field{display:flex;flex-direction:column;gap:3px}.calc-field label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.calc-field input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;padding:7px 8px;border-radius:2px;outline:none;width:100%;transition:border-color .15s}.calc-field input:focus{border-color:var(--accent)}.calc-field span{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);line-height:1.3}.calc-result{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:10px}.calc-result-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);margin-bottom:10px}.calc-kpi{background:var(--card);padding:8px 6px;text-align:center}.calc-kpi-val{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:.04em;line-height:1}.calc-kpi-lbl{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace}.prob-table{width:100%;border-collapse:collapse;font-size:11px}.prob-table th{padding:5px 6px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)}.prob-table td{padding:4px 6px;font-family:'DM Mono',monospace;border-bottom:1px solid rgba(30,42,58,.5)}.prob-table tr.profit td{color:var(--win)}.prob-table tr.loss-row td{color:rgba(255,77,109,.7)}.prob-table tr.expected td{background:rgba(91,124,253,.08)}.prob-bar{display:inline-block;height:6px;border-radius:2px;margin-left:4px;vertical-align:middle}.calc-note{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);line-height:1.5;padding:8px 10px;background:rgba(91,124,253,.06);border:1px solid rgba(91,124,253,.15);border-radius:2px}.calc-note strong{color:var(--neutral)}@media(max-width:600px){.calc-grid{grid-template-columns:1fr 1fr}.calc-result-grid{grid-template-columns:repeat(3,1fr)}}@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}tbody tr{animation:fadeIn .22s ease both}tbody tr:nth-child(1){animation-delay:.02s}tbody tr:nth-child(2){animation-delay:.04s}tbody tr:nth-child(3){animation-delay:.06s}tbody tr:nth-child(4){animation-delay:.08s}tbody tr:nth-child(5){animation-delay:.10s}tbody tr:nth-child(6){animation-delay:.12s}tbody tr:nth-child(7){animation-delay:.14s}tbody tr:nth-child(8){animation-delay:.16s}tbody tr:nth-child(9){animation-delay:.18s}tbody tr:nth-child(10){animation-delay:.20s}tbody tr:nth-child(11){animation-delay:.22s}tbody tr:nth-child(12){animation-delay:.24s}tbody tr:nth-child(13){animation-delay:.26s}tbody tr:nth-child(14){animation-delay:.28s}50%{opacity:.5}}50%{opacity:.5}}50%{opacity:.5}}50%{opacity:.4}}50%{opacity:.4}}50%{opacity:.4}}50%{opacity:.4}}50%{opacity:.4}100%{opacity:1}}@media(max-width:700px){.teams{min-width:130px;font-size:12px}td{padding:8px 6px}.btn-r{padding:5px 8px;font-size:13px}.btn-nav{padding:7px 10px;font-size:10px}}</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -180,89 +180,140 @@
     </table>
   </div>
 
-  <div class="ht-section">
-    <div class="ht-section-title">EMPATE NO INTERVALO (HT) — 14 LINHAS INDEPENDENTES</div>
-
-    <div class="ht-summary-bar" id="htSummaryBar">
-      <div class="ht-summary-item editable" title="Lucro alvo HT" onclick="document.getElementById('htLucroInput').select()">
-        <input type="number" id="htLucroInput" class="ht-lucro-input" min="1" step="1" value="20"
-          onchange="setLucroAlvoHT(this.value)" onblur="setLucroAlvoHT(this.value)"
-          onclick="event.stopPropagation();this.select()">
-        <div class="summary-label">Lucro Alvo HT</div>
-        <div class="edit-hint">✎ EDITÁVEL</div>
-      </div>
-      <div class="ht-summary-item editable" title="Lucro alvo HT Stage 6+" onclick="document.getElementById('htLucroInput6').select()">
-        <input type="number" id="htLucroInput6" class="ht-lucro-input" min="1" step="1" value="20"
-          onchange="setLucroAlvoHT6(this.value)" onblur="setLucroAlvoHT6(this.value)"
-          onclick="event.stopPropagation();this.select()">
-        <div class="summary-label">Lucro Alvo HT S6+</div>
-        <div class="edit-hint">✎ EDITÁVEL</div>
-      </div>
-      <div class="ht-summary-item"><div class="ht-summary-value" id="htTotal" style="color:var(--text)">—</div><div class="summary-label">A Apostar HT</div></div>
-      <div class="ht-summary-item"><div class="ht-summary-value" id="htPnlConc" style="color:var(--muted)">—</div><div class="summary-label">P&L Concurso HT</div></div>
-      <div class="ht-summary-item"><div class="ht-summary-value" id="htPnlAcc" style="color:var(--muted)">—</div><div class="summary-label">P&L Acumulado HT</div></div>
-      <div class="ht-summary-item"><div class="ht-summary-value" id="htWins" style="color:var(--win)">0</div><div class="summary-label">Empates HT ✓</div></div>
-      <div class="ht-summary-item"><div class="ht-summary-value" id="htLoss" style="color:var(--loss)">0</div><div class="summary-label">Não Empates HT ✗</div></div>
-      <div class="ht-summary-item"><div class="ht-summary-value" id="htRecup" style="color:var(--accent3)">0</div><div class="summary-label">Em Recuperação HT</div></div>
-      <div class="ht-summary-item"><div class="ht-summary-value" id="htHaver" style="color:var(--loss)">—</div><div class="summary-label">Haver HT</div></div>
-    </div>
-
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th><th>JOGO HT</th><th>STAGE</th><th>EM RISCO</th>
-            <th>ODD HT</th><th>APOSTA</th><th>LUCRO ALVO</th>
-            <th>P&amp;L CONC.</th><th>P&amp;L ACUM.</th><th>RESULTADO</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyHT"></tbody>
-        <tfoot>
-          <tr>
-            <td colspan="3" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;">TOTAIS HT</td>
-            <td id="ftHaver" style="color:var(--loss);font-family:'DM Mono',monospace;font-size:12px;">—</td>
-            <td></td>
-            <td id="ftAposta" style="color:var(--accent);font-family:'DM Mono',monospace;font-size:12px;">—</td>
-            <td id="ftLucro"  style="color:var(--neutral);font-family:'DM Mono',monospace;font-size:12px;">—</td>
-            <td id="ftPnl"    style="color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;">—</td>
-            <td id="ftAccum"  style="color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;">—</td>
-            <td></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-  </div>
-
-  <div class="bonus-section">
-    <div class="bonus-title">LINHAS BONUS - 3 JOGOS AVULSOS</div>
-    <div id="bonusGrid" class="bonus-grid"></div>
-    <div id="bonusSummary" class="bonus-summary"></div>
-  </div>
-
   <div class="hist-section">
-    <div class="hist-title">TODAS AS RODADAS — CLIQUE PARA SELECIONAR</div>
+    <div class="hist-title hist-toggle" onclick="toggleHist('histBody','histIcon')">
+      TODAS AS RODADAS — SISTEMA PRINCIPAL
+      <span id="histIcon" class="toggle-icon">▼</span>
+    </div>
+    <div id="histBody" class="hist-body">
     <div class="table-wrapper">
       <table class="hist-table" id="histTable">
         <thead>
           <tr>
-            <th>#CONC</th>
-            <th>ANO</th>
-            <th>DATA</th>
-            <th>APOSTADO</th>
-            <th>P&amp;L RODADA</th>
-            <th>P&amp;L ACUM.</th>
-            <th title="Vitórias (empates)">✓</th>
-            <th title="Empates">X</th>
-            <th title="Em recuperação">RECUP.</th>
-            <th>HAVER</th>
-            <th title="Apostado">💰</th>
+            <th>#CONC</th><th>ANO</th><th>DATA</th><th>APOSTADO</th>
+            <th>P&amp;L RODADA</th><th>P&amp;L ACUM.</th>
+            <th>✓</th><th>X</th><th>RECUP.</th><th>HAVER</th><th>💰</th>
           </tr>
         </thead>
         <tbody id="histTbody"></tbody>
       </table>
     </div>
+    </div>
+  </div>
+
+  <!-- SISTEMA EXTRA -->
+  <div class="extra-section" id="extraSection">
+    <div class="extra-section-title">
+      <span class="extra-badge">EXTRA</span>
+      SISTEMA EXTRA — 14 LINHAS INDEPENDENTES
+    </div>
+    <!-- Nav Extra -->
+    <div class="concurso-nav" style="margin-top:14px">
+      <button class="btn-nav btn-prev" id="xBtnPrev" onclick="xGoPrev()" disabled>‹ ANTERIOR</button>
+      <div class="concurso-info">
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">CONCURSO</span>
+        <span class="num" id="xNavNum">—</span>
+        <span style="color:var(--muted);font-size:11px" id="xNavIdx">1/1</span>
+      </div>
+      <button class="btn-nav btn-import" onclick="xOpenImport()">⬇ IMPORTAR TIMES</button>
+      <button class="btn-nav btn-next" onclick="xOpenNext()">PRÓXIMO CONCURSO ›</button>
+      <button class="btn-nav btn-del" id="xBtnDel" onclick="xOpenM('xmDelConc')" disabled>✕ EXCLUIR</button>
+    </div>
+    <!-- Summary Extra -->
+    <div class="summary-bar" id="xSummaryBar">
+      <div class="summary-item editable" onclick="document.getElementById('xLucroInput').select()">
+        <input type="number" id="xLucroInput" class="lucro-alvo-input" min="1" step="1" value="20"
+          onchange="xSetLucroAlvo(this.value)" onblur="xSetLucroAlvo(this.value)"
+          onclick="event.stopPropagation();this.select()">
+        <div class="summary-label">Lucro Alvo</div><div class="edit-hint">✎</div>
+      </div>
+      <div class="summary-item"><div class="summary-value" id="xSTotal" style="color:var(--text)">—</div><div class="summary-label">A Apostar</div></div>
+      <div class="summary-item"><div class="summary-value" id="xSPnl" style="color:var(--muted)">—</div><div class="summary-label">P&L Concurso</div></div>
+      <div class="summary-item"><div class="summary-value" id="xSAcc" style="color:var(--muted)">—</div><div class="summary-label">P&L Acumulado</div></div>
+      <div class="summary-item"><div class="summary-value" id="xSWins" style="color:var(--win)">0</div><div class="summary-label">Empates ✓</div></div>
+      <div class="summary-item"><div class="summary-value" id="xSLoss" style="color:var(--loss)">0</div><div class="summary-label">Não Empates ✗</div></div>
+      <div class="summary-item"><div class="summary-value" id="xSRecup" style="color:var(--accent3)">0</div><div class="summary-label">Em Recuperação</div></div>
+      <div class="summary-item"><div class="summary-value" id="xSRisco" style="color:var(--loss)">—</div><div class="summary-label">Haver</div></div>
+    </div>
+    <!-- Tabela Extra -->
+    <div class="table-wrapper" style="margin-top:12px">
+      <table>
+        <thead><tr>
+          <th>#</th><th>JOGO</th><th>DIA</th><th>STAGE</th><th>EM RISCO</th>
+          <th>ODD EMPATE</th><th>APOSTA REAL</th><th>LUCRO ALVO</th>
+          <th>P&amp;L CONC.</th><th>P&amp;L ACUM.</th><th>RESULTADO</th>
+        </tr></thead>
+        <tbody id="xTbody"></tbody>
+        <tfoot><tr>
+          <td colspan="4" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em">TOTAIS EXTRA</td>
+          <td id="xFRisco" style="color:var(--loss);font-family:'DM Mono',monospace;font-size:12px">—</td>
+          <td></td>
+          <td id="xFAposta" style="color:var(--accent);font-family:'DM Mono',monospace;font-size:12px">—</td>
+          <td id="xFLucro" style="color:var(--neutral);font-family:'DM Mono',monospace;font-size:12px">—</td>
+          <td id="xFPnl" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:12px">—</td>
+          <td id="xFAcc" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:12px">—</td>
+          <td></td>
+        </tr></tfoot>
+      </table>
+    </div>
+    <!-- Histórico Extra -->
+    <div class="hist-section" style="margin-top:20px">
+      <div class="hist-title hist-toggle" onclick="toggleHist('xHistBody','xHistIcon')">
+        TODAS AS RODADAS — SISTEMA EXTRA
+        <span id="xHistIcon" class="toggle-icon">▼</span>
+      </div>
+      <div id="xHistBody" class="hist-body">
+      <div class="table-wrapper">
+        <table class="hist-table" id="xHistTable">
+          <thead><tr>
+            <th>#CONC</th><th>ANO</th><th>DATA</th><th>APOSTADO</th>
+            <th>P&amp;L RODADA</th><th>P&amp;L ACUM.</th>
+            <th>✓</th><th>X</th><th>RECUP.</th><th>HAVER</th><th>💰</th>
+          </tr></thead>
+          <tbody id="xHistTbody"></tbody>
+        </table>
+      </div>
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- MODAL IMPORTAR EXTRA -->
+<div class="mo" id="xmImport"><div class="mc" style="max-width:540px;text-align:left">
+  <h2>Importar Times — Extra <span id="xImpNum">—</span></h2>
+  <div style="margin-bottom:12px">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:5px">COLE A LISTA DE JOGOS:</div>
+    <textarea id="xPasteGames" rows="6" placeholder="Jogo 1: Flamengo x Vasco&#10;Jogo 2: ..." style="width:100%;background:var(--surface);border:1px solid rgba(0,229,160,.3);color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:7px;border-radius:2px;outline:none;resize:none;box-sizing:border-box;line-height:1.5"></textarea>
+    <button id="xBtnParse" onclick="xParsePaste()" style="margin-top:5px;width:100%;font-family:'Bebas Neue',sans-serif;font-size:15px;padding:7px;border-radius:2px;border:1px solid rgba(0,229,160,.35);background:rgba(0,229,160,.1);color:var(--accent);cursor:pointer">DISTRIBUIR NAS LINHAS</button>
+  </div>
+  <div class="imp-grid" id="xImpGrid"></div>
+  <div class="mbtns">
+    <button onclick="xCloseM('xmImport')">Cancelar</button>
+    <button class="ok" onclick="xConfirmImport()">✓ Salvar Times</button>
+  </div>
+</div></div>
+
+<!-- MODAL PRÓXIMO EXTRA -->
+<div class="mo" id="xmNext"><div class="mc" style="max-width:360px">
+  <h2>Próximo Concurso — Extra</h2>
+  <div style="margin:14px 0 4px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em">IDENTIFICAÇÃO</div>
+  <input type="text" id="xNextNumIn" class="next-num" placeholder="1242 ou Extra Maio">
+  <div style="text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:16px">em branco = incremento automático</div>
+  <div class="mbtns">
+    <button onclick="xCloseM('xmNext')">Cancelar</button>
+    <button class="ok" onclick="xConfirmNext()">Avançar ›</button>
+  </div>
+</div></div>
+
+<!-- MODAL EXCLUIR EXTRA -->
+<div class="mo" id="xmDelConc"><div class="mc" style="max-width:400px">
+  <h2>Excluir Concurso Extra</h2>
+  <p>O concurso será removido do histórico Extra.</p>
+  <div class="mbtns">
+    <button onclick="xCloseM('xmDelConc')">Cancelar</button>
+    <button class="danger" onclick="xDelConc()">✕ Excluir</button>
+  </div>
+</div></div>
 
 <div class="mo" id="mCalc"><div class="mc" style="max-width:700px;text-align:left">
   <h2 style="text-align:center;margin-bottom:4px">Calculadora de Stake</h2>
@@ -457,7 +508,11 @@ games: [
 ]
 }],
 lines: blankLines(),
-linesHT: blankLinesHT()
+linesHT: blankLinesHT(),
+xCur: 0,
+xLucroAlvo: 20,
+xConcursos: [{num:1,filterOn:false,threshold:6.5,games:blankGames(),odds:Array(N).fill(3.0),date:'',year:new Date().getFullYear()}],
+xLines: blankLines()
 };
 }
 // ══════════════════════════════════════════════════════
@@ -899,9 +954,8 @@ document.getElementById('fRisco').textContent  = totRisco > 0 ? '-' + fmtU(totRi
 var temRedistExtra = A.lines.some(function(ln){ return (ln.redistExtra||0) > 0; });
 var btnMig = document.getElementById('btnMigRedist');
 if (btnMig) btnMig.style.display = temRedistExtra ? 'inline-block' : 'none';
-renderHT();
-renderBonus();
 renderHist();
+xRender();
 const mediaOddConc = cntOdd > 0 ? (totOdd / cntOdd).toFixed(2) : null;
 const fMediaEl = document.getElementById('fMediaOdd');
 if (fMediaEl) fMediaEl.textContent = mediaOddConc ? mediaOddConc : '—';
@@ -1058,423 +1112,7 @@ document.getElementById('redistPreview').innerHTML =
 + '<span class="redist-val" style="color:var(--accent2)">+' + fmtU(valorPorLinha) + ' no lostAccum</span></div>';
 openM('mRedistrib');
 };
-function renderHT() {
-if (!A.linesHT) return;
-var tbody  = document.getElementById('tbodyHT');
-if (!tbody) return;
-var conc   = curConc();
-var key    = String(curNum());
-tbody.innerHTML = '';
-var totAp=0, totLu=0, totPn=0, totAc=0, totRi=0, wins=0, loss=0, recup=0;
-A.linesHT.forEach(function(ln, i) {
-var isNulo   = !!(ln.nulo && ln.nulo[key]);
-var jaM      = ln.lastAction && ln.lastAction.key === key;
-var bet      = calcBetHT(ln);
-var aposta   = (ln.apostaOverride && ln.apostaOverride[key] != null) ? ln.apostaOverride[key]
-: (jaM && ln.apostaLog && ln.apostaLog[key] != null) ? ln.apostaLog[key]
-: bet.aposta;
-var lucro    = (ln.lucroOverride && ln.lucroOverride[key] != null) ? ln.lucroOverride[key] : bet.lucro;
-var pN       = (ln.pnlLog && ln.pnlLog[key]) || 0;
-var pT       = ln.pnlTotal || 0;
-var stN      = ln.stage || 0;
-var stLbl    = stN === 0 ? 'INICIAL' : 'RECUP #' + stN;
-var stCls    = stN === 0 ? 's0' : stN <= 3 ? 's1' : 's2';
-var pNC      = pN > 0 ? 'pos' : pN < 0 ? 'neg' : 'zero';
-var pTC      = pT > 0 ? 'pos' : pT < 0 ? 'neg' : 'zero';
-var lostStr  = (ln.lostAccum||0) > 0 ? '-R$' + (ln.lostAccum||0).toFixed(2).replace('.',',') : '—';
-var jogoHT   = (ln.home || ln.away) ? esc(ln.home||'') + ' x ' + esc(ln.away||'') : (jaM ? '—' : '<em style="color:var(--muted);font-size:10px">clique para editar</em>');
-var podeEditar = !jaM && !isNulo;
-if (!isNulo) {
-totAp += aposta; totLu += lucro;
-totPn += pN; totAc += pT;
-totRi += (ln.lostAccum||0);
-if (pN > 0) wins++;
-if (pN < 0) loss++;
-if (stN > 0) recup++;
-}
-var btns = '';
-if (jaM) {
-btns = '<button class="btn-r ' + (ln.lastAction.won ? 'marcado-win' : 'marcado-loss') + '" disabled>'
-+ (ln.lastAction.won ? '✓ EMPATE' : '✗ NÃO') + '</button>'
-+ '<button class="btn-r undo" onclick="window._undoResultHT(' + i + ')">↩</button>';
-} else if (!isNulo) {
-btns = '<button class="btn-r" onclick="window._doResultHT(' + i + ',true)">✓ EMPATE</button>'
-+ '<button class="btn-r" onclick="window._doResultHT(' + i + ',false)">✗ NÃO</button>';
-}
-var btnNulo = '<button class="btn-nulo' + (isNulo?' sim':'') + '" onclick="window._toggleNuloHT(' + i + ')" title="Nulo">⛔</button>';
-var tr = document.createElement('tr');
-if (isNulo) tr.classList.add('nulo');
-tr.innerHTML = '<td class="game-num">' + (i+1) + '</td>'
-+ '<td style="font-size:12px;color:' + (ln.home||ln.away ? 'var(--text)':'var(--muted)') + ';' + (podeEditar?'cursor:pointer':'') + '" ' + (podeEditar?'onclick="window._editHTJogo(' + i + ')" title="Clique para editar"':'') + '><span class="ht-badge">HT</span> ' + jogoHT + '</td>'
-+ '<td><span class="stage ' + stCls + '">' + stLbl + '</span></td>'
-+ '<td class="risco-cell' + ((ln.lostAccum||0)===0?' zero':'') + '">' + lostStr + '</td>'
-+ '<td><input type="number" min="1.01" max="99" step="0.01" class="odd-input" value="' + (ln.odd||2.0).toFixed(2) + '" onchange="window._setOddHT(' + i + ',this.value)"></td>'
-+ '<td><input type="number" min="0.01" step="0.01" class="aposta-input" value="' + aposta.toFixed(2) + '" onchange="window._setApostaHT(' + i + ',this.value)"></td>'
-+ '<td class="lucro-t">' + fmtU(lucro) + '</td>'
-+ '<td class="pnl ' + pNC + '">' + (pN===0?'—':fmtS(pN)) + '</td>'
-+ '<td class="accum-cell ' + pTC + '">' + (pT===0?'—':fmtS(pT)) + '</td>'
-+ '<td><div class="result-btns">' + btns + '<span class="btn-spacer"></span>' + btnNulo + '</div></td>';
-tbody.appendChild(tr);
-});
-var htT = document.getElementById('htTotal');
-if (htT) htT.textContent = fmtU(totAp);
-var htPC = document.getElementById('htPnlConc');
-if (htPC) { htPC.textContent = totPn===0?'—':fmtS(totPn); htPC.style.color = totPn>0?'var(--win)':totPn<0?'var(--loss)':'var(--muted)'; }
-var htPA = document.getElementById('htPnlAcc');
-if (htPA) { htPA.textContent = totAc===0?'—':fmtS(totAc); htPA.style.color = totAc>0?'var(--win)':totAc<0?'var(--loss)':'var(--muted)'; }
-var htW = document.getElementById('htWins'); if (htW) htW.textContent = wins;
-var htL = document.getElementById('htLoss'); if (htL) htL.textContent = loss;
-var htR = document.getElementById('htRecup'); if (htR) htR.textContent = recup;
-var htH = document.getElementById('htHaver');
-if (htH) { htH.textContent = totRi>0?'-'+fmtU(totRi):'—'; htH.style.color = totRi>0?'var(--loss)':'var(--muted)'; }
-var inpHT = document.getElementById('htLucroInput');
-if (inpHT && parseFloat(inpHT.value) !== BASE_TARGET_HT) inpHT.value = BASE_TARGET_HT;
-var inpHT6 = document.getElementById('htLucroInput6');
-if (inpHT6 && parseFloat(inpHT6.value) !== BASE_TARGET_HT6) inpHT6.value = BASE_TARGET_HT6;
-var ftH = document.getElementById('ftHaver'); if (ftH) ftH.textContent = totRi>0?'-'+fmtU(totRi):'—';
-var ftA = document.getElementById('ftAposta'); if (ftA) ftA.textContent = fmtU(totAp);
-var ftL = document.getElementById('ftLucro');  if (ftL) ftL.textContent = fmtU(totLu);
-var ftP = document.getElementById('ftPnl');    if (ftP) { ftP.textContent = totPn===0?'—':fmtS(totPn); ftP.style.color = totPn>0?'var(--win)':totPn<0?'var(--loss)':'var(--muted)'; }
-var ftC = document.getElementById('ftAccum');  if (ftC) { ftC.textContent = totAc===0?'—':fmtS(totAc); ftC.style.color = totAc>0?'var(--win)':totAc<0?'var(--loss)':'var(--muted)'; }
-var keyBadge = String(curNum());
-var todasJogadasRender = A.linesHT.every(function(l) {
-var jogada = l.lastAction && l.lastAction.key === keyBadge;
-var nula   = !!(l.nulo && l.nulo[keyBadge]);
-return jogada || nula;
-});
-var htTitle = document.querySelector('.ht-section-title');
-if (htTitle) {
-var badge = htTitle.querySelector('.ht-ciclo-badge');
-if (todasJogadasRender) {
-if (!badge) {
-var b = document.createElement('span');
-b.className = 'ht-ciclo-badge';
-b.textContent = 'CICLO COMPLETO — RESETANDO...';
-b.style.cssText = 'font-family:"DM Mono",monospace;font-size:10px;color:var(--accent);background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);padding:2px 8px;border-radius:2px;margin-left:8px;';
-htTitle.appendChild(b);
-}
-} else {
-if (badge) badge.remove();
-}
-}
-}
-function renderBonus() {
-var grid = document.getElementById('bonusGrid');
-var summ = document.getElementById('bonusSummary');
-if (!grid || !summ) return;
-if (!A.bonus) {
-A.bonus = [
-{home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-{home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-{home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0}
-];
-}
-grid.innerHTML = '';
-for (var bi = 0; bi < A.bonus.length; bi++) {
-(function(i) {
-var b = A.bonus[i];
-var hasResult = b.result !== null;
-var pnlColor = b.pnl > 0 ? 'var(--win)' : b.pnl < 0 ? 'var(--loss)' : 'var(--muted)';
-var pnlStr = b.pnl !== 0 ? (b.pnl > 0 ? '+R$ ' : '-R$ ') + Math.abs(b.pnl).toFixed(2).replace('.',',') : '';
-var card = document.createElement('div');
-card.className = 'bonus-card' + (hasResult ? (b.result ? ' win' : ' loss') : '');
-var num = document.createElement('div');
-num.className = 'bonus-num';
-num.textContent = 'BONUS ' + (i + 1);
-card.appendChild(num);
-var ih = document.createElement('input');
-ih.className = 'bonus-input'; ih.placeholder = 'Mandante'; ih.value = b.home || '';
-ih.oninput = function() { A.bonus[i].home = this.value; save(); };
-card.appendChild(ih);
-var ia = document.createElement('input');
-ia.className = 'bonus-input'; ia.placeholder = 'Visitante'; ia.value = b.away || '';
-ia.oninput = function() { A.bonus[i].away = this.value; save(); };
-card.appendChild(ia);
-var row = document.createElement('div');
-row.className = 'bonus-row';
-var io = document.createElement('input');
-io.className = 'bonus-input'; io.type = 'number'; io.placeholder = 'Odd';
-io.min = '1.01'; io.step = '0.01'; io.value = b.odd || 3.0; io.style.width = '80px';
-io.oninput = function() { A.bonus[i].odd = parseFloat(this.value) || 3.0; save(); };
-row.appendChild(io);
-var iap = document.createElement('input');
-iap.className = 'bonus-input'; iap.type = 'number'; iap.placeholder = 'R$';
-iap.min = '1'; iap.step = '0.01'; iap.value = b.aposta || 10;
-iap.oninput = function() { A.bonus[i].aposta = parseFloat(this.value) || 10; save(); };
-row.appendChild(iap);
-card.appendChild(row);
-var btns = document.createElement('div');
-btns.className = 'bonus-btns';
-if (!hasResult) {
-var bEmp = document.createElement('button');
-bEmp.className = 'bonus-btn empate';
-bEmp.textContent = 'EMPATE';
-bEmp.onclick = function() { window._bonusResult(i, true); };
-btns.appendChild(bEmp);
-var bNao = document.createElement('button');
-bNao.className = 'bonus-btn nao';
-bNao.textContent = 'NAO';
-bNao.onclick = function() { window._bonusResult(i, false); };
-btns.appendChild(bNao);
-} else {
-var bRst = document.createElement('button');
-bRst.className = 'bonus-btn reset';
-bRst.textContent = 'Desfazer';
-bRst.onclick = function() { window._bonusReset(i); };
-btns.appendChild(bRst);
-}
-card.appendChild(btns);
-if (hasResult && pnlStr) {
-var pd = document.createElement('div');
-pd.className = 'bonus-result'; pd.style.color = pnlColor; pd.textContent = pnlStr;
-card.appendChild(pd);
-}
-grid.appendChild(card);
-})(bi);
-}
-var bonusPnl   = r2(A.bonus.reduce(function(s,b){ return s + (b.pnl||0); }, 0));
-var bonusTotal = A.bonusPnlTotal || 0;
-var wins  = A.bonus.filter(function(b){ return b.result === true; }).length;
-var loss  = A.bonus.filter(function(b){ return b.result === false; }).length;
-var bpC = bonusPnl  >= 0 ? 'var(--win)' : 'var(--loss)';
-var btC = bonusTotal >= 0 ? 'var(--win)' : 'var(--loss)';
-summ.innerHTML = '';
-var items = [
-{val: wins,      color: 'var(--win)',  lbl: 'Greens'},
-{val: loss,      color: 'var(--loss)', lbl: 'Vermelhos'},
-{val: (bonusPnl  >= 0 ? '+' : '') + 'R$ ' + Math.abs(bonusPnl).toFixed(2).replace('.',','),  color: bpC, lbl: 'P&L Rodada'},
-{val: (bonusTotal >= 0 ? '+' : '') + 'R$ ' + Math.abs(bonusTotal).toFixed(2).replace('.',','), color: btC, lbl: 'P&L Acum Bonus'}
-];
-items.forEach(function(it) {
-var d = document.createElement('div');
-d.style.display = 'flex'; d.style.flexDirection = 'column'; d.style.gap = '2px';
-var v = document.createElement('div');
-v.className = 'bonus-sv'; v.style.color = it.color; v.textContent = it.val;
-var l = document.createElement('div');
-l.className = 'bonus-sl'; l.textContent = it.lbl;
-d.appendChild(v); d.appendChild(l);
-summ.appendChild(d);
-});
-}
-window._bonusResult = function(i, won) {
-if (!A.bonus || A.bonus[i].result !== null) return;
-var b = A.bonus[i];
-var odd    = b.odd    || 3.0;
-var aposta = b.aposta || 10;
-b.result = won;
-if (won) {
-b.pnl = r2(aposta * (odd - 1));
-A.bonusPnlTotal = r2((A.bonusPnlTotal || 0) + b.pnl);
-} else {
-b.pnl = -aposta;
-A.bonusPnlTotal = r2((A.bonusPnlTotal || 0) - aposta);
-var frac = r2(aposta / A.lines.length);
-A.lines.forEach(function(ln) {
-ln.lostAccum = r2((ln.lostAccum || 0) + frac);
-ln.pnlTotal  = r2((ln.pnlTotal  || 0) - frac);
-});
-}
-save(); render();
-};
-window._bonusReset = function(i) {
-if (!A.bonus || A.bonus[i].result === null) return;
-var b = A.bonus[i];
-var aposta = b.aposta || 10;
-A.bonusPnlTotal = r2((A.bonusPnlTotal || 0) - b.pnl);
-if (!b.result) {
-var frac = r2(aposta / A.lines.length);
-A.lines.forEach(function(ln) {
-ln.lostAccum = r2(Math.max(0, (ln.lostAccum || 0) - frac));
-ln.pnlTotal  = r2((ln.pnlTotal || 0) + frac);
-});
-}
-b.result = null; b.pnl = 0;
-save(); render();
-};
-window._bonusNovoConc = function() {
-if (!confirm('Resetar as 3 linhas bonus para o proximo concurso?')) return;
-A.bonus = [
-{home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-{home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0},
-{home:'',away:'',odd:3.0,aposta:10,result:null,pnl:0}
-];
-save(); render();
-};
-function renderHist() {
-const tbody = document.getElementById('histTbody');
-if (!tbody) return;
-tbody.innerHTML = '';
-const pnlAcumTotal = r2(A.lines.reduce((s, ln) => s + (ln.pnlTotal || 0), 0));
-const pnlRodPorConc = A.concursos.map(c =>
-r2(A.lines.reduce((s, ln) => s + ((ln.pnlLog && ln.pnlLog[String(c.num)]) || 0), 0))
-);
-const pnlAcumPorConc = new Array(A.concursos.length).fill(0);
-pnlAcumPorConc[A.concursos.length - 1] = pnlAcumTotal;
-for (let i = A.concursos.length - 2; i >= 0; i--) {
-pnlAcumPorConc[i] = r2(pnlAcumPorConc[i + 1] - pnlRodPorConc[i + 1]);
-}
-A.concursos.forEach((c, idx) => {
-const num     = c.num;
-const pnlRod  = pnlRodPorConc[idx];
-const pnlAcum = pnlAcumPorConc[idx];
-const apostado = c.totalApostado || 0;
-let wins = 0, xCount = 0, recup = 0, haver = 0, apostadoCount = 0;
-A.lines.forEach(ln => {
-const key = String(num);
-if (ln.lastAction && ln.lastAction.key === key) {
-if (ln.lastAction.won) wins++; else xCount++;
-} else {
-const logVal = (ln.pnlLog && ln.pnlLog[key]) || 0;
-if (logVal > 0) wins++;
-else if (logVal < 0) xCount++;
-}
-if (ln.apostado && ln.apostado[key]) apostadoCount++;
-});
-if (idx === A.cur) {
-recup  = A.lines.filter(ln => ln.stage > 0).length;
-haver  = r2(A.lines.reduce((s, ln) => s + (ln.lostAccum || 0), 0));
-}
-const data = c.date || '—';
-function inferYear(n) {
-if (n >= 1227) return 2026;
-if (n >= 1166) return 2025;
-if (n >= 1113) return 2024;
-if (n >= 1058) return 2023;
-return 2022;
-}
-const isCur = idx === A.cur;
-const anoColors = {'2022':'#a0a0a0','2023':'#f5a623','2024':'#5b7cfd','2025':'#00e5a0','2026':'#ff4d6d'};
-const anoFull = c.year ? String(c.year) : String(inferYear(num));
-const pR = r2(pnlRod);
-const pA = r2(pnlAcum);
-const pRcls = pR > 0 ? 'hist-pos' : pR < 0 ? 'hist-neg' : 'hist-zero';
-const pAcls = pA > 0 ? 'hist-pos' : pA < 0 ? 'hist-neg' : 'hist-zero';
-const anoColor = anoColors[anoFull] || 'var(--muted)';
-const tr = document.createElement('tr');
-if (isCur) tr.classList.add('cur-row');
-tr.onclick = () => { A.cur = idx; save(); render(); window.scrollTo({top:0,behavior:'smooth'}); };
-tr.innerHTML = `
-<td class="hist-num">${num}</td>
-<td><span class="hist-year" style="background:${anoColor}22;color:${anoColor};border:1px solid ${anoColor}44">${anoFull}</span></td>
-<td style="color:var(--muted)">${data}</td>
-<td style="color:var(--text)">${apostado > 0 ? fmtU(apostado) : '—'}</td>
-<td class="${pRcls}">${pR === 0 ? '—' : (pR > 0 ? '+' : '') + 'R$ ' + Math.abs(pR).toFixed(2).replace('.',',')}</td>
-<td class="${pAcls}">${pA === 0 ? '—' : (pA > 0 ? '+' : '') + 'R$ ' + Math.abs(pA).toFixed(2).replace('.',',')}</td>
-<td style="color:var(--win)">${wins || '—'}</td>
-<td style="color:var(--accent3)">${xCount || '—'}</td>
-<td style="color:var(--accent3)">${isCur ? recup || '—' : '—'}</td>
-<td style="color:var(--loss)">${isCur && haver > 0 ? 'R$ ' + haver.toFixed(2).replace('.',',') : '—'}</td>
-<td style="color:var(--muted)">${apostadoCount || '—'}</td>
-`;
-tbody.appendChild(tr);
-});
-}
-window._doResultHT = function(i, won) {
-if (!A.linesHT) return;
-var ln  = A.linesHT[i];
-var key = String(curNum());
-if (!ln.pnlLog) ln.pnlLog = {};
-if (ln.lastAction && ln.lastAction.key === key) return;
-var bet    = calcBetHT(ln);
-var aposta = (ln.apostaOverride && ln.apostaOverride[key] != null) ? ln.apostaOverride[key] : bet.aposta;
-var lucro  = bet.lucro;
-ln.lastAction = { key: key, won: won, aposta: aposta, lucro: lucro,
-stage: ln.stage, lostAccum: ln.lostAccum, pnlTotal: ln.pnlTotal,
-pnlLogVal: (ln.pnlLog[key] || 0) };
-if (!ln.apostaLog) ln.apostaLog = {};
-ln.apostaLog[key] = aposta;
-if (ln.apostaOverride) delete ln.apostaOverride[key];
-var prevLog = ln.pnlLog[key] || 0;
-if (won) {
-var odd2HT      = (ln.odd >= 1.01) ? ln.odd : 2.0;
-var lucroRealHT = r2(aposta * (odd2HT - 1));
-var recuperadoHT = Math.min(ln.lostAccum, lucroRealHT);
-var lucroLiqHT   = r2(lucroRealHT - recuperadoHT);
-ln.pnlTotal  = r2((ln.pnlTotal||0) + recuperadoHT + lucroLiqHT);
-ln.redistExtra = 0;
-var lostHere = prevLog < 0 ? Math.abs(prevLog) : 0;
-var recoverLog = Math.min(recuperadoHT, lostHere);
-ln.pnlLog[key] = r2(prevLog + recoverLog + lucroLiqHT);
-ln.stage     = recuperadoHT >= ln.lostAccum ? 0 : ln.stage;
-ln.lostAccum = r2(Math.max(0, ln.lostAccum - recuperadoHT));
-} else {
-ln.pnlLog[key] = r2(prevLog - aposta);
-ln.pnlTotal    = r2((ln.pnlTotal||0) - aposta);
-ln.lostAccum   = r2((ln.lostAccum||0) + aposta);
-ln.stage++;
-}
-save(); render();
-var keyCheck = String(curNum());
-var todasJogadas = A.linesHT.every(function(l) {
-var jogada = l.lastAction && l.lastAction.key === keyCheck;
-var nula   = !!(l.nulo && l.nulo[keyCheck]);
-return jogada || nula;
-});
-if (todasJogadas) {
-setTimeout(function() {
-A.linesHT.forEach(function(l) {
-l.home = '';
-l.away = '';
-l.lastAction = null;
-});
-save(); render();
-}, 2000);
-}
-};
-window._undoResultHT = function(i) {
-if (!A.linesHT) return;
-var ln = A.linesHT[i];
-if (!ln.lastAction) return;
-var snap = ln.lastAction;
-ln.stage     = snap.stage;
-ln.lostAccum = snap.lostAccum;
-ln.pnlTotal  = snap.pnlTotal;
-if (!ln.pnlLog) ln.pnlLog = {};
-if (snap.pnlLogVal === 0) delete ln.pnlLog[snap.key];
-else ln.pnlLog[snap.key] = snap.pnlLogVal;
-ln.lastAction = null;
-save(); render();
-};
-window._editHTJogo = function(i) {
-if (!A.linesHT) return;
-var ln = A.linesHT[i];
-if (ln.lastAction && ln.lastAction.key === String(curNum())) return;
-var home = prompt('Mandante (HT ' + (i+1) + '):', ln.home || '');
-if (home === null) return;
-var away = prompt('Visitante (HT ' + (i+1) + '):', ln.away || '');
-if (away === null) return;
-ln.home = home.trim();
-ln.away = away.trim();
-save(); render();
-};
-window._setApostaHT = function(i, val) {
-if (!A.linesHT) return;
-var v = parseFloat(val);
-if (isNaN(v) || v <= 0) return;
-var ln  = A.linesHT[i];
-var key = String(curNum());
-if (!ln.apostaOverride) ln.apostaOverride = {};
-if (!ln.lucroOverride)  ln.lucroOverride  = {};
-var bet = calcBetHT(ln);
-if (Math.abs(v - bet.aposta) < 0.005) {
-delete ln.apostaOverride[key];
-delete ln.lucroOverride[key];
-} else {
-ln.apostaOverride[key] = r2(v);
-var odd    = (ln.odd >= 1.01) ? ln.odd : 2.0;
-var lucroLiq = r2(v * (odd - 1));
-ln.lucroOverride[key] = (ln.stage === 0) ? lucroLiq : r2(lucroLiq - (ln.lostAccum || 0));
-}
-save(); render();
-};
-window._setOddHT = function(i, val) {
-if (!A.linesHT) return;
-var v = parseFloat(val);
-if (!isNaN(v) && v >= 1.01) {
-A.linesHT[i].odd = Math.round(v * 100) / 100;
-save(); render();
-}
-};
+
 window._toggleNuloHT = function(i) {
 if (!A.linesHT) return;
 var ln  = A.linesHT[i];
@@ -1506,6 +1144,11 @@ const metade = r2(debito * 0.5);
 const outras = A.lines.filter((_,j) => j !== i);
 const valorPorLinha = r2(metade / outras.length);
 if (!A.redistLog) A.redistLog = [];
+if (!A.xLines || A.xLines.length !== N) A.xLines = blankLines();
+else A.xLines = A.xLines.map(ln => ({stage:0,lostAccum:0,odd:3.0,pnlTotal:0,pnlLog:{},apostaOverride:{},lucroOverride:{},lastAction:null,pctX:{},redistExtra:0,apostado:{},nulo:{},...ln}));
+if (!A.xConcursos || !A.xConcursos.length) A.xConcursos = [{num:1,filterOn:false,threshold:6.5,games:blankGames(),odds:Array(N).fill(3.0),date:'',year:new Date().getFullYear()}];
+if (A.xCur === undefined) A.xCur = 0;
+if (!A.xLucroAlvo) A.xLucroAlvo = 20;
       // Migrar redistExtra para lostAccum automaticamente
       var precisaMigrar = A.lines.some(function(ln){ return (ln.redistExtra||0) > 0; });
       if (precisaMigrar) {
@@ -1961,3 +1604,264 @@ save(); render();
 // ══════════════════════════════════════════════════════</script>
 </body>
 </html>
+// ══ TOGGLE HISTÓRICO ══
+function toggleHist(bodyId, iconId) {
+var body = document.getElementById(bodyId);
+var icon = document.getElementById(iconId);
+if (!body) return;
+if (body.style.display === 'none') { body.style.display = ''; if(icon) icon.textContent = '▼'; }
+else { body.style.display = 'none'; if(icon) icon.textContent = '▶'; }
+}
+
+// ══ HISTÓRICO PRINCIPAL ══
+function renderHist() {
+var tbody = document.getElementById('histTbody');
+if (!tbody) return;
+tbody.innerHTML = '';
+var pnlAcumTotal = r2(A.lines.reduce(function(s,ln){return s+(ln.pnlTotal||0);},0));
+var pnlRodPorConc = A.concursos.map(function(c){return r2(A.lines.reduce(function(s,ln){return s+((ln.pnlLog&&ln.pnlLog[String(c.num)])||0);},0));});
+var pnlAcumPorConc = new Array(A.concursos.length).fill(0);
+pnlAcumPorConc[A.concursos.length-1] = pnlAcumTotal;
+for(var i=A.concursos.length-2;i>=0;i--) pnlAcumPorConc[i]=r2(pnlAcumPorConc[i+1]-pnlRodPorConc[i+1]);
+var anoColors={'2023':'#f5a623','2024':'#5b7cfd','2025':'#00e5a0','2026':'#ff4d6d'};
+A.concursos.forEach(function(c,idx){
+  var num=c.num; var pnlRod=pnlRodPorConc[idx]; var pnlAcum=pnlAcumPorConc[idx];
+  var apostado=c.totalApostado||0; var wins2=0,x2=0,recup2=0,haver2=0,apost2=0;
+  A.lines.forEach(function(ln){
+    var k=String(num);
+    if(ln.lastAction&&ln.lastAction.key===k){if(ln.lastAction.won)wins2++;else x2++;}
+    if(ln.apostado&&ln.apostado[k]) apost2++;
+  });
+  if(idx===A.cur){recup2=A.lines.filter(function(ln){return ln.stage>0;}).length;haver2=r2(A.lines.reduce(function(s,ln){return s+(ln.lostAccum||0);},0));}
+  var anoFull=c.year?String(c.year):'2026';
+  var anoColor=anoColors[anoFull]||'var(--muted)';
+  var pRC=pnlRod>0?'hist-pos':pnlRod<0?'hist-neg':'hist-zero';
+  var pAC=pnlAcum>0?'hist-pos':pnlAcum<0?'hist-neg':'hist-zero';
+  var isCur=idx===A.cur;
+  var tr=document.createElement('tr'); if(isCur) tr.classList.add('cur-row');
+  tr.onclick=function(){A.cur=idx;save();render();window.scrollTo({top:0,behavior:'smooth'});};
+  tr.innerHTML='<td class="hist-num">'+num+'</td>'
+    +'<td><span class="hist-year" style="background:'+anoColor+'22;color:'+anoColor+';border:1px solid '+anoColor+'44">'+anoFull+'</span></td>'
+    +'<td style="color:var(--muted)">'+(c.date||'—')+'</td>'
+    +'<td style="color:var(--text)">'+(apostado>0?fmtU(apostado):'—')+'</td>'
+    +'<td class="'+pRC+'">'+(pnlRod===0?'—':fmtS(pnlRod))+'</td>'
+    +'<td class="'+pAC+'">'+(pnlAcum===0?'—':fmtS(pnlAcum))+'</td>'
+    +'<td style="color:var(--win)">'+(wins2||'—')+'</td>'
+    +'<td style="color:var(--accent3)">'+(x2||'—')+'</td>'
+    +'<td style="color:var(--accent3)">'+(isCur?recup2||'—':'—')+'</td>'
+    +'<td style="color:var(--loss)">'+(isCur&&haver2>0?'R$ '+haver2.toFixed(2).replace('.',','):'—')+'</td>'
+    +'<td style="color:var(--muted)">'+(apost2||'—')+'</td>';
+  tbody.appendChild(tr);
+});
+}
+
+// ══ SISTEMA EXTRA ══
+const xCurConc = () => A.xConcursos[A.xCur];
+const xCurNum  = () => xCurConc().num;
+function xOpenM(id){document.getElementById(id).classList.add('open');}
+function xCloseM(id){document.getElementById(id).classList.remove('open');}
+function xGoPrev(){if(A.xCur>0){A.xCur--;save();xRender();}}
+function xOpenNext(){
+  var inp=document.getElementById('xNextNumIn'); if(!inp) return;
+  var p=parseInt(xCurNum()); inp.value=!isNaN(p)?p+1:''; xOpenM('xmNext');
+}
+window.xConfirmNext=function(){
+  var raw=(document.getElementById('xNextNumIn').value||'').trim();
+  var num; if(!raw){var p=parseInt(xCurNum());num=!isNaN(p)?p+1:xCurNum()+' (2)';}
+  else{var p2=parseInt(raw);num=(!isNaN(p2)&&String(p2)===raw)?p2:raw;}
+  if(!num&&num!==0) return;
+  var today=new Date();
+  var dd=String(today.getDate()).padStart(2,'0'); var mm=String(today.getMonth()+1).padStart(2,'0');
+  A.xConcursos.push({num,filterOn:false,threshold:6.5,games:blankGames(),odds:Array(N).fill(3.0),
+    date:dd+'/'+mm+'/'+String(today.getFullYear()).slice(-2),year:today.getFullYear()});
+  A.xCur=A.xConcursos.length-1; xCloseM('xmNext'); save(); xRender();
+};
+window.xDelConc=function(){
+  if(A.xConcursos.length<=1){xCloseM('xmDelConc');return;}
+  A.xConcursos.splice(A.xCur,1); A.xCur=Math.min(A.xCur,A.xConcursos.length-1);
+  xCloseM('xmDelConc'); save(); xRender();
+};
+window.xSetLucroAlvo=function(val){
+  var v=parseFloat(val); if(!v||v<1) return;
+  A.xLucroAlvo=Math.round(v*100)/100;
+  var inp=document.getElementById('xLucroInput'); if(inp) inp.value=A.xLucroAlvo;
+  save(); xRender();
+};
+function xCalcBet(ln){
+  var odd=ln.odd>=1.01?ln.odd:3.0; var tgt=A.xLucroAlvo||20;
+  if(ln.stage===0){var ap=Math.max(r2(tgt/(odd-1)),10);return{aposta:ap,lucro:r2(ap*(odd-1))};}
+  var profit=Math.max(ln.lostAccum*((A.pctRecup||10)/100),tgt);
+  return{aposta:r2((ln.lostAccum+profit)/(odd-1)),lucro:r2(profit)};
+}
+window.xOpenImport=function(){
+  document.getElementById('xImpNum').textContent=xCurNum();
+  var pa=document.getElementById('xPasteGames'); if(pa) pa.value='';
+  var bp=document.getElementById('xBtnParse'); if(bp) bp.textContent='DISTRIBUIR NAS LINHAS';
+  var grid=document.getElementById('xImpGrid'); grid.innerHTML='';
+  var games=xCurConc().games;
+  games.forEach(function(g,i){
+    var ph=g.home.startsWith('Casa ')||g.away.startsWith('Visitante ');
+    var rn=document.createElement('div');rn.className='rn';rn.textContent=i+1;grid.appendChild(rn);
+    var ih=document.createElement('input');ih.id='xih'+i;ih.value=ph?'':g.home;ih.placeholder='Mandante';grid.appendChild(ih);
+    var vs=document.createElement('div');vs.className='vss';vs.textContent='x';grid.appendChild(vs);
+    var ia=document.createElement('input');ia.id='xia'+i;ia.value=ph?'':g.away;ia.placeholder='Visitante';grid.appendChild(ia);
+    var sel=document.createElement('select');sel.id='xid'+i;sel.className='imp-grid input';
+    ['Sáb','Dom','Seg','Ter','Qua','Qui','Sex'].forEach(function(d){var o=document.createElement('option');o.value=d;o.textContent=d;if(d===g.day)o.selected=true;sel.appendChild(o);});
+    grid.appendChild(sel);
+  });
+  xOpenM('xmImport');
+};
+window.xParsePaste=function(){
+  var txt=(document.getElementById('xPasteGames').value||'').trim(); if(!txt) return;
+  var linhas=txt.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+  var jogos=[];
+  linhas.forEach(function(linha){
+    var l=linha.replace(/^(jogo\s*)?\d+[\s.:\-]*/i,'').trim();
+    var m=l.match(/^(.+?) [xX] (.+?)( (Seg|Ter|Qua|Qui|Sex|Sab|Dom|SAB|DOM|TER|QUA|FIM))?$/i);
+    if(m){var day=m[4]?m[4].charAt(0).toUpperCase()+m[4].slice(1).toLowerCase():'Sab';
+      if(/^s/i.test(day))day='Sáb';if(/^d/i.test(day))day='Dom';if(/^t/i.test(day))day='Ter';if(/^q/i.test(day))day='Qua';
+      jogos.push({home:m[1].trim(),away:m[2].trim(),day:day});}
+  });
+  if(!jogos.length){alert('Nenhum jogo reconhecido.');return;}
+  for(var j=0;j<Math.min(jogos.length,14);j++){
+    var ih=document.getElementById('xih'+j);var ia=document.getElementById('xia'+j);var id=document.getElementById('xid'+j);
+    if(ih)ih.value=jogos[j].home;if(ia)ia.value=jogos[j].away;if(id)id.value=jogos[j].day;
+  }
+  document.getElementById('xPasteGames').value='';
+  var btn=document.getElementById('xBtnParse');if(btn)btn.textContent=jogos.length+' JOGOS DISTRIBUIDOS!';
+};
+window.xConfirmImport=function(){
+  var games=xCurConc().games;
+  games.forEach(function(g,i){
+    var ih=document.getElementById('xih'+i);var ia=document.getElementById('xia'+i);var id=document.getElementById('xid'+i);
+    if(ih)g.home=ih.value.trim();if(ia)g.away=ia.value.trim();if(id)g.day=id.value;
+  });
+  xCloseM('xmImport'); save(); xRender();
+};
+window.xDoResult=function(i,won){
+  var ln=A.xLines[i]; var key=String(xCurNum());
+  if(!ln.pnlLog)ln.pnlLog={};
+  if(ln.lastAction&&ln.lastAction.key===key)return;
+  var bet=xCalcBet(ln);
+  var aposta=(ln.apostaOverride&&ln.apostaOverride[key]!=null)?ln.apostaOverride[key]:bet.aposta;
+  ln.lastAction={key,won,aposta,lucro:bet.lucro,stage:ln.stage,lostAccum:ln.lostAccum,pnlTotal:ln.pnlTotal,pnlLogVal:(ln.pnlLog[key]||0)};
+  if(!ln.apostaLog)ln.apostaLog={};ln.apostaLog[key]=aposta;
+  if(ln.apostaOverride)delete ln.apostaOverride[key];
+  var prevLog=ln.pnlLog[key]||0;
+  if(won){
+    var odd2=ln.odd>=1.01?ln.odd:3.0;var lucroReal=r2(aposta*(odd2-1));
+    var recuperado=Math.min(ln.lostAccum,lucroReal);var lucroLiq=r2(lucroReal-recuperado);
+    ln.pnlTotal=r2((ln.pnlTotal||0)+recuperado+lucroLiq);ln.redistExtra=0;
+    var lostHere=prevLog<0?Math.abs(prevLog):0;
+    ln.pnlLog[key]=r2(prevLog+Math.min(recuperado,lostHere)+lucroLiq);
+    ln.stage=recuperado>=ln.lostAccum?0:ln.stage;ln.lostAccum=r2(Math.max(0,ln.lostAccum-recuperado));
+  }else{
+    ln.pnlLog[key]=r2(prevLog-aposta);ln.pnlTotal=r2((ln.pnlTotal||0)-aposta);
+    ln.lostAccum=r2((ln.lostAccum||0)+aposta);ln.stage++;
+  }
+  var xConc=xCurConc();if(!xConc.totalApostado)xConc.totalApostado=0;xConc.totalApostado=r2(xConc.totalApostado+aposta);
+  save();xRender();
+};
+window.xUndoResult=function(i){
+  var ln=A.xLines[i];if(!ln.lastAction)return;
+  var snap=ln.lastAction;ln.stage=snap.stage;ln.lostAccum=snap.lostAccum;ln.pnlTotal=snap.pnlTotal;
+  if(!ln.pnlLog)ln.pnlLog={};
+  if(snap.pnlLogVal===0)delete ln.pnlLog[snap.key];else ln.pnlLog[snap.key]=snap.pnlLogVal;
+  ln.lastAction=null;
+  var xConc=xCurConc();if(xConc.totalApostado)xConc.totalApostado=r2(Math.max(0,xConc.totalApostado-snap.aposta));
+  save();xRender();
+};
+window.xSetOdd=function(i,val){var v=parseFloat(val);if(isNaN(v)||v<1.01)return;A.xLines[i].odd=r2(v);save();xRender();};
+window.xToggleNulo=function(i){var ln=A.xLines[i];var key=String(xCurNum());if(!ln.nulo)ln.nulo={};ln.nulo[key]=!ln.nulo[key];save();xRender();};
+window.xToggleApostado=function(i){var ln=A.xLines[i];var key=String(xCurNum());if(!ln.apostado)ln.apostado={};ln.apostado[key]=!ln.apostado[key];save();xRender();};
+
+function xRender(){
+  if(!A||!A.xLines||!A.xConcursos)return;
+  var conc=xCurConc();var key=String(xCurNum());
+  var tbody=document.getElementById('xTbody');if(!tbody)return;
+  tbody.innerHTML='';
+  var totAp=0,totLu=0,totPnl=0,totAcc=0,totRisco=0,wins=0,loss=0,recup=0;
+  A.xLines.forEach(function(ln,i){
+    var g=conc.games[i]||{};
+    var isNulo=!!(ln.nulo&&ln.nulo[key]);
+    var jaM=ln.lastAction&&ln.lastAction.key===key;
+    var bet=xCalcBet(ln);
+    var aposta=(ln.apostaOverride&&ln.apostaOverride[key]!=null)?ln.apostaOverride[key]:(jaM&&ln.apostaLog&&ln.apostaLog[key]!=null)?ln.apostaLog[key]:bet.aposta;
+    var pN=(ln.pnlLog&&ln.pnlLog[key])||0;var pT=ln.pnlTotal||0;
+    var stN=ln.stage||0;var stLbl=stN===0?'INICIAL':'RECUP #'+stN;var stCls=stN===0?'s0':stN<=3?'s1':'s2';
+    var lostStr=(ln.lostAccum||0)>0?'-R$'+(ln.lostAccum||0).toFixed(2).replace('.',','):'—';
+    var pNC=pN>0?'pos':pN<0?'neg':'zero';var pTC=pT>0?'pos':pT<0?'neg':'zero';
+    var isApostado=!!(ln.apostado&&ln.apostado[key]);
+    if(!isNulo){totAp+=aposta;totLu+=bet.lucro;totPnl+=pN;totAcc+=pT;totRisco+=(ln.lostAccum||0);if(pN>0)wins++;if(pN<0)loss++;if(stN>0)recup++;}
+    var ph=!g.home||g.home.startsWith('Casa ');
+    var jogo=ph?('<em style="color:var(--muted);font-size:11px">'+esc(g.home||'')+'  x  '+esc(g.away||'')+'</em>'):('<strong>'+esc(g.home)+'</strong><span class="vs">x</span><strong>'+esc(g.away)+'</strong>');
+    var btns='';
+    if(jaM){btns='<button class="btn-r '+(ln.lastAction.won?'marcado-win':'marcado-loss')+'" disabled>'+(ln.lastAction.won?'✓ EMPATE':'✗ NÃO')+'</button><button class="btn-r undo" onclick="xUndoResult('+i+')">↩</button>';}
+    else if(!isNulo){btns='<button class="btn-r" onclick="xDoResult('+i+',true)">✓ EMPATE</button><button class="btn-r" onclick="xDoResult('+i+',false)">✗ NÃO</button>';}
+    var btnAp=(isApostado||!jaM)?'<button class="btn-apostado'+(isApostado?' sim':'')+'" onclick="xToggleApostado('+i+')">💰</button>':'<span class="btn-spacer"></span>';
+    var btnNulo='<button class="btn-nulo'+(isNulo?' sim':'')+'" onclick="xToggleNulo('+i+')" title="Anular">⛔</button>';
+    var dayBadge=g.day?('<span class="day-badge">'+esc(g.day)+'</span>'):'';
+    var tr=document.createElement('tr');if(isNulo)tr.classList.add('nulo');
+    tr.innerHTML='<td class="game-num">'+(i+1)+'</td>'
+      +'<td class="teams'+(ph?' ph':'')+'">'+jogo+'</td><td>'+dayBadge+'</td>'
+      +'<td><span class="stage '+stCls+'">'+stLbl+'</span></td>'
+      +'<td class="risco-cell'+((ln.lostAccum||0)===0?' zero':'')+'">'+lostStr+'</td>'
+      +'<td><input type="number" min="1.01" max="99" step="0.01" class="odd-input" value="'+(ln.odd||3.0).toFixed(2)+'" onchange="xSetOdd('+i+',this.value)"></td>'
+      +'<td><input type="number" step="0.01" class="aposta-input" value="'+aposta.toFixed(2)+'" readonly></td>'
+      +'<td class="lucro-t">'+fmtU(bet.lucro)+'</td>'
+      +'<td class="pnl '+pNC+'">'+(pN===0?'—':fmtS(pN))+'</td>'
+      +'<td class="accum-cell '+pTC+'">'+(pT===0?'—':fmtS(pT))+'</td>'
+      +'<td><div class="result-btns">'+btns+'<span class="btn-spacer"></span>'+btnAp+btnNulo+'</div></td>';
+    tbody.appendChild(tr);
+  });
+  var el=function(id){return document.getElementById(id);};
+  if(el('xSTotal'))el('xSTotal').textContent=fmtU(totAp);
+  if(el('xSPnl')){el('xSPnl').textContent=totPnl===0?'—':fmtS(totPnl);el('xSPnl').style.color=totPnl>0?'var(--win)':totPnl<0?'var(--loss)':'var(--muted)';}
+  if(el('xSAcc')){el('xSAcc').textContent=totAcc===0?'—':fmtS(totAcc);el('xSAcc').style.color=totAcc>0?'var(--win)':totAcc<0?'var(--loss)':'var(--muted)';}
+  if(el('xSWins'))el('xSWins').textContent=wins;if(el('xSLoss'))el('xSLoss').textContent=loss;if(el('xSRecup'))el('xSRecup').textContent=recup;
+  if(el('xSRisco')){el('xSRisco').textContent=totRisco>0?'-'+fmtU(totRisco):'—';el('xSRisco').style.color=totRisco>0?'var(--loss)':'var(--muted)';}
+  if(el('xNavNum'))el('xNavNum').textContent=xCurNum();
+  if(el('xNavIdx'))el('xNavIdx').textContent=(A.xCur+1)+' / '+A.xConcursos.length;
+  if(el('xBtnPrev'))el('xBtnPrev').disabled=A.xCur===0;if(el('xBtnDel'))el('xBtnDel').disabled=A.xConcursos.length<=1;
+  if(el('xLucroInput')&&parseFloat(el('xLucroInput').value)!==(A.xLucroAlvo||20))el('xLucroInput').value=A.xLucroAlvo||20;
+  if(el('xFRisco'))el('xFRisco').textContent=totRisco>0?'-'+fmtU(totRisco):'—';
+  if(el('xFAposta'))el('xFAposta').textContent=fmtU(totAp);
+  if(el('xFLucro'))el('xFLucro').textContent=fmtU(totLu);
+  if(el('xFPnl')){el('xFPnl').textContent=totPnl===0?'—':fmtS(totPnl);el('xFPnl').style.color=totPnl>0?'var(--win)':totPnl<0?'var(--loss)':'var(--muted)';}
+  if(el('xFAcc')){el('xFAcc').textContent=totAcc===0?'—':fmtS(totAcc);el('xFAcc').style.color=totAcc>0?'var(--win)':totAcc<0?'var(--loss)':'var(--muted)';}
+  xRenderHist();
+}
+
+function xRenderHist(){
+  var tbody=document.getElementById('xHistTbody');if(!tbody)return;
+  tbody.innerHTML='';
+  var pnlAcumTotal=r2(A.xLines.reduce(function(s,ln){return s+(ln.pnlTotal||0);},0));
+  var pnlRodPorConc=A.xConcursos.map(function(c){return r2(A.xLines.reduce(function(s,ln){return s+((ln.pnlLog&&ln.pnlLog[String(c.num)])||0);},0));});
+  var pnlAcumPorConc=new Array(A.xConcursos.length).fill(0);
+  pnlAcumPorConc[A.xConcursos.length-1]=pnlAcumTotal;
+  for(var i=A.xConcursos.length-2;i>=0;i--)pnlAcumPorConc[i]=r2(pnlAcumPorConc[i+1]-pnlRodPorConc[i+1]);
+  var anoColors={'2023':'#f5a623','2024':'#5b7cfd','2025':'#00e5a0','2026':'#ff4d6d'};
+  A.xConcursos.forEach(function(c,idx){
+    var num=c.num;var pnlRod=pnlRodPorConc[idx];var pnlAcum=pnlAcumPorConc[idx];
+    var apostado=c.totalApostado||0;var wins2=0,x2=0,recup2=0,haver2=0,apost2=0;
+    A.xLines.forEach(function(ln){var k=String(num);if(ln.lastAction&&ln.lastAction.key===k){if(ln.lastAction.won)wins2++;else x2++;}if(ln.apostado&&ln.apostado[k])apost2++;});
+    if(idx===A.xCur){recup2=A.xLines.filter(function(ln){return ln.stage>0;}).length;haver2=r2(A.xLines.reduce(function(s,ln){return s+(ln.lostAccum||0);},0));}
+    var anoFull=c.year?String(c.year):'2026';var anoColor=anoColors[anoFull]||'var(--muted)';
+    var pRC=pnlRod>0?'hist-pos':pnlRod<0?'hist-neg':'hist-zero';
+    var pAC=pnlAcum>0?'hist-pos':pnlAcum<0?'hist-neg':'hist-zero';var isCur=idx===A.xCur;
+    var tr=document.createElement('tr');if(isCur)tr.classList.add('cur-row');
+    tr.onclick=function(){A.xCur=idx;save();xRender();window.scrollTo({top:document.getElementById('extraSection').offsetTop,behavior:'smooth'});};
+    tr.innerHTML='<td class="hist-num">'+num+'</td>'
+      +'<td><span class="hist-year" style="background:'+anoColor+'22;color:'+anoColor+';border:1px solid '+anoColor+'44">'+anoFull+'</span></td>'
+      +'<td style="color:var(--muted)">'+(c.date||'—')+'</td>'
+      +'<td style="color:var(--text)">'+(apostado>0?fmtU(apostado):'—')+'</td>'
+      +'<td class="'+pRC+'">'+(pnlRod===0?'—':fmtS(pnlRod))+'</td>'
+      +'<td class="'+pAC+'">'+(pnlAcum===0?'—':fmtS(pnlAcum))+'</td>'
+      +'<td style="color:var(--win)">'+(wins2||'—')+'</td>'
+      +'<td style="color:var(--accent3)">'+(x2||'—')+'</td>'
+      +'<td style="color:var(--accent3)">'+(isCur?recup2||'—':'—')+'</td>'
+      +'<td style="color:var(--loss)">'+(isCur&&haver2>0?'R$ '+haver2.toFixed(2).replace('.',','):'—')+'</td>'
+      +'<td style="color:var(--muted)">'+(apost2||'—')+'</td>';
+    tbody.appendChild(tr);
+  });
+}
