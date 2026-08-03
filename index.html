@@ -1180,6 +1180,8 @@ window.confirmarLancamento = function() {
   alvo.forEach(function(ln) {
     ln.lostAccum = r2((ln.lostAccum||0) + frac);
     ln.pnlTotal  = r2((ln.pnlTotal||0)  - frac);
+    // Se estava em stage 0, mover para stage 2 para ativar o martingale de recuperação
+    if ((ln.stage||0) === 0) ln.stage = 2;
   });
   closeM('mLancamento');
   document.getElementById('lancValor').value = '';
