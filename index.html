@@ -1177,6 +1177,13 @@ const metade = r2(debito * 0.5);
 const outras = A.lines.filter((_,j) => j !== i);
 const valorPorLinha = r2(metade / outras.length);
 if (!A.redistLog) A.redistLog = [];
+      if (!A.xLines || A.xLines.length < 14) { A.xLines = blankLines(); }
+      if (!A.xConcursos || !A.xConcursos.length) {
+        var today0 = new Date();
+        A.xConcursos = [{num:1,filterOn:false,threshold:6.5,games:blankGames(),odds:Array(14).fill(3.0),date:'',year:today0.getFullYear()}];
+      }
+      if (typeof A.xCur === 'undefined' || A.xCur === null) A.xCur = 0;
+      if (!A.xLucroAlvo) A.xLucroAlvo = 20;
 if (!A.xLines || A.xLines.length !== N) A.xLines = blankLines();
 else A.xLines = A.xLines.map(ln => ({stage:0,lostAccum:0,odd:3.0,pnlTotal:0,pnlLog:{},apostaOverride:{},lucroOverride:{},lastAction:null,pctX:{},redistExtra:0,apostado:{},nulo:{},...ln}));
 if (!A.xConcursos || !A.xConcursos.length) A.xConcursos = [{num:1,filterOn:false,threshold:6.5,games:blankGames(),odds:Array(N).fill(3.0),date:'',year:new Date().getFullYear()}];
