@@ -970,7 +970,7 @@ var temRedistExtra = A.lines.some(function(ln){ return (ln.redistExtra||0) > 0; 
 var btnMig = document.getElementById('btnMigRedist');
 if (btnMig) btnMig.style.display = temRedistExtra ? 'inline-block' : 'none';
 renderHist();
-xRender();
+setTimeout(function(){ try{xRender();}catch(e){console.error(e);} }, 100);
 const mediaOddConc = cntOdd > 0 ? (totOdd / cntOdd).toFixed(2) : null;
 const fMediaEl = document.getElementById('fMediaOdd');
 if (fMediaEl) fMediaEl.textContent = mediaOddConc ? mediaOddConc : '—';
@@ -1808,6 +1808,7 @@ window.xToggleApostado=function(i){var ln=A.xLines[i];var key=String(xCurNum());
 
 function xRender(){
   if(!A||!A.xConcursos)return;
+  console.log('xRender: xLines=', A.xLines ? A.xLines.length : 'null', 'xTbody=', !!document.getElementById('xTbody'));
   if(!A.xLines||A.xLines.length<14) { A.xLines=blankLines(); save(); }
   if(A.xCur===undefined||A.xCur>=A.xConcursos.length)A.xCur=0;
   if(!A.xLucroAlvo)A.xLucroAlvo=20;
