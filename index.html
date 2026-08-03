@@ -180,26 +180,6 @@
     </table>
   </div>
 
-  <div class="hist-section">
-    <div class="hist-title hist-toggle" onclick="window.toggleHist('histBody','histIcon')">
-      TODAS AS RODADAS — SISTEMA PRINCIPAL
-      <span id="histIcon" class="toggle-icon">▼</span>
-    </div>
-    <div id="histBody" class="hist-body">
-    <div class="table-wrapper">
-      <table class="hist-table" id="histTable">
-        <thead>
-          <tr>
-            <th>#CONC</th><th>ANO</th><th>DATA</th><th>APOSTADO</th>
-            <th>P&amp;L RODADA</th><th>P&amp;L ACUM.</th>
-            <th>✓</th><th>X</th><th>RECUP.</th><th>HAVER</th><th>💰</th>
-          </tr>
-        </thead>
-        <tbody id="histTbody"></tbody>
-      </table>
-    </div>
-    </div>
-  </div>
 
   <!-- SISTEMA EXTRA -->
   <div class="extra-section" id="extraSection">
@@ -276,6 +256,27 @@
       </div>
     </div>
   </div>
+  <div class="hist-section">
+    <div class="hist-title hist-toggle" onclick="window.toggleHist('histBody','histIcon')">
+      TODAS AS RODADAS — SISTEMA PRINCIPAL
+      <span id="histIcon" class="toggle-icon">▼</span>
+    </div>
+    <div id="histBody" class="hist-body">
+    <div class="table-wrapper">
+      <table class="hist-table" id="histTable">
+        <thead>
+          <tr>
+            <th>#CONC</th><th>ANO</th><th>DATA</th><th>APOSTADO</th>
+            <th>P&amp;L RODADA</th><th>P&amp;L ACUM.</th>
+            <th>✓</th><th>X</th><th>RECUP.</th><th>HAVER</th><th>💰</th>
+          </tr>
+        </thead>
+        <tbody id="histTbody"></tbody>
+      </table>
+    </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- MODAL IMPORTAR EXTRA -->
@@ -731,16 +732,19 @@ home:'', away:'', stage:0, lostAccum:0, odd:2.0, pnlTotal:0, pnlLog:{}, apostaOv
 }
 loadOddsFromConc();  // restaura odds do concurso atual
 // Garantir xLines
+// Garantir xLines sempre com 14 itens
 if (!A.xLines || A.xLines.length < 14) {
   A.xLines = blankLines();
-  if (!A.xConcursos || !A.xConcursos.length) {
-    A.xConcursos = [{num:1, filterOn:false, threshold:6.5, games:blankGames(), odds:Array(14).fill(3.0), date:'', year:new Date().getFullYear()}];
-  }
-  A.xCur = A.xCur || 0;
-  save();
 } else {
-  A.xLines = A.xLines.map(function(ln){ return Object.assign({stage:0,lostAccum:0,odd:3.0,pnlTotal:0,pnlLog:{},apostaOverride:{},lucroOverride:{},lastAction:null,pctX:{},redistExtra:0,apostado:{},nulo:{}}, ln); });
+  A.xLines = A.xLines.map(function(ln){
+    return Object.assign({stage:0,lostAccum:0,odd:3.0,pnlTotal:0,pnlLog:{},apostaOverride:{},lucroOverride:{},lastAction:null,pctX:{},redistExtra:0,apostado:{},nulo:{}}, ln);
+  });
 }
+if (!A.xConcursos || !A.xConcursos.length) {
+  A.xConcursos = [{num:1,filterOn:false,threshold:6.5,games:blankGames(),odds:Array(14).fill(3.0),date:'',year:new Date().getFullYear()}];
+}
+if (A.xCur === undefined || A.xCur === null) A.xCur = 0;
+if (!A.xLucroAlvo) A.xLucroAlvo = 20;
 render();
 syncUI('synced', 'Sincronizado ↓');
 }
@@ -1804,12 +1808,7 @@ window.xToggleApostado=function(i){var ln=A.xLines[i];var key=String(xCurNum());
 
 function xRender(){
   if(!A||!A.xConcursos)return;
-  if(!A.xLines||A.xLines.length<14){
-    A.xLines=blankLines();
-    if(!A.xConcursos||!A.xConcursos.length) A.xConcursos=[{num:1,filterOn:false,threshold:6.5,games:blankGames(),odds:Array(14).fill(3.0),date:'',year:new Date().getFullYear()}];
-    A.xCur=0; A.xLucroAlvo=A.xLucroAlvo||20;
-    save();
-  }
+  if(!A.xLines||A.xLines.length<14) { A.xLines=blankLines(); save(); }
   if(A.xCur===undefined||A.xCur>=A.xConcursos.length)A.xCur=0;
   if(!A.xLucroAlvo)A.xLucroAlvo=20;
   var conc=xCurConc();var key=String(xCurNum());
@@ -1824,7 +1823,7 @@ function xRender(){
     var bet=xCalcBet(ln);
     var aposta=(ln.apostaOverride&&ln.apostaOverride[key]!=null)?ln.apostaOverride[key]:(jaM&&ln.apostaLog&&ln.apostaLog[key]!=null)?ln.apostaLog[key]:bet.aposta;
     var pN=(ln.pnlLog&&ln.pnlLog[key])||0;var pT=ln.pnlTotal||0;
-    var stN=ln.stage||0;var stLbl=stN===0?'INICIAL':'RECUP #'+stN;var stCls=stN===0?'s0':stN<=3?'s1':'s2';
+    var stN=ln.stage||0;var stLbl=stN===0?'INICIAL':'RECUP #'+stN;var stCls=stN===0?'s0':stN<=3?'s1':stN<=8?'s2':'s3';
     var lostStr=(ln.lostAccum||0)>0?'-R$'+(ln.lostAccum||0).toFixed(2).replace('.',','):'—';
     var pNC=pN>0?'pos':pN<0?'neg':'zero';var pTC=pT>0?'pos':pT<0?'neg':'zero';
     var isApostado=!!(ln.apostado&&ln.apostado[key]);
