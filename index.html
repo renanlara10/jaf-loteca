@@ -81,6 +81,7 @@
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 2h10M3 6h6M5 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     <span id="btnFilterLabel">FILTRO OFF</span>
   </button>
+  <button class="btn-nav" onclick="openM('mLancamento')" title="Lançar prejuízo avulso" style="background:rgba(255,77,109,.1);color:var(--accent2);border:1px solid rgba(255,77,109,.28)">⊖ LANÇAR DÉBITO</button>
   <button class="btn-nav btn-del" id="btnDel" onclick="openM('mDelConc')" title="Excluir este concurso">
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 3h8M5 3V2h2v1M4.5 5v4M7.5 5v4M3 3l.5 7h5L9 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
     EXCLUIR
@@ -278,6 +279,35 @@
   </div>
 
 </div>
+
+<!-- MODAL LANÇAMENTO DÉBITO -->
+<div class="mo" id="mLancamento"><div class="mc" style="max-width:420px">
+  <h2>Lançar Débito</h2>
+  <p>Distribui um valor negativo entre todas as 14 linhas como saldo a recuperar.</p>
+  <div style="margin:16px 0">
+    <label style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;display:block;margin-bottom:6px">VALOR TOTAL DO DÉBITO (R$)</label>
+    <input type="number" id="lancValor" min="0.01" step="0.01" placeholder="Ex: 500,00"
+      style="width:100%;background:var(--surface);border:1px solid rgba(255,77,109,.4);color:var(--accent2);font-family:'Bebas Neue',sans-serif;font-size:28px;text-align:center;padding:10px;border-radius:2px;outline:none">
+    <div id="lancPreview" style="margin-top:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-align:center">
+      Por linha: —
+    </div>
+  </div>
+  <div style="margin-bottom:16px">
+    <label style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;display:block;margin-bottom:6px">DISTRIBUIR EM</label>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <label style="display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);cursor:pointer">
+        <input type="radio" name="lancDist" value="todas" checked id="lancTodas"> Todas as 14 linhas
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);cursor:pointer">
+        <input type="radio" name="lancDist" value="recup" id="lancRecup"> Só linhas em recuperação
+      </label>
+    </div>
+  </div>
+  <div class="mbtns">
+    <button onclick="closeM('mLancamento')">Cancelar</button>
+    <button class="ok" style="background:rgba(255,77,109,.15);color:var(--accent2);border-color:rgba(255,77,109,.35)" onclick="window.confirmarLancamento()">⊖ CONFIRMAR DÉBITO</button>
+  </div>
+</div></div>
 
 <!-- MODAL IMPORTAR EXTRA -->
 <div class="mo" id="xmImport"><div class="mc" style="max-width:540px;text-align:left">
@@ -1139,6 +1169,40 @@ if (!ln.nulo) ln.nulo = {};
 ln.nulo[key] = !ln.nulo[key];
 save(); render();
 };
+window.confirmarLancamento = function() {
+  var val = parseFloat(document.getElementById('lancValor').value);
+  if (!val || val <= 0) { alert('Informe um valor válido.'); return; }
+  val = r2(val);
+  var soRecup = document.getElementById('lancRecup').checked;
+  var alvo = soRecup ? A.lines.filter(function(ln){ return ln.stage > 0; }) : A.lines;
+  if (!alvo.length) { alert('Nenhuma linha disponível para distribuição.'); return; }
+  var frac = r2(val / alvo.length);
+  alvo.forEach(function(ln) {
+    ln.lostAccum = r2((ln.lostAccum||0) + frac);
+    ln.pnlTotal  = r2((ln.pnlTotal||0)  - frac);
+  });
+  closeM('mLancamento');
+  document.getElementById('lancValor').value = '';
+  save(); render();
+  alert('Débito de R$ ' + val.toFixed(2).replace('.',',') + ' distribuído em ' + alvo.length + ' linhas (R$ ' + frac.toFixed(2).replace('.',',') + ' cada).');
+};
+
+// Preview no modal
+document.addEventListener('DOMContentLoaded', function() {
+  var inp = document.getElementById('lancValor');
+  if (inp) {
+    inp.addEventListener('input', function() {
+      var v = parseFloat(this.value);
+      var prev = document.getElementById('lancPreview');
+      if (!prev) return;
+      if (!v || v <= 0) { prev.textContent = 'Por linha: —'; return; }
+      var soRecup = document.getElementById('lancRecup') && document.getElementById('lancRecup').checked;
+      var n = soRecup ? A.lines.filter(function(ln){ return ln.stage > 0; }).length : 14;
+      prev.textContent = 'Por linha: R$ ' + r2(v / (n||14)).toFixed(2).replace('.',',') + ' (' + (n||14) + ' linhas)';
+    });
+  }
+});
+
 window._editStage = function(i) {
   var ln = A.lines[i];
   var novo = prompt('Novo stage (0=INICIAL):', ln.stage||0);
