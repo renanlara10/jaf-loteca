@@ -182,81 +182,6 @@
   </div>
 
 
-  <!-- SISTEMA EXTRA -->
-  <div class="extra-section" id="extraSection">
-    <div class="extra-section-title">
-      <span class="extra-badge">EXTRA</span>
-      SISTEMA EXTRA — 14 LINHAS INDEPENDENTES
-    </div>
-    <!-- Nav Extra -->
-    <div class="concurso-nav" style="margin-top:14px">
-      <button class="btn-nav btn-prev" id="xBtnPrev" onclick="xGoPrev()" disabled>‹ ANTERIOR</button>
-      <div class="concurso-info">
-        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">CONCURSO</span>
-        <span class="num" id="xNavNum">—</span>
-        <span style="color:var(--muted);font-size:11px" id="xNavIdx">1/1</span>
-      </div>
-      <button class="btn-nav btn-import" onclick="xOpenImport()">⬇ IMPORTAR TIMES</button>
-      <button class="btn-nav btn-next" onclick="xOpenNext()">PRÓXIMO CONCURSO ›</button>
-      <button class="btn-nav btn-del" id="xBtnDel" onclick="xOpenM('xmDelConc')" disabled>✕ EXCLUIR</button>
-    </div>
-    <!-- Summary Extra -->
-    <div class="summary-bar" id="xSummaryBar">
-      <div class="summary-item editable" onclick="document.getElementById('xLucroInput').select()">
-        <input type="number" id="xLucroInput" class="lucro-alvo-input" min="1" step="1" value="20"
-          onchange="xSetLucroAlvo(this.value)" onblur="xSetLucroAlvo(this.value)"
-          onclick="event.stopPropagation();this.select()">
-        <div class="summary-label">Lucro Alvo</div><div class="edit-hint">✎</div>
-      </div>
-      <div class="summary-item"><div class="summary-value" id="xSTotal" style="color:var(--text)">—</div><div class="summary-label">A Apostar</div></div>
-      <div class="summary-item"><div class="summary-value" id="xSPnl" style="color:var(--muted)">—</div><div class="summary-label">P&L Concurso</div></div>
-      <div class="summary-item"><div class="summary-value" id="xSAcc" style="color:var(--muted)">—</div><div class="summary-label">P&L Acumulado</div></div>
-      <div class="summary-item"><div class="summary-value" id="xSWins" style="color:var(--win)">0</div><div class="summary-label">Empates ✓</div></div>
-      <div class="summary-item"><div class="summary-value" id="xSLoss" style="color:var(--loss)">0</div><div class="summary-label">Não Empates ✗</div></div>
-      <div class="summary-item"><div class="summary-value" id="xSRecup" style="color:var(--accent3)">0</div><div class="summary-label">Em Recuperação</div></div>
-      <div class="summary-item"><div class="summary-value" id="xSRisco" style="color:var(--loss)">—</div><div class="summary-label">Haver</div></div>
-    </div>
-    <!-- Tabela Extra -->
-    <div class="table-wrapper" style="margin-top:12px">
-      <table>
-        <thead><tr>
-          <th>#</th><th>JOGO</th><th>STAGE</th><th>EM RISCO</th>
-          <th>ODD EMPATE</th><th>APOSTA REAL</th><th>LUCRO ALVO</th>
-          <th>P&amp;L CONC.</th><th>P&amp;L ACUM.</th><th>RESULTADO</th>
-        </tr></thead>
-        <tbody id="xTbody"></tbody>
-        <tfoot><tr>
-          <td colspan="4" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em">TOTAIS EXTRA</td>
-          <td id="xFRisco" style="color:var(--loss);font-family:'DM Mono',monospace;font-size:12px">—</td>
-          <td></td>
-          <td id="xFAposta" style="color:var(--accent);font-family:'DM Mono',monospace;font-size:12px">—</td>
-          <td id="xFLucro" style="color:var(--neutral);font-family:'DM Mono',monospace;font-size:12px">—</td>
-          <td id="xFPnl" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:12px">—</td>
-          <td id="xFAcc" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:12px">—</td>
-          <td></td>
-        </tr></tfoot>
-      </table>
-    </div>
-    <!-- Histórico Extra -->
-    <div class="hist-section" style="margin-top:20px">
-      <div class="hist-title hist-toggle" onclick="window.toggleHist('xHistBody','xHistIcon')">
-        TODAS AS RODADAS — SISTEMA EXTRA
-        <span id="xHistIcon" class="toggle-icon">▼</span>
-      </div>
-      <div id="xHistBody" class="hist-body">
-      <div class="table-wrapper">
-        <table class="hist-table" id="xHistTable">
-          <thead><tr>
-            <th>#CONC</th><th>ANO</th><th>DATA</th><th>APOSTADO</th>
-            <th>P&amp;L RODADA</th><th>P&amp;L ACUM.</th>
-            <th>✓</th><th>X</th><th>RECUP.</th><th>HAVER</th><th>💰</th>
-          </tr></thead>
-          <tbody id="xHistTbody"></tbody>
-        </table>
-      </div>
-      </div>
-    </div>
-  </div>
   <div class="hist-section">
     <div class="hist-title hist-toggle" onclick="window.toggleHist('histBody','histIcon')">
       TODAS AS RODADAS — SISTEMA PRINCIPAL
@@ -306,43 +231,6 @@
   <div class="mbtns">
     <button onclick="closeM('mLancamento')">Cancelar</button>
     <button class="ok" style="background:rgba(255,77,109,.15);color:var(--accent2);border-color:rgba(255,77,109,.35)" onclick="window.confirmarLancamento()">⊖ CONFIRMAR DÉBITO</button>
-  </div>
-</div></div>
-
-<!-- MODAL IMPORTAR EXTRA -->
-<div class="mo" id="xmImport"><div class="mc" style="max-width:540px;text-align:left">
-  <h2>Importar Times — Extra <span id="xImpNum">—</span></h2>
-  <div style="margin-bottom:12px">
-    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:5px">COLE A LISTA DE JOGOS:</div>
-    <textarea id="xPasteGames" rows="6" placeholder="Jogo 1: Flamengo x Vasco&#10;Jogo 2: ..." style="width:100%;background:var(--surface);border:1px solid rgba(0,229,160,.3);color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:7px;border-radius:2px;outline:none;resize:none;box-sizing:border-box;line-height:1.5"></textarea>
-    <button id="xBtnParse" onclick="xParsePaste()" style="margin-top:5px;width:100%;font-family:'Bebas Neue',sans-serif;font-size:15px;padding:7px;border-radius:2px;border:1px solid rgba(0,229,160,.35);background:rgba(0,229,160,.1);color:var(--accent);cursor:pointer">DISTRIBUIR NAS LINHAS</button>
-  </div>
-  <div class="imp-grid" id="xImpGrid"></div>
-  <div class="mbtns">
-    <button onclick="xCloseM('xmImport')">Cancelar</button>
-    <button class="ok" onclick="xConfirmImport()">✓ Salvar Times</button>
-  </div>
-</div></div>
-
-<!-- MODAL PRÓXIMO EXTRA -->
-<div class="mo" id="xmNext"><div class="mc" style="max-width:360px">
-  <h2>Próximo Concurso — Extra</h2>
-  <div style="margin:14px 0 4px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em">IDENTIFICAÇÃO</div>
-  <input type="text" id="xNextNumIn" class="next-num" placeholder="1242 ou Extra Maio">
-  <div style="text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:16px">em branco = incremento automático</div>
-  <div class="mbtns">
-    <button onclick="xCloseM('xmNext')">Cancelar</button>
-    <button class="ok" onclick="xConfirmNext()">Avançar ›</button>
-  </div>
-</div></div>
-
-<!-- MODAL EXCLUIR EXTRA -->
-<div class="mo" id="xmDelConc"><div class="mc" style="max-width:400px">
-  <h2>Excluir Concurso Extra</h2>
-  <p>O concurso será removido do histórico Extra.</p>
-  <div class="mbtns">
-    <button onclick="xCloseM('xmDelConc')">Cancelar</button>
-    <button class="danger" onclick="xDelConc()">✕ Excluir</button>
   </div>
 </div></div>
 
@@ -940,15 +828,20 @@ ondblclick="window._resetAposta(${i},this)">
 <td class="accum-cell ${pTC}">${pT===0?'—':fmtS(pT)}</td>
 <td><div class="result-btns">
 ${(() => {
-const jaM        = ln.lastAction && ln.lastAction.key === String(curNum());
-const isApostado = !!(ln.apostado && ln.apostado[String(curNum())]);
+const keyN       = String(curNum());
+const jaM        = ln.lastAction && ln.lastAction.key === keyN;
+// Para concursos passados, verificar pnlLog
+const pnlKey     = ln.pnlLog && ln.pnlLog[keyN];
+const temResult  = jaM || (typeof pnlKey !== 'undefined' && pnlKey !== null && pnlKey !== 0);
+const isApostado = !!(ln.apostado && ln.apostado[keyN]);
 if (isApostado) tr.classList.add('apostado-sim');
-const podaRedist = !jaM && (ln.lostAccum||0) > 0;
-if (jaM) {
-const label = ln.lastAction.won ? '✓ EMPATE' : '✗ NÃO';
-const cls   = ln.lastAction.won ? 'btn-r marcado-win' : 'btn-r marcado-loss';
+const podaRedist = !temResult && (ln.lostAccum||0) > 0;
+if (temResult) {
+const won = jaM ? ln.lastAction.won : (pnlKey > 0);
+const label = won ? '✓ EMPATE' : '✗ NÃO';
+const cls   = won ? 'btn-r marcado-win' : 'btn-r marcado-loss';
 return '<button class="' + cls + '" disabled>' + label + '</button>'
-+ '<button class="btn-r undo" onclick="window._undoResult(' + i + ')" title="Desfazer marcação">↩</button>';
++ (jaM ? '<button class="btn-r undo" onclick="window._undoResult(' + i + ')" title="Desfazer marcação">↩</button>' : '<span class="btn-spacer"></span>');
 }
 const btnsAcao = (isBlocked || isNulo)
 ? '<button class="btn-r" disabled>✓ EMPATE</button><button class="btn-r" disabled>✗ NÃO</button>'
@@ -1003,7 +896,7 @@ var temRedistExtra = A.lines.some(function(ln){ return (ln.redistExtra||0) > 0; 
 var btnMig = document.getElementById('btnMigRedist');
 if (btnMig) btnMig.style.display = temRedistExtra ? 'inline-block' : 'none';
 renderHist();
-setTimeout(function(){ try{xRender();}catch(e){console.error(e);} }, 100);
+
 const mediaOddConc = cntOdd > 0 ? (totOdd / cntOdd).toFixed(2) : null;
 const fMediaEl = document.getElementById('fMediaOdd');
 if (fMediaEl) fMediaEl.textContent = mediaOddConc ? mediaOddConc : '—';
