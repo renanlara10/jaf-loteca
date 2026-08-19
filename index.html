@@ -120,8 +120,14 @@
   <div class="summary-item"><div class="summary-value" id="sTotal" style="color:var(--text)">—</div><div class="summary-label">A Apostar Agora</div></div>
   <div class="summary-item"><div class="summary-value" id="sPnl" style="color:var(--muted)">—</div><div class="summary-label">P&L Concurso</div></div>
   <div class="summary-item"><div class="summary-value" id="sPnlAcc" style="color:var(--muted)">—</div><div class="summary-label">P&L Acumulado</div></div>
+  <div class="summary-item" title="Modo 7: trabalhar com as 7 primeiras linhas" onclick="window.toggleModo7()" style="cursor:pointer">
+    <div class="summary-value" id="sModo7" style="color:var(--muted)">OFF</div>
+    <div class="summary-label">Modo 7 ★</div>
+    <div class="edit-hint">✓ CLIQUE</div>
+  </div>
   <div class="summary-item"><div class="summary-value" id="sWins" style="color:var(--win)">0</div><div class="summary-label">Empates ✓</div></div>
   <div class="summary-item" title="Total de greens em todos os concursos"><div class="summary-value" id="sTotalGreens" style="color:var(--win)">—</div><div class="summary-label">Total Greens</div></div>
+  <div class="summary-item" title="% de greens sobre total de resultados"><div class="summary-value" id="sPctGreen" style="color:var(--win)">—</div><div class="summary-label">% Green</div></div>
   <div class="summary-item" title="Valor bruto total dos greens (soma dos lucros positivos)"><div class="summary-value" id="sValorGreens" style="color:var(--win)">—</div><div class="summary-label">Valor Greens</div></div>
   <div class="summary-item"><div class="summary-value" id="sLoss" style="color:var(--loss)">0</div><div class="summary-label">Não Empates ✗</div></div>
   <div class="summary-item"><div class="summary-value" id="sRecup" style="color:var(--accent3)">0</div><div class="summary-label">Em Recuperação</div></div>
@@ -225,6 +231,9 @@
       </label>
       <label style="display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);cursor:pointer">
         <input type="radio" name="lancDist" value="recup" id="lancRecup"> Só linhas em recuperação
+      </label>
+      <label style="display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);cursor:pointer">
+        <input type="radio" name="lancDist" value="7" id="lanc7"> 7 primeiras linhas
       </label>
     </div>
   </div>
@@ -863,12 +872,35 @@ tbody.appendChild(tr);
 document.getElementById('sTotal').textContent = fmtU(totAposta);
 colorPnl(document.getElementById('sPnl'),    totPnl);
 colorPnl(document.getElementById('sPnlAcc'), totAcc);
+  // Modo 7
+  if (!A.modo7) A.modo7 = false;
+  var modo7El = document.getElementById('sModo7');
+  if (modo7El) {
+    modo7El.textContent = A.modo7 ? 'ON' : 'OFF';
+    modo7El.style.color = A.modo7 ? 'var(--accent)' : 'var(--muted)';
+  }
+  var allRows = document.querySelectorAll('#tbody tr');
+  allRows.forEach(function(row, idx) {
+    row.style.display = (A.modo7 && idx >= 7) ? 'none' : '';
+  });
 document.getElementById('sWins').textContent  = wins;
 const totalGreens = A.lines.reduce((s, ln) => {
 if (!ln.pnlLog) return s;
 return s + Object.values(ln.pnlLog).filter(v => v > 0).length;
 }, 0);
 document.getElementById('sTotalGreens').textContent = totalGreens || '—';
+const totalResultados = A.lines.reduce((s, ln) => {
+if (!ln.pnlLog) return s;
+return s + Object.values(ln.pnlLog).filter(v => v !== 0).length;
+}, 0);
+const pctGreenEl = document.getElementById('sPctGreen');
+if (pctGreenEl) {
+  if (totalResultados > 0) {
+    const pct = ((totalGreens / totalResultados) * 100).toFixed(1);
+    pctGreenEl.textContent = pct + '%';
+    pctGreenEl.style.color = parseFloat(pct) >= 50 ? 'var(--win)' : 'var(--accent3)';
+  } else { pctGreenEl.textContent = '—'; }
+}
 const valorGreens = A.lines.reduce((s, ln) => {
 if (!ln.pnlLog) return s;
 return r2(s + Object.values(ln.pnlLog).filter(v => v > 0).reduce((a, v) => r2(a + v), 0));
@@ -1066,8 +1098,11 @@ window.confirmarLancamento = function() {
   var val = parseFloat(document.getElementById('lancValor').value);
   if (!val || val <= 0) { alert('Informe um valor válido.'); return; }
   val = r2(val);
-  var soRecup = document.getElementById('lancRecup').checked;
-  var alvo = soRecup ? A.lines.filter(function(ln){ return ln.stage > 0; }) : A.lines;
+  var lancVal = document.querySelector('input[name="lancDist"]:checked').value;
+  var alvo;
+  if (lancVal === 'recup') alvo = A.lines.filter(function(ln){ return ln.stage > 0; });
+  else if (lancVal === '7') alvo = A.lines.slice(0, 7);
+  else alvo = A.lines;
   if (!alvo.length) { alert('Nenhuma linha disponível para distribuição.'); return; }
   var frac = r2(val / alvo.length);
   alvo.forEach(function(ln) {
@@ -1623,7 +1658,9 @@ A.concursos.forEach(function(c,idx){
   var apostado=c.totalApostado||0; var wins2=0,x2=0,recup2=0,haver2=0,apost2=0;
   A.lines.forEach(function(ln){
     var k=String(num);
-    if(ln.lastAction&&ln.lastAction.key===k){if(ln.lastAction.won)wins2++;else x2++;}
+    if(ln.pnlLog && typeof ln.pnlLog[k]!=='undefined' && ln.pnlLog[k]!==0){
+      if(ln.pnlLog[k]>0) wins2++; else x2++;
+    }
     if(ln.apostado&&ln.apostado[k]) apost2++;
   });
   if(idx===A.cur){recup2=A.lines.filter(function(ln){return ln.stage>0;}).length;haver2=r2(A.lines.reduce(function(s,ln){return s+(ln.lostAccum||0);},0));}
