@@ -463,7 +463,7 @@ if (state === 'synced') setTimeout(() => bar.className = 'hidden', 2500);
 // ══════════════════════════════════════════════════════
 let _saveTimer = null;
 async function save() {
-if (A) saveOddsToConc();
+// Odds já são salvas diretamente em curConc().odds via _setOdd
 clearTimeout(_saveTimer);
 _saveTimer = setTimeout(async () => {
 try {
@@ -1298,7 +1298,15 @@ save(); render();
 }
 };
 function saveOddsToConc() {
-curConc().odds = A.lines.map(ln => ln.odd || 3.0);
+// Só salvar se ln.odd estiver definido (evitar sobrescrever com 3.0 padrão)
+const hasOdds = A.lines.some(ln => ln.odd && ln.odd !== 3.0);
+if (hasOdds || !curConc().odds) {
+  curConc().odds = A.lines.map((ln, i) => {
+    // Usar ln.odd se definido, senão manter o que já está no concurso
+    if (ln.odd && ln.odd >= 1.01) return ln.odd;
+    return (curConc().odds && curConc().odds[i]) ? curConc().odds[i] : 3.0;
+  });
+}
 }
 function loadOddsFromConc() {
 const odds = curConc().odds;
