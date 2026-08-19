@@ -1094,6 +1094,11 @@ if (!ln.nulo) ln.nulo = {};
 ln.nulo[key] = !ln.nulo[key];
 save(); render();
 };
+window.toggleModo7 = function() {
+  A.modo7 = !A.modo7;
+  save(); render();
+};
+
 window.confirmarLancamento = function() {
   var val = parseFloat(document.getElementById('lancValor').value);
   if (!val || val <= 0) { alert('Informe um valor válido.'); return; }
