@@ -469,7 +469,11 @@ _saveTimer = setTimeout(async () => {
 try {
 syncUI('syncing', 'Salvando...');
 _saving = true;
-await setDoc(DOC_REF, JSON.parse(JSON.stringify(A)));
+// Salvar sem ln.odd nas lines (odds ficam apenas em concurso.odds[])
+const toSave = JSON.parse(JSON.stringify(A));
+toSave.lines.forEach(function(ln){ delete ln.odd; });
+if (toSave.linesHT) toSave.linesHT.forEach(function(ln){ delete ln.odd; });
+await setDoc(DOC_REF, toSave);
 syncUI('synced', 'Salvo ✓');
 } catch(e) {
 console.error('Erro ao salvar:', e);
