@@ -1257,10 +1257,9 @@ curConc().odds = A.lines.map(ln => ln.odd || 3.0);
 function loadOddsFromConc() {
 const odds = curConc().odds;
 if (odds && odds.length === N) {
-A.lines.forEach((ln, i) => { ln.odd = odds[i]; });
-} else {
-A.lines.forEach(ln => { ln.odd = 3.0; });
+A.lines.forEach((ln, i) => { ln.odd = odds[i] || 3.0; });
 }
+// Se não tem odds salvas, manter as odds atuais das lines (não resetar)
 }
 window.goPrev = function() {
 if (A.cur > 0) {
@@ -1299,17 +1298,19 @@ const today = new Date();
 const dd = String(today.getDate()).padStart(2,'0');
 const mm = String(today.getMonth()+1).padStart(2,'0');
 const yy = String(today.getFullYear()).slice(-2);
+// Salvar odds atuais antes de criar novo concurso
+saveOddsToConc();
 A.concursos.push({
 num,
 games:     blankGames(),
 filterOn:  prev.filterOn  !== undefined ? prev.filterOn : true,
 threshold: prev.threshold || 6.5,
-odds:      Array(N).fill(3.0),
+odds:      A.lines.map(ln => ln.odd || 3.0), // herda odds do concurso anterior
 date:      dd + '/' + mm + '/' + yy,
 year:      today.getFullYear(),
 });
 A.cur = A.concursos.length - 1;
-loadOddsFromConc(); // carrega 3.0 do novo concurso
+// Não resetar odds — manter as mesmas do concurso anterior
 }
 closeM('mNext'); save(); render();
 };
