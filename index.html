@@ -1787,6 +1787,7 @@ A.concursos.forEach(function(c,idx){
     +'<td style="color:var(--muted)">'+(apost2||'—')+'</td>';
   tbody.appendChild(tr);
 });
+  var hw=tbody.closest('.table-wrapper');if(hw)setTimeout(function(){hw.scrollTop=hw.scrollHeight;},50);
 }
 
 // ══ SISTEMA EXTRA ══
