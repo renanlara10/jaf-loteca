@@ -1773,6 +1773,7 @@ A.concursos.forEach(function(c,idx){
   var pAC=pnlAcum>0?'hist-pos':pnlAcum<0?'hist-neg':'hist-zero';
   var isCur=idx===A.cur;
   var tr=document.createElement('tr'); if(isCur) tr.classList.add('cur-row');
+var hw=document.getElementById('histWrap');if(hw)hw.scrollTop=hw.scrollHeight;
   tr.onclick=function(){A.cur=idx;save();render();window.scrollTo({top:0,behavior:'smooth'});};
   tr.innerHTML='<td class="hist-num">'+num+'</td>'
     +'<td><span class="hist-year" style="background:'+anoColor+'22;color:'+anoColor+';border:1px solid '+anoColor+'44">'+anoFull+'</span></td>'
